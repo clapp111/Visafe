@@ -2,6 +2,8 @@
 
 Visafe API 서버 (Spring Boot 4.1 / Java 21 / PostgreSQL)
 
+브랜치·커밋·PR 규칙은 [docs/branch-commit-convention.md](../docs/branch-commit-convention.md)를 따릅니다.
+
 ## 기술 스택
 
 | 구분 | 사용 기술 |
