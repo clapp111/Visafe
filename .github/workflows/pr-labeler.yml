@@ -1,0 +1,21 @@
+name: PR Labeler
+
+# pull_request_target: 기본 브랜치(dev)의 워크플로·설정으로 실행되어 라벨 쓰기 권한을 가진다.
+# PR 코드를 체크아웃하거나 실행하지 않으므로 안전하다. (labeler는 바뀐 파일 경로만 본다)
+on:
+  pull_request_target:
+    types: [opened, synchronize, reopened]
+
+permissions:
+  contents: read
+  pull-requests: write
+
+jobs:
+  label:
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/labeler@v7
+        with:
+          # 해당 영역 변경이 빠지면 라벨도 뗀다
+          sync-labels: true
