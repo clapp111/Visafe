@@ -1,0 +1,46 @@
+#!/bin/sh
+# backend의 'installGitHook' Gradle 태스크로 설치됩니다. 이 파일을 수정한 뒤 태스크를 다시 실행하세요.
+# 모노레포라 push할 커밋에 backend 변경이 있을 때만 Error Prone 정적 분석(컴파일)을 실행합니다.
+
+BACKEND_DIR="backend"
+REPO_ROOT=$(git rev-parse --show-toplevel) || exit 1
+
+is_zero() {
+  case "$1" in
+    *[!0]*) return 1 ;;
+    *) return 0 ;;
+  esac
+}
+
+changed=0
+# stdin: <local ref> <local sha> <remote ref> <remote sha>
+while read -r local_ref local_sha remote_ref remote_sha; do
+  if is_zero "$local_sha"; then
+    continue # 브랜치 삭제
+  fi
+  if is_zero "$remote_sha"; then
+    range="$local_sha --not --remotes" # 새 브랜치: 아직 원격에 없는 커밋만
+  else
+    range="$remote_sha..$local_sha"
+  fi
+  # shellcheck disable=SC2086
+  if git log --name-only --format= $range -- "$BACKEND_DIR" | grep -q .; then
+    changed=1
+  fi
+done
+
+if [ "$changed" -eq 0 ]; then
+  exit 0
+fi
+
+echo "[errorprone] Running backend static analysis (compileJava, compileTestJava)..."
+cd "$REPO_ROOT/$BACKEND_DIR" || exit 1
+sh ./gradlew compileJava compileTestJava --daemon -q
+if [ $? -ne 0 ]; then
+  echo ""
+  echo "[errorprone] Static analysis failed."
+  echo "[errorprone] Fix the reported issues, commit them, and push again."
+  exit 1
+fi
+echo "[errorprone] Static analysis OK. Proceeding with push."
+exit 0

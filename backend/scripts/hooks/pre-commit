@@ -1,0 +1,22 @@
+#!/bin/sh
+# backend의 'installGitHook' Gradle 태스크로 설치됩니다. 이 파일을 수정한 뒤 태스크를 다시 실행하세요.
+# 모노레포라 backend Java 파일이 커밋에 포함될 때만 검사합니다. (frontend·contracts 커밋은 그대로 통과)
+
+BACKEND_DIR="backend"
+REPO_ROOT=$(git rev-parse --show-toplevel) || exit 1
+
+if ! git diff --cached --name-only --diff-filter=ACMR -- "$BACKEND_DIR/src" | grep -q '\.java$'; then
+  exit 0
+fi
+
+echo "[spotless] Checking backend formatting..."
+cd "$REPO_ROOT/$BACKEND_DIR" || exit 1
+sh ./gradlew spotlessCheck --daemon -q
+if [ $? -ne 0 ]; then
+  echo ""
+  echo "[spotless] Formatting violations found."
+  echo "[spotless] Run './gradlew spotlessApply' in backend/, then 'git add' the changed files and commit again."
+  exit 1
+fi
+echo "[spotless] Formatting OK. Proceeding with commit."
+exit 0

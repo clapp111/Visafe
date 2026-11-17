@@ -1,0 +1,6 @@
+# 줄바꿈은 LF로 통일 (Spotless lineEndings = UNIX와 맞춤)
+* text=auto eol=lf
+
+/gradlew text eol=lf
+*.bat text eol=crlf
+*.jar binary

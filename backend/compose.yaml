@@ -1,0 +1,22 @@
+# 로컬 개발용 인프라: docker compose up -d
+services:
+  postgres:
+    image: postgres:17-alpine
+    container_name: visafe-postgres
+    environment:
+      POSTGRES_DB: visafe
+      POSTGRES_USER: visafe
+      POSTGRES_PASSWORD: visafe
+      TZ: UTC
+    ports:
+      - "5432:5432"
+    volumes:
+      - postgres-data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U visafe -d visafe"]
+      interval: 5s
+      timeout: 3s
+      retries: 10
+
+volumes:
+  postgres-data:
