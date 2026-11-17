@@ -9,9 +9,15 @@ spring:
   datasource:
     driver-class-name: org.postgresql.Driver
 
+  # 스키마는 Flyway(db/migration/V{n}__설명.sql)가 만들고 바꾼다. 이미 적용된 마이그레이션 파일은 고치지 않고 새 버전을 추가한다.
+  flyway:
+    enabled: true
+    locations: classpath:db/migration
+
   jpa:
     open-in-view: false
     hibernate:
+      # Hibernate는 테이블을 만들지 않고, 엔티티가 Flyway로 만든 스키마와 맞는지만 검사한다.
       ddl-auto: validate
     show-sql: false
     properties:

@@ -9,6 +9,7 @@ Visafe API 서버 (Spring Boot 4.1 / Java 21 / PostgreSQL)
 | Language | Java 21 (JDK 21 이상으로 빌드) |
 | Framework | Spring Boot 4.1.2 (Web MVC, Validation, Data JPA, Actuator) |
 | DB | PostgreSQL 17 (로컬: Docker Compose), 테스트: H2 (PostgreSQL 모드) |
+| 마이그레이션 | Flyway (`src/main/resources/db/migration`) |
 | API 문서 | springdoc-openapi (Swagger UI) |
 | Build | Gradle 9 (Kotlin DSL, Wrapper 포함) |
 
@@ -76,11 +77,11 @@ frontend·contracts만 바꾼 커밋/푸시는 검사 없이 통과합니다. �
 
 | 파일 | 용도 |
 | --- | --- |
-| `application.yml` | 공통 (JPA `ddl-auto: validate`, `open-in-view: false`, UTC, Actuator, Swagger 경로 등) |
-| `application-local.yml` | 로컬 개발. `backend/.env` 자동 로드, DB 기본값은 compose의 PostgreSQL, `ddl-auto: update`(Flyway 도입 전까지), SQL 로그 |
+| `application.yml` | 공통 (Flyway, JPA `ddl-auto: validate`, `open-in-view: false`, UTC, Actuator, Swagger 경로 등) |
+| `application-local.yml` | 로컬 개발. `backend/.env` 자동 로드, DB 기본값은 compose의 PostgreSQL, SQL 로그 |
 | `application-dev.yml` | 개발 서버. DB 접속 정보는 환경 변수 필수, 커넥션 풀 5 |
 | `application-prod.yml` | 운영 서버. DB 접속 정보는 환경 변수 필수, 커넥션 풀 10, Swagger 비활성화 |
-| `src/test/resources/application-test.yml` | 테스트. H2 인메모리 DB, `ddl-auto: create-drop` |
+| `src/test/resources/application-test.yml` | 테스트. H2 인메모리 DB, Flyway 끔, `ddl-auto: create-drop` |
 
 | 환경 변수 | local 기본값 | dev / prod |
 | --- | --- | --- |
@@ -91,6 +92,27 @@ frontend·contracts만 바꾼 커밋/푸시는 검사 없이 통과합니다. �
 
 로컬 값은 `.env.example`을 복사해 `backend/.env`로 만들어 바꿉니다. `.env`는 Spring(local 프로필)과 `docker compose`가 함께 읽으며 커밋하지 않습니다.
 PC에 PostgreSQL이 설치되어 5432를 이미 쓰고 있다면 `.env`에 `POSTGRES_PORT=5433`과 `DB_URL=jdbc:postgresql://localhost:5433/visafe`를 넣으세요.
+
+## DB 마이그레이션 (Flyway)
+
+스키마는 `src/main/resources/db/migration`의 SQL로만 만들고 바꿉니다. 서버가 시작할 때 Flyway가 아직 적용하지 않은 파일을 버전 순서대로 실행하고,
+이어서 Hibernate가 엔티티와 스키마가 맞는지 검사(`ddl-auto: validate`)합니다. 맞지 않으면 서버가 뜨지 않습니다.
+
+| 파일 | 내용 |
+| --- | --- |
+| `V1__init.sql` | 초기 스키마 (테이블 22개, FK·CHECK·인덱스·트리거). 설계 문서: Visafe ERD 설계 |
+
+**스키마를 바꿀 때**
+1. 새 파일을 추가합니다: `V2__add_xxx_to_contracts.sql` (`V{번호}__{설명}.sql`, 밑줄 2개)
+2. 엔티티를 함께 고칩니다. 서버를 띄우면 validate가 둘이 맞는지 확인합니다.
+3. **이미 적용된 파일(`V1__init.sql` 등)은 고치지 않습니다.** 내용이 바뀌면 Flyway가 체크섬 불일치로 시작을 막습니다.
+
+로컬 DB를 처음부터 다시 만들려면 볼륨을 지우고 다시 띄웁니다. (로컬 데이터가 모두 지워집니다)
+
+```bash
+docker compose down -v
+docker compose up -d
+```
 
 ## 패키지 구조
 

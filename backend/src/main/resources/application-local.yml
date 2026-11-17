@@ -10,9 +10,6 @@ spring:
     password: ${DB_PASSWORD:visafe}
 
   jpa:
-    # Flyway(V1__init.sql) 도입 전까지 엔티티로 테이블을 만든다. 도입 후 validate로 바꾼다.
-    hibernate:
-      ddl-auto: update
     show-sql: true
     properties:
       hibernate:
