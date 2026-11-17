@@ -18,3 +18,10 @@ spring:
 logging:
   level:
     com.visafe: debug
+
+# 로컬 전용 기본값. dev/prod에서는 반드시 JWT_SECRET 환경 변수로 다른 값을 넣는다.
+jwt:
+  secret: ${JWT_SECRET:local-only-jwt-secret-do-not-use-in-dev-or-prod}
+
+cors:
+  allowed-origins: ${CORS_ALLOWED_ORIGINS:http://localhost:3000,http://localhost:5173}

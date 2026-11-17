@@ -9,7 +9,9 @@ import org.springframework.http.HttpStatus;
 public enum CustomErrorCode implements ErrorCode {
 
     // JWT 인증 에러
+    AUTH_LOGIN_FAILED(HttpStatus.UNAUTHORIZED, 401, "이메일 또는 비밀번호가 올바르지 않습니다."),
     AUTH_UNAUTHORIZED(HttpStatus.UNAUTHORIZED, 401, "인증이 필요합니다."),
+    AUTH_FORBIDDEN(HttpStatus.FORBIDDEN, 403, "접근 권한이 없습니다."),
     JWT_INVALID(HttpStatus.UNAUTHORIZED, 401, "유효하지 않은 토큰입니다."),
     JWT_EXPIRED(HttpStatus.UNAUTHORIZED, 401, "만료된 토큰입니다."),
     JWT_MALFORMED(HttpStatus.UNAUTHORIZED, 401, "잘못된 형식의 토큰입니다."),
@@ -25,6 +27,9 @@ public enum CustomErrorCode implements ErrorCode {
     COMMON_HANDLER_NOT_FOUND(HttpStatus.NOT_FOUND, 404, "요청한 API를 찾을 수 없습니다."),
     COMMON_METHOD_NOT_ALLOWED(HttpStatus.METHOD_NOT_ALLOWED, 405, "지원하지 않는 HTTP 메서드입니다."),
     COMMON_UNSUPPORTED_MEDIA_TYPE(HttpStatus.UNSUPPORTED_MEDIA_TYPE, 415, "지원하지 않는 Content-Type입니다."),
+
+    // 회원
+    MEMBER_NOT_FOUND(HttpStatus.NOT_FOUND, 404, "회원을 찾을 수 없습니다."),
 
     // 공통 500 에러 코드
     COMMON_INTERNAL_SERVER_ERROR(HttpStatus.INTERNAL_SERVER_ERROR, 500, "서버 내부 오류가 발생했습니다.");

@@ -8,6 +8,8 @@ import org.springframework.http.HttpMethod;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.http.converter.HttpMessageNotReadableException;
+import org.springframework.security.access.AccessDeniedException;
+import org.springframework.security.authentication.BadCredentialsException;
 import org.springframework.validation.FieldError;
 import org.springframework.web.HttpMediaTypeNotSupportedException;
 import org.springframework.web.HttpRequestMethodNotSupportedException;
@@ -169,6 +171,32 @@ public class GlobalExceptionHandler {
             response.header(HttpHeaders.ACCEPT, MediaType.toString(supportedMediaTypes)); // 받을 수 있는 형식 안내
         }
         return response.body(ErrorResponse.create(errorCode.getCode(), errorCode.getMessage()));
+    }
+
+    // 로그인 실패. 이메일이 없는 경우도 같은 예외·메시지로 응답한다. (가입된 이메일인지 알 수 없게)
+    @ExceptionHandler(BadCredentialsException.class)
+    public ResponseEntity<ErrorResponse> handleBadCredentialsException(BadCredentialsException e) {
+        ErrorCode errorCode = CustomErrorCode.AUTH_LOGIN_FAILED;
+        log.warn(
+                "BadCredentialsException: code={}, status={}, message={}",
+                errorCode.getCode(),
+                errorCode.getHttpStatus().value(),
+                errorCode.getMessage());
+        return ResponseEntity.status(errorCode.getHttpStatus())
+                .body(ErrorResponse.create(errorCode.getCode(), errorCode.getMessage()));
+    }
+
+    // 컨트롤러·서비스에서 권한 검사(@PreAuthorize 등)에 실패한 경우. 없으면 아래 Exception 핸들러가 500으로 바꾼다.
+    @ExceptionHandler(AccessDeniedException.class)
+    public ResponseEntity<ErrorResponse> handleAccessDeniedException(AccessDeniedException e) {
+        ErrorCode errorCode = CustomErrorCode.AUTH_FORBIDDEN;
+        log.warn(
+                "AccessDeniedException: code={}, status={}, message={}",
+                errorCode.getCode(),
+                errorCode.getHttpStatus().value(),
+                e.getMessage());
+        return ResponseEntity.status(errorCode.getHttpStatus())
+                .body(ErrorResponse.create(errorCode.getCode(), errorCode.getMessage()));
     }
 
     @ExceptionHandler(Exception.class)
