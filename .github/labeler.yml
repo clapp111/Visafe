@@ -1,0 +1,14 @@
+# PR에서 바뀐 경로를 보고 영역 라벨을 자동으로 붙인다. (.github/workflows/pr-labeler.yml)
+# 라벨 색은 GitHub Issues → Labels에서 지정: frontend #1D76DB, backend #D73A4A, contracts #8250DF
+
+backend:
+  - changed-files:
+      - any-glob-to-any-file: "backend/**"
+
+frontend:
+  - changed-files:
+      - any-glob-to-any-file: "frontend/**"
+
+contracts:
+  - changed-files:
+      - any-glob-to-any-file: "contracts/**"
