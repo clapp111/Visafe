@@ -71,18 +71,26 @@ frontend·contracts만 바꾼 커밋/푸시는 검사 없이 통과합니다. �
 
 ## 프로필 & 환경 변수
 
-| 프로필 | 용도 |
-| --- | --- |
-| `local` (기본) | 로컬 개발. `ddl-auto: update`, SQL 로그 출력 |
-| `test` | 테스트. H2 인메모리 DB, `ddl-auto: create-drop` |
-| `prod` | 운영. `ddl-auto: validate`, Swagger 비활성화 |
+`src/main/resources`의 `application.yml`에 공통 설정을 두고, 환경마다 다른 값만 프로필 파일에 둡니다.
+프로필은 `SPRING_PROFILES_ACTIVE`로 고르며, 지정하지 않으면 `local`입니다.
 
-| 환경 변수 | 기본값 |
+| 파일 | 용도 |
 | --- | --- |
-| `DB_URL` | `jdbc:postgresql://localhost:5432/visafe` |
-| `DB_USERNAME` / `DB_PASSWORD` | `visafe` / `visafe` |
-| `DB_POOL_SIZE` | `10` |
-| `SERVER_PORT` | `8080` |
+| `application.yml` | 공통 (JPA `ddl-auto: validate`, `open-in-view: false`, UTC, Actuator, Swagger 경로 등) |
+| `application-local.yml` | 로컬 개발. `backend/.env` 자동 로드, DB 기본값은 compose의 PostgreSQL, `ddl-auto: update`(Flyway 도입 전까지), SQL 로그 |
+| `application-dev.yml` | 개발 서버. DB 접속 정보는 환경 변수 필수, 커넥션 풀 5 |
+| `application-prod.yml` | 운영 서버. DB 접속 정보는 환경 변수 필수, 커넥션 풀 10, Swagger 비활성화 |
+| `src/test/resources/application-test.yml` | 테스트. H2 인메모리 DB, `ddl-auto: create-drop` |
+
+| 환경 변수 | local 기본값 | dev / prod |
+| --- | --- | --- |
+| `DB_URL` | `jdbc:postgresql://localhost:5432/visafe` | 필수 |
+| `DB_USERNAME` / `DB_PASSWORD` | `visafe` / `visafe` | 필수 |
+| `SERVER_PORT` | `8080` | `8080` |
+| `POSTGRES_PORT` | `5432` (docker compose 호스트 포트) | — |
+
+로컬 값은 `.env.example`을 복사해 `backend/.env`로 만들어 바꿉니다. `.env`는 Spring(local 프로필)과 `docker compose`가 함께 읽으며 커밋하지 않습니다.
+PC에 PostgreSQL이 설치되어 5432를 이미 쓰고 있다면 `.env`에 `POSTGRES_PORT=5433`과 `DB_URL=jdbc:postgresql://localhost:5433/visafe`를 넣으세요.
 
 ## 패키지 구조
 

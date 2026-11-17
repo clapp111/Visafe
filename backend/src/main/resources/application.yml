@@ -1,0 +1,56 @@
+# 모든 환경 공통 설정. 환경별로 다른 값만 application-{local,dev,prod}.yml에 둔다.
+# 프로필 지정: SPRING_PROFILES_ACTIVE=dev (지정하지 않으면 local)
+spring:
+  application:
+    name: visafe-backend
+  profiles:
+    default: local
+
+  datasource:
+    driver-class-name: org.postgresql.Driver
+
+  jpa:
+    open-in-view: false
+    hibernate:
+      ddl-auto: validate
+    show-sql: false
+    properties:
+      hibernate:
+        default_batch_fetch_size: 100
+        jdbc:
+          time_zone: UTC
+
+  data:
+    web:
+      pageable:
+        max-page-size: 100
+
+  jackson:
+    time-zone: UTC
+
+server:
+  port: ${SERVER_PORT:8080}
+  shutdown: graceful
+  servlet:
+    encoding:
+      charset: UTF-8
+      force: true
+
+management:
+  endpoints:
+    web:
+      exposure:
+        include: health, info
+  endpoint:
+    health:
+      show-details: never
+      probes:
+        enabled: true
+
+springdoc:
+  api-docs:
+    path: /v3/api-docs
+  swagger-ui:
+    path: /swagger-ui.html
+    operations-sorter: method
+    tags-sorter: alpha

@@ -1,0 +1,23 @@
+# 로컬 개발. DB는 compose.yaml의 PostgreSQL(docker compose up -d)을 기본값으로 쓴다.
+# 값을 바꾸거나 키를 넣을 때는 backend/.env 파일을 만든다. (.env.example 참고, 커밋 금지)
+spring:
+  config:
+    import: optional:file:.env[.properties]
+
+  datasource:
+    url: ${DB_URL:jdbc:postgresql://localhost:5432/visafe}
+    username: ${DB_USERNAME:visafe}
+    password: ${DB_PASSWORD:visafe}
+
+  jpa:
+    # Flyway(V1__init.sql) 도입 전까지 엔티티로 테이블을 만든다. 도입 후 validate로 바꾼다.
+    hibernate:
+      ddl-auto: update
+    show-sql: true
+    properties:
+      hibernate:
+        format_sql: true
+
+logging:
+  level:
+    com.visafe: debug
