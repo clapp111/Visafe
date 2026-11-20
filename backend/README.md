@@ -122,26 +122,25 @@ docker compose up -d
 com.visafe
 ├── VisafeApplication.java
 ├── global
-│   ├── common   # BaseTimeEntity 등 공통 클래스
-│   ├── config   # JPA Auditing, OpenAPI 설정
-│   └── error    # ErrorCode, BusinessException, GlobalExceptionHandler
-└── domain       # 도메인별 패키지 (예: domain/user/{controller,service,repository,entity,dto})
+│   ├── common     # BaseTimeEntity 등 공통 클래스
+│   ├── config     # Security, CORS, OpenAPI 설정
+│   ├── exception  # CustomErrorCode, RestApiException, GlobalExceptionHandler
+│   └── jwt        # JWT 발급·검증 필터, 리프레시 토큰
+└── domain         # 도메인별 패키지 (예: domain/member/{controller,service,repository,entity,dto})
 ```
 
 ## 에러 응답 형식
 
-[RFC 9457 Problem Details](https://www.rfc-editor.org/rfc/rfc9457) 형식에 `code` 속성을 추가해 반환합니다.
+모든 에러는 아래 형식으로 응답합니다. 컨트롤러 예외는 `GlobalExceptionHandler`가, 인증 필터·Security 예외는 `ErrorResponseWriter`가 같은 형식으로 씁니다.
 
 ```json
-{
-  "type": "about:blank",
-  "title": "Bad Request",
-  "status": 400,
-  "detail": "잘못된 입력값입니다.",
-  "instance": "/api/v1/...",
-  "code": "C001",
-  "errors": [{ "field": "name", "message": "공백일 수 없습니다" }]
-}
+{ "code": 409, "errorCode": "CONTRACT_STAGE_CONFLICT", "message": "지금 단계에서는 할 수 없는 작업입니다." }
 ```
 
-비즈니스 예외는 `ErrorCode`에 코드를 추가하고 `throw new BusinessException(ErrorCode.XXX)`로 발생시킵니다.
+| 필드 | 설명 |
+| --- | --- |
+| `code` | HTTP 상태 코드 |
+| `errorCode` | `CustomErrorCode` 상수 이름. 같은 HTTP 상태 안에서 원인을 구분할 때 씁니다 |
+| `message` | 화면에 보여 줄 수 있는 메시지 |
+
+비즈니스 예외는 `CustomErrorCode`에 코드를 추가하고 `throw new RestApiException(CustomErrorCode.XXX)`로 발생시킵니다. 기본 메시지 대신 구체적인 내용을 담으려면 `new RestApiException(CustomErrorCode.XXX, "메시지")`를 씁니다.

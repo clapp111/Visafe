@@ -31,12 +31,23 @@ spring:
       pageable:
         max-page-size: 100
 
+  # 계약서 원본 업로드 (PDF·JPG·PNG 1개, 최대 10MB). 넘으면 413 FILE_TOO_LARGE.
+  # 요청 전체는 파일에 JSON 파트(data)가 붙으므로 조금 더 크게 둔다.
+  servlet:
+    multipart:
+      max-file-size: 10MB
+      max-request-size: 11MB
+
   jackson:
     time-zone: UTC
 
 server:
   port: ${SERVER_PORT:8080}
   shutdown: graceful
+  tomcat:
+    # 크기 제한을 넘은 요청에 413을 보낸 뒤, 남은 본문을 이 크기까지 읽고 버린다. (기본 2MB)
+    # 기본값이면 조금만 큰 파일도 응답 전에 연결이 끊겨 브라우저에 네트워크 오류로 보인다.
+    max-swallow-size: 20MB
   servlet:
     encoding:
       charset: UTF-8
