@@ -9,6 +9,10 @@ spring:
     username: ${DB_USERNAME:visafe}
     password: ${DB_PASSWORD:visafe}
 
+  # 스키마 + 데모 계정 시드 (db/seed는 local·dev에서만)
+  flyway:
+    locations: classpath:db/migration,classpath:db/seed
+
   jpa:
     show-sql: true
     properties:

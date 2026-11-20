@@ -116,6 +116,18 @@ docker compose down -v
 docker compose up -d
 ```
 
+### 데모 계정 (local·dev)
+
+local·dev 프로필은 `db/seed/R__demo_seed.sql`로 데모 계정을 넣습니다. prod에는 들어가지 않습니다. 비밀번호는 모두 `visafe-demo-1234`입니다.
+
+| 이메일 | 역할 | 이름 | 비고 |
+| --- | --- | --- | --- |
+| `employer@demo.visafe.test` | EMPLOYER | 김민수 | 사업주 한빛정밀 |
+| `worker1@demo.visafe.test` | WORKER | Nguyễn Văn An | 1998-04-17, 외국인등록번호 뒷자리 4821 |
+| `worker2@demo.visafe.test` | WORKER | Nguyễn Văn An | 동명이인. 2001-09-03, 1357 |
+| `worker3@demo.visafe.test` | WORKER | Lê Thị Hoa | 1996-12-25, 2468 |
+| `admin@demo.visafe.test` | ADMIN | 감독기관 담당자 | |
+
 ## 패키지 구조
 
 ```

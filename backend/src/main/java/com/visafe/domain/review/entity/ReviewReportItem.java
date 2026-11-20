@@ -25,7 +25,7 @@ import org.hibernate.annotations.Immutable;
 
 /**
  * E. 신고 항목 (review_report_items) — 추가 전용.
- * 번역 신고(TRANSLATION)는 field_name이 없고, 항목 신고(ITEM_MISMATCH)는 field_name이 필수다.
+ * 원본과 다른 항목(ITEM_MISMATCH)만 신고하며 field_name이 필수다. (번역 신고는 MVP에서 제외)
  */
 @Getter
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
@@ -46,9 +46,9 @@ public class ReviewReportItem extends BaseCreatedTimeEntity {
     @Column(name = "report_type", nullable = false, length = 20)
     private ReportType reportType;
 
-    /** 신고한 항목 (번역 신고는 null) */
+    /** 신고한 항목 */
     @Convert(converter = TermFieldConverter.class)
-    @Column(name = "field_name", length = 50)
+    @Column(name = "field_name", nullable = false, length = 50)
     private TermField fieldName;
 
     private ReviewReportItem(ReviewResponse reviewResponse, ReportType reportType, TermField fieldName) {
@@ -63,9 +63,5 @@ public class ReviewReportItem extends BaseCreatedTimeEntity {
     public static ReviewReportItem itemMismatch(ReviewResponse reviewResponse, TermField fieldName) {
         return new ReviewReportItem(
                 reviewResponse, ReportType.ITEM_MISMATCH, Objects.requireNonNull(fieldName, "fieldName"));
-    }
-
-    public static ReviewReportItem translation(ReviewResponse reviewResponse) {
-        return new ReviewReportItem(reviewResponse, ReportType.TRANSLATION, null);
     }
 }
