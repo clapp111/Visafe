@@ -33,8 +33,11 @@ import org.hibernate.type.SqlTypes;
  * B. 계약 (contracts).
  * <ul>
  *   <li>stage만 저장하고 status는 DB 생성 컬럼으로 계산한다. 코드에서는 {@link #getStatus()}가 stage에서 바로 계산한다.</li>
- *   <li>DONE·ENDED는 {@link #confirm}·{@link #terminate}로만 들어간다. 확인번호·확정 일시·종료 일시를
- *       stage와 함께 바꿔야 CHECK(ck_contracts__confirmed_fields, ck_contracts__terminated_fields)를 지킬 수 있다.</li>
+ *   <li>RECORDING·DONE·ENDED는 {@link #startRecording}·{@link #confirm}·{@link #terminate}로만 들어간다.
+ *       확인번호·확정 일시·종료 일시를 stage와 함께 바꿔야 CHECK(ck_contracts__confirmation_no_stage,
+ *       ck_contracts__confirmed_fields, ck_contracts__terminated_fields)를 지킬 수 있다.</li>
+ *   <li>확인번호는 블록체인 기록을 시작할 때(RECORDING) 정한다. anchor_key가 keccak256(확인번호)라서,
+ *       기록 중에 서버가 재시작되어도 같은 번호로 다시 시도해야 하기 때문이다.</li>
  *   <li>확정된 계약은 수정하지 않는다. 조건이 바뀌면 previousContract를 가진 새 계약을 만든다.</li>
  * </ul>
  */
@@ -170,27 +173,40 @@ public class Contract extends BaseTimeEntity {
         return stage.toStatus();
     }
 
-    /** DONE·ENDED를 제외한 단계로 이동한다. */
+    /** RECORDING·DONE·ENDED를 제외한 단계로 이동한다. */
     public void changeStage(ContractStage next) {
-        if (next == ContractStage.DONE || next == ContractStage.ENDED) {
-            throw new IllegalArgumentException("DONE·ENDED는 confirm()·terminate()로만 바꿀 수 있습니다.");
+        if (next == ContractStage.RECORDING || next == ContractStage.DONE || next == ContractStage.ENDED) {
+            throw new IllegalArgumentException(
+                    "RECORDING·DONE·ENDED는 startRecording()·confirm()·terminate()로만 바꿀 수 있습니다.");
         }
-        if (stage == ContractStage.AWAITING_WORKER) {
-            if (next == ContractStage.AUTHORITY_REVIEW && !requiresAuthorityReview) {
-                throw new IllegalStateException("기관 검토 대상이 아닌 계약입니다.");
-            }
-            if (next == ContractStage.RECORDING && requiresAuthorityReview) {
-                throw new IllegalStateException("기관 검토를 거쳐야 하는 계약입니다.");
-            }
+        if (stage == ContractStage.AWAITING_WORKER
+                && next == ContractStage.AUTHORITY_REVIEW
+                && !requiresAuthorityReview) {
+            throw new IllegalStateException("기관 검토 대상이 아닌 계약입니다.");
         }
         requireTransition(next);
         this.stage = next;
     }
 
-    /** 블록체인 기록 완료 후 확인번호를 발급하며 확정한다. */
-    public void confirm(String confirmationNo, Instant confirmedAt) {
-        requireTransition(ContractStage.DONE);
+    /**
+     * 확인번호를 정하고 블록체인 기록 단계(RECORDING)로 들어간다.
+     * 근로자 확인 직후(기관 검토 없음) 또는 기관 승인 직후에 부른다.
+     */
+    public void startRecording(String confirmationNo) {
+        if (stage == ContractStage.AWAITING_WORKER && requiresAuthorityReview) {
+            throw new IllegalStateException("기관 검토를 거쳐야 하는 계약입니다.");
+        }
+        requireTransition(ContractStage.RECORDING);
         this.confirmationNo = Objects.requireNonNull(confirmationNo, "confirmationNo");
+        this.stage = ContractStage.RECORDING;
+    }
+
+    /** 블록체인 기록이 블록에 포함되면 확정한다. 확인번호는 {@link #startRecording}에서 정한 값을 그대로 쓴다. */
+    public void confirm(Instant confirmedAt) {
+        requireTransition(ContractStage.DONE);
+        if (confirmationNo == null) {
+            throw new IllegalStateException("확인번호 없이 확정할 수 없습니다.");
+        }
         this.confirmedAt = Objects.requireNonNull(confirmedAt, "confirmedAt");
         this.stage = ContractStage.DONE;
     }
