@@ -14,3 +14,7 @@ spring:
 logging:
   level:
     com.visafe: info
+
+visafe:
+  storage:
+    key-prefix: dev
