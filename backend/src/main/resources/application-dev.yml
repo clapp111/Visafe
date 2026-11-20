@@ -7,6 +7,10 @@ spring:
     hikari:
       maximum-pool-size: 5
 
+  # 스키마 + 데모 계정 시드 (db/seed는 local·dev에서만, prod는 application.yml의 db/migration만)
+  flyway:
+    locations: classpath:db/migration,classpath:db/seed
+
 logging:
   level:
     com.visafe: info
