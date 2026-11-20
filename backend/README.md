@@ -128,6 +128,79 @@ local·dev 프로필은 `db/seed/R__demo_seed.sql`로 데모 계정을 넣습니
 | `worker3@demo.visafe.test` | WORKER | Lê Thị Hoa | 1996-12-25, 2468 |
 | `admin@demo.visafe.test` | ADMIN | 감독기관 담당자 | |
 
+## 파일 저장소 (S3)
+
+계약서 원본은 S3에 저장하고, 브라우저는 서버가 발급한 Presigned URL(5분)로 S3에서 직접 받습니다. 저장한 바이트는 바꾸지 않습니다. 내려받은 원본의 keccak256이 블록체인 기록과 같아야 공개 조회의 파일 대조가 맞기 때문입니다.
+
+버킷 하나를 환경별 키 접두사로 나눠 씁니다. 로컬에서 올린 파일도 실제 S3에 저장됩니다.
+
+| 환경 | 키 접두사 | 접근 방법 |
+| --- | --- | --- |
+| local | `local/` | `.env`의 개인 IAM 사용자 키 (`S3_ACCESS_KEY`·`S3_SECRET_KEY`, 비우면 `~/.aws` 자격 증명) |
+| dev | `dev/` | 서버 IAM Role |
+| prod | `prod/` | 서버 IAM Role |
+
+객체 키는 `{접두사}/contracts/{계약 ID}/{UUID}.{확장자}` 형식이며, 원래 파일 이름은 키에 넣지 않고 DB에만 저장합니다.
+
+### 로컬 설정
+
+`backend/.env`에 `S3_BUCKET`, `S3_ACCESS_KEY`, `S3_SECRET_KEY`를 넣습니다. `S3_BUCKET`이 없으면 서버가 시작되지 않습니다. 접근 키는 `local/*`만 다룰 수 있는 개인 IAM 사용자로 발급합니다. (아래 IAM 정책에서 `Resource`를 `arn:aws:s3:::<버킷 이름>/local/*`로)
+
+저장소 통합 테스트(`S3FileStorageIntegrationTest`)는 실제 S3로 저장 → 읽기 → Presigned URL 내려받기 → 삭제를 돌려 봅니다. `S3_IT_BUCKET`이 있을 때만 실행되며(CI에서는 건너뜀), `local/it-test/` 아래에 썼다가 지웁니다.
+
+```bash
+# .env와 같은 값
+S3_IT_BUCKET=<버킷> S3_IT_ACCESS_KEY=<키> S3_IT_SECRET_KEY=<비밀 키> ./gradlew test --tests '*S3FileStorageIntegrationTest'
+```
+
+### 서버 환경 변수
+
+| 변수 | 설명 |
+| --- | --- |
+| `S3_BUCKET` | 버킷 이름 (dev·prod 필수) |
+| `S3_REGION` | 기본 `ap-northeast-2` |
+| `S3_OBJECT_LOCK_ENABLED` | prod에서 `true`로 두면 올리는 파일마다 Governance 모드 3년 보존을 붙입니다. 버킷에 객체 잠금이 켜져 있어야 하고, 꺼진 버킷에서 켜면 업로드가 실패합니다 |
+
+접근 키는 넣지 않고 서버의 IAM Role로 접근합니다.
+
+### 버킷 설정
+
+- 모든 퍼블릭 액세스 차단, 버전 관리, 기본 암호화(SSE-S3)를 켭니다.
+- 객체 잠금은 켜되 **기본 보존 기간은 두지 않습니다.** 기본 보존은 버킷 전체에 걸려 dev 파일까지 지울 수 없게 됩니다. 보존은 서버가 prod 파일에만 붙입니다.
+- CORS (권한 → CORS). pdf.js가 Range 요청으로 읽으므로 관련 헤더를 노출합니다. 프론트 주소는 실제 값으로 바꿉니다.
+
+```json
+[
+  {
+    "AllowedMethods": ["GET", "HEAD"],
+    "AllowedOrigins": ["https://<프론트 dev 주소>", "https://<프론트 prod 주소>", "http://localhost:5173"],
+    "AllowedHeaders": ["*"],
+    "ExposedHeaders": ["Content-Disposition", "Content-Length", "Content-Type", "Content-Range", "Accept-Ranges"],
+    "MaxAgeSeconds": 3000
+  }
+]
+```
+
+### 서버 IAM 정책
+
+dev 서버는 `dev/`만, prod 서버는 `prod/`만 다룹니다. prod는 보존을 우회하거나 버전을 지우는 권한(`s3:BypassGovernanceRetention`, `s3:DeleteObjectVersion`)을 주지 않습니다. `s3:DeleteObject`는 DB 저장이 롤백된 파일 정리용이며, 버전 관리 버킷에서는 삭제 마커만 남기고 원본 버전은 보존됩니다.
+
+```json
+{
+  "Version": "2012-10-17",
+  "Statement": [
+    {
+      "Sid": "VisafeProdObjects",
+      "Effect": "Allow",
+      "Action": ["s3:PutObject", "s3:PutObjectRetention", "s3:GetObject", "s3:DeleteObject"],
+      "Resource": "arn:aws:s3:::<버킷 이름>/prod/*"
+    }
+  ]
+}
+```
+
+dev 서버 Role과 로컬 개발용 IAM 사용자는 같은 형식에서 `Resource`를 각각 `arn:aws:s3:::<버킷 이름>/dev/*`, `arn:aws:s3:::<버킷 이름>/local/*`로 바꾸고 `s3:PutObjectRetention`을 뺍니다.
+
 ## 패키지 구조
 
 ```
