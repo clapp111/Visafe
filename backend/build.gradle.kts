@@ -50,6 +50,13 @@ dependencies {
     implementation("org.flywaydb:flyway-database-postgresql")
     runtimeOnly("org.postgresql:postgresql")
 
+    // 파일 저장소 (S3, Presigned URL)
+    implementation(platform("software.amazon.awssdk:bom:2.57.8"))
+    implementation("software.amazon.awssdk:s3")
+
+    // keccak256 (파일 해시, 블록체인 기록)
+    implementation("org.bouncycastle:bcprov-jdk18on:1.86")
+
     // Lombok / config metadata
     compileOnly("org.projectlombok:lombok")
     annotationProcessor("org.projectlombok:lombok")

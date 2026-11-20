@@ -16,3 +16,7 @@ springdoc:
 logging:
   level:
     com.visafe: info
+
+visafe:
+  storage:
+    key-prefix: prod
