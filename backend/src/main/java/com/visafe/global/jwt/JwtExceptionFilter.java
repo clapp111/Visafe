@@ -31,7 +31,7 @@ public class JwtExceptionFilter extends OncePerRequestFilter {
             filterChain.doFilter(request, response);
         } catch (RestApiException e) {
             ErrorCode errorCode = e.getErrorCode();
-            log.warn("[인증 오류] 토큰 검증 실패 - code={}, 사유: {}", errorCode.getCode(), errorCode.getMessage());
+            log.warn("[인증] 토큰 검증 실패 - code={}, reason={}", errorCode.getCode(), errorCode.getMessage());
             errorResponseWriter.write(response, errorCode);
         }
     }

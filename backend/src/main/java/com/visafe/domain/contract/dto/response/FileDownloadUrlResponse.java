@@ -5,9 +5,10 @@ import com.visafe.global.storage.PresignedDownload;
 import io.swagger.v3.oas.annotations.media.Schema;
 import java.time.Instant;
 
-@Schema(description = "원본 파일 URL. 브라우저가 S3에서 직접 받는다.")
+@Schema(description = "원본 파일 URL 응답 DTO")
 public record FileDownloadUrlResponse(
-        @Schema(description = "S3 Presigned GET URL") String url,
+        @Schema(description = "S3 Presigned GET URL. 브라우저가 S3에서 직접 받는다")
+        String url,
 
         @Schema(description = "URL 만료 시각", example = "2026-11-13T05:11:00Z")
         Instant expiresAt,

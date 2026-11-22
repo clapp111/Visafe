@@ -7,12 +7,11 @@ import org.springframework.data.domain.Page;
 
 /**
  * 목록 응답 {@code {content, page}}. 목록 외에 다른 값(건수 요약 등)이 더 필요하면 각 DTO가 {@link PageInfo}를 직접 담는다.
- *
- * @param content 현재 페이지의 항목
- * @param page 페이지 정보
  */
-@Schema(description = "목록 응답")
-public record PageResponse<T>(List<T> content, PageInfo page) {
+@Schema(description = "목록 응답 DTO")
+public record PageResponse<T>(
+        @Schema(description = "현재 페이지의 항목") List<T> content,
+        @Schema(description = "페이지 정보") PageInfo page) {
 
     public PageResponse {
         content = List.copyOf(content);

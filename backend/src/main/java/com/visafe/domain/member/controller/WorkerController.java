@@ -21,7 +21,9 @@ public class WorkerController {
 
     private final WorkerService workerService;
 
-    @Operation(summary = "근로자 검색", description = "확인 요청을 보낼 근로자를 이름 앞부분으로 찾는다. 대소문자·베트남어 성조 부호 무시, 최대 20건, 고용주만.")
+    @Operation(
+            summary = "근로자 검색",
+            description = "확인 요청을 보낼 근로자를 이름 앞부분으로 찾는다. 대소문자와 베트남어 성조 부호를 무시하고 최대 20건을 돌려주며, 고용주만 호출할 수 있다.")
     @PreAuthorize("hasRole('EMPLOYER')")
     @GetMapping
     public List<WorkerSearchResponse> search(

@@ -13,7 +13,7 @@ import org.springframework.transaction.annotation.Transactional;
 
 @Service
 @RequiredArgsConstructor
-@Transactional
+@Transactional(readOnly = true)
 public class ContractEventRecorder {
 
     private final ContractEventRepository contractEventRepository;
@@ -35,6 +35,7 @@ public class ContractEventRecorder {
      * @param payload 상세 내용, 없으면 빈 객체로 저장
      * @return 저장한 이벤트
      */
+    @Transactional
     public ContractEvent record(
             Contract contract, ContractEventType eventType, Long actorMemberId, Map<String, Object> payload) {
         Member actor = memberRepository.getReferenceById(actorMemberId);
@@ -50,6 +51,7 @@ public class ContractEventRecorder {
      * @param payload 상세 내용, 없으면 빈 객체로 저장
      * @return 저장한 이벤트
      */
+    @Transactional
     public ContractEvent recordBySystem(Contract contract, ContractEventType eventType, Map<String, Object> payload) {
         return contractEventRepository.save(
                 ContractEvent.bySystem(contract, contract.getCurrentVersion(), eventType, payload));

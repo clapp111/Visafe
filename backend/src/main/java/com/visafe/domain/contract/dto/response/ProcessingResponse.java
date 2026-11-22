@@ -6,19 +6,14 @@ import io.swagger.v3.oas.annotations.media.Schema;
 
 /**
  * 진행 중인 작업. 프론트는 2~3초 간격으로 계약 상세를 다시 불러 이 값을 확인한다.
- *
- * @param task 작업 종류
- * @param status 진행 상태
- * @param attempt 시도 횟수 (1부터)
- * @param lastError 마지막 오류 (없으면 null)
  */
-@Schema(description = "진행 중인 작업. 진행 중인 작업이 없으면 null")
+@Schema(description = "진행 중인 작업 응답 DTO")
 public record ProcessingResponse(
         @Schema(description = "작업 종류", example = "TRANSLATION")
         ProcessingTask task,
 
         @Schema(description = "진행 상태", example = "RUNNING") ProcessingStatus status,
-        @Schema(description = "시도 횟수", example = "1") int attempt,
+        @Schema(description = "시도 횟수 (1부터)", example = "1") int attempt,
         @Schema(description = "마지막 오류", nullable = true) String lastError) {
 
     public static ProcessingResponse running(ProcessingTask task, int attempt) {

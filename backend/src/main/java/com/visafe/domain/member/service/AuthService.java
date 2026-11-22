@@ -21,6 +21,7 @@ import org.springframework.transaction.annotation.Transactional;
 @Slf4j
 @Service
 @RequiredArgsConstructor
+@Transactional(readOnly = true)
 public class AuthService {
 
     private final AuthenticationManager authenticationManager;
@@ -49,7 +50,7 @@ public class AuthService {
         Authentication authentication = authenticationManager.authenticate(
                 UsernamePasswordAuthenticationToken.unauthenticated(Member.normalizeEmail(email), password));
         MemberDetails member = (MemberDetails) authentication.getPrincipal();
-        log.info("[로그인] memberId: {}", member.getMemberId());
+        log.info("[로그인] 성공 - memberId={}", member.getMemberId());
         return issueTokens(member);
     }
 

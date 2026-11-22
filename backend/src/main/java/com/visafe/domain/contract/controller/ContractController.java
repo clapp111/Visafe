@@ -36,7 +36,8 @@ public class ContractController {
 
     @Operation(
             summary = "계약 생성·원본 업로드",
-            description = "multipart: file(PDF·JPG·PNG, 10MB 이하), data(application/json). 응답 후 AI 추출이 비동기로 진행된다.")
+            description =
+                    "계약을 만들고 원본(PDF·JPG·PNG, 10MB 이하)을 올린다. multipart의 file과 data(application/json) 파트로 보내며, 응답 후 AI 추출이 비동기로 진행된다.")
     @PreAuthorize("hasRole('EMPLOYER')")
     @PostMapping(consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
     public ResponseEntity<ContractStageResponse> create(
@@ -48,7 +49,9 @@ public class ContractController {
                 .body(response);
     }
 
-    @Operation(summary = "원본 다시 올리기", description = "stage UPLOADED·REVIEWING에서만. 항목을 비우고 다시 추출한다.")
+    @Operation(
+            summary = "원본 다시 올리기",
+            description = "원본을 다시 올리고 항목을 비운 뒤 다시 추출한다. stage가 UPLOADED·REVIEWING일 때만 할 수 있다.")
     @PreAuthorize("hasRole('EMPLOYER')")
     @PutMapping(value = "/{contractId}/file", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
     public ResponseEntity<ContractStageResponse> replaceFile(
@@ -58,7 +61,7 @@ public class ContractController {
         return ResponseEntity.accepted().body(contractRegistrationService.replaceFile(contractId, file, member));
     }
 
-    @Operation(summary = "AI 추출 다시 시도", description = "stage UPLOADED이고 마지막 추출이 실패했을 때만.")
+    @Operation(summary = "AI 추출 다시 시도", description = "실패한 AI 추출을 다시 시도한다. stage가 UPLOADED이고 마지막 추출이 실패했을 때만 할 수 있다.")
     @PreAuthorize("hasRole('EMPLOYER')")
     @PostMapping("/{contractId}/extraction/retry")
     public ResponseEntity<ContractStageResponse> retryExtraction(
@@ -66,7 +69,9 @@ public class ContractController {
         return ResponseEntity.accepted().body(contractRegistrationService.retryExtraction(contractId, member));
     }
 
-    @Operation(summary = "원본 파일 URL 발급", description = "S3 Presigned GET URL (5분). 미리보기는 inline=true.")
+    @Operation(
+            summary = "원본 파일 URL 발급",
+            description = "브라우저가 S3에서 원본을 직접 받는 Presigned GET URL(5분 유효)을 발급한다. 미리보기는 inline=true로 호출한다.")
     @GetMapping("/{contractId}/files/{fileId}/download-url")
     public FileDownloadUrlResponse getDownloadUrl(
             @PathVariable Long contractId,

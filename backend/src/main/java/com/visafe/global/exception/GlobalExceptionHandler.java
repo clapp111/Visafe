@@ -33,13 +33,13 @@ public class GlobalExceptionHandler {
         ErrorCode errorCode = e.getErrorCode();
         if (errorCode.getHttpStatus().is5xxServerError()) {
             log.error(
-                    "RestApiException: code={}, status={}",
+                    "[예외] RestApiException - code={}, status={}",
                     errorCode.name(),
                     errorCode.getHttpStatus().value(),
                     e);
         } else {
             log.warn(
-                    "RestApiException: code={}, status={}, message={}",
+                    "[예외] RestApiException - code={}, status={}, message={}",
                     errorCode.name(),
                     errorCode.getHttpStatus().value(),
                     e.getMessage());
@@ -51,7 +51,7 @@ public class GlobalExceptionHandler {
     public ResponseEntity<ErrorResponse> handleMethodArgumentNotValidException(MethodArgumentNotValidException e) {
         ErrorCode errorCode = CustomErrorCode.COMMON_INVALID_REQUEST;
         log.warn(
-                "MethodArgumentNotValidException: code={}, status={}, message={}",
+                "[예외] MethodArgumentNotValidException - code={}, status={}, message={}",
                 errorCode.name(),
                 errorCode.getHttpStatus().value(),
                 errorCode.getMessage());
@@ -67,7 +67,7 @@ public class GlobalExceptionHandler {
             MethodArgumentTypeMismatchException e) {
         ErrorCode errorCode = CustomErrorCode.COMMON_INVALID_REQUEST_TYPE;
         log.warn(
-                "MethodArgumentTypeMismatchException: code={}, status={}, message={}",
+                "[예외] MethodArgumentTypeMismatchException - code={}, status={}, message={}",
                 errorCode.name(),
                 errorCode.getHttpStatus().value(),
                 errorCode.getMessage());
@@ -78,7 +78,7 @@ public class GlobalExceptionHandler {
     public ResponseEntity<ErrorResponse> handleHttpMessageNotReadableException(HttpMessageNotReadableException e) {
         ErrorCode errorCode = CustomErrorCode.COMMON_INVALID_REQUEST_TYPE;
         log.warn(
-                "HttpMessageNotReadableException: code={}, status={}, message={}",
+                "[예외] HttpMessageNotReadableException - code={}, status={}, message={}",
                 errorCode.name(),
                 errorCode.getHttpStatus().value(),
                 e.getMessage());
@@ -90,7 +90,7 @@ public class GlobalExceptionHandler {
             MissingServletRequestParameterException e) {
         ErrorCode errorCode = CustomErrorCode.COMMON_INVALID_PARAMETER;
         log.warn(
-                "MissingServletRequestParameterException: code={}, status={}, message={}",
+                "[예외] MissingServletRequestParameterException - code={}, status={}, message={}",
                 errorCode.name(),
                 errorCode.getHttpStatus().value(),
                 errorCode.getMessage());
@@ -102,7 +102,7 @@ public class GlobalExceptionHandler {
     public ResponseEntity<ErrorResponse> handleMissingServletRequestPart(MissingServletRequestPartException e) {
         ErrorCode errorCode = CustomErrorCode.COMMON_INVALID_PARAMETER;
         log.warn(
-                "MissingServletRequestPartException: code={}, status={}, part={}",
+                "[예외] MissingServletRequestPartException - code={}, status={}, part={}",
                 errorCode.name(),
                 errorCode.getHttpStatus().value(),
                 e.getRequestPartName());
@@ -113,7 +113,7 @@ public class GlobalExceptionHandler {
     public ResponseEntity<ErrorResponse> handleMissingRequestCookie(MissingRequestCookieException e) {
         ErrorCode errorCode = CustomErrorCode.JWT_REFRESH_MISSING;
         log.warn(
-                "MissingRequestCookieException: code={}, status={}, cookie={}",
+                "[예외] MissingRequestCookieException - code={}, status={}, cookie={}",
                 errorCode.name(),
                 errorCode.getHttpStatus().value(),
                 e.getCookieName());
@@ -124,7 +124,7 @@ public class GlobalExceptionHandler {
     public ResponseEntity<ErrorResponse> handleNoHandlerFound(NoHandlerFoundException e) {
         ErrorCode errorCode = CustomErrorCode.COMMON_HANDLER_NOT_FOUND;
         log.warn(
-                "NoHandlerFoundException: code={}, status={}, message={}",
+                "[예외] NoHandlerFoundException - code={}, status={}, message={}",
                 errorCode.name(),
                 errorCode.getHttpStatus().value(),
                 errorCode.getMessage());
@@ -136,7 +136,7 @@ public class GlobalExceptionHandler {
     public ResponseEntity<ErrorResponse> handleNoResourceFound(NoResourceFoundException e) {
         ErrorCode errorCode = CustomErrorCode.COMMON_HANDLER_NOT_FOUND;
         log.warn(
-                "NoResourceFoundException: code={}, status={}, method={}, path={}",
+                "[예외] NoResourceFoundException - code={}, status={}, method={}, path={}",
                 errorCode.name(),
                 errorCode.getHttpStatus().value(),
                 e.getHttpMethod(),
@@ -148,7 +148,7 @@ public class GlobalExceptionHandler {
     public ResponseEntity<ErrorResponse> handleHttpRequestMethodNotSupported(HttpRequestMethodNotSupportedException e) {
         ErrorCode errorCode = CustomErrorCode.COMMON_METHOD_NOT_ALLOWED;
         log.warn(
-                "HttpRequestMethodNotSupportedException: code={}, status={}, method={}, supported={}",
+                "[예외] HttpRequestMethodNotSupportedException - code={}, status={}, method={}, supported={}",
                 errorCode.name(),
                 errorCode.getHttpStatus().value(),
                 e.getMethod(),
@@ -166,7 +166,7 @@ public class GlobalExceptionHandler {
     public ResponseEntity<ErrorResponse> handleHttpMediaTypeNotSupported(HttpMediaTypeNotSupportedException e) {
         ErrorCode errorCode = CustomErrorCode.COMMON_UNSUPPORTED_MEDIA_TYPE;
         log.warn(
-                "HttpMediaTypeNotSupportedException: code={}, status={}, contentType={}, supported={}",
+                "[예외] HttpMediaTypeNotSupportedException - code={}, status={}, contentType={}, supported={}",
                 errorCode.name(),
                 errorCode.getHttpStatus().value(),
                 e.getContentType(),
@@ -185,7 +185,7 @@ public class GlobalExceptionHandler {
     public ResponseEntity<ErrorResponse> handleBadCredentialsException(BadCredentialsException e) {
         ErrorCode errorCode = CustomErrorCode.AUTH_LOGIN_FAILED;
         log.warn(
-                "BadCredentialsException: code={}, status={}, message={}",
+                "[예외] BadCredentialsException - code={}, status={}, message={}",
                 errorCode.name(),
                 errorCode.getHttpStatus().value(),
                 errorCode.getMessage());
@@ -198,7 +198,7 @@ public class GlobalExceptionHandler {
     public ResponseEntity<ErrorResponse> handleMaxUploadSizeExceeded(MaxUploadSizeExceededException e) {
         ErrorCode errorCode = CustomErrorCode.FILE_TOO_LARGE;
         log.warn(
-                "MaxUploadSizeExceededException: code={}, status={}, maxUploadSize={}",
+                "[예외] MaxUploadSizeExceededException - code={}, status={}, maxUploadSize={}",
                 errorCode.name(),
                 errorCode.getHttpStatus().value(),
                 e.getMaxUploadSize());
@@ -210,7 +210,7 @@ public class GlobalExceptionHandler {
     public ResponseEntity<ErrorResponse> handleAccessDeniedException(AccessDeniedException e) {
         ErrorCode errorCode = CustomErrorCode.AUTH_FORBIDDEN;
         log.warn(
-                "AccessDeniedException: code={}, status={}, message={}",
+                "[예외] AccessDeniedException - code={}, status={}, message={}",
                 errorCode.name(),
                 errorCode.getHttpStatus().value(),
                 e.getMessage());
@@ -221,7 +221,7 @@ public class GlobalExceptionHandler {
     public ResponseEntity<ErrorResponse> handleUnexpectedException(Exception e) {
         ErrorCode errorCode = CustomErrorCode.COMMON_INTERNAL_SERVER_ERROR;
         log.error(
-                "UnexpectedException: code={}, status={}",
+                "[예외] UnexpectedException - code={}, status={}",
                 errorCode.name(),
                 errorCode.getHttpStatus().value(),
                 e);

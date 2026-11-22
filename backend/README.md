@@ -103,6 +103,8 @@ frontend·contracts만 바꾼 커밋/푸시는 검사 없이 통과합니다. �
 로컬 값은 `.env.example`을 복사해 `backend/.env`로 만들어 바꿉니다. `.env`는 Spring(local 프로필)과 `docker compose`가 함께 읽으며 커밋하지 않습니다.
 PC에 PostgreSQL이 설치되어 5432를 이미 쓰고 있다면 `.env`에 `POSTGRES_PORT=5433`과 `DB_URL=jdbc:postgresql://localhost:5433/visafe`를 넣으세요.
 
+설정 키 규칙: 프로젝트 고유 설정은 `visafe.` 아래에 두고(`visafe.storage`, `visafe.authority-review`), 코드에서는 `@ConfigurationProperties` 레코드로 받습니다. 먼저 만든 `cors`, `jwt`는 그대로 둡니다.
+
 ## DB 마이그레이션 (Flyway)
 
 스키마는 `src/main/resources/db/migration`의 SQL로만 만들고 바꿉니다. 서버가 시작할 때 Flyway가 아직 적용하지 않은 파일을 버전 순서대로 실행하고,
