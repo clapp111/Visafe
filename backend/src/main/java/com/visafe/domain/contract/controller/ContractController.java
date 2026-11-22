@@ -1,8 +1,11 @@
 package com.visafe.domain.contract.controller;
 
 import com.visafe.domain.contract.dto.request.ContractCreateRequest;
+import com.visafe.domain.contract.dto.request.TermsUpdateRequest;
+import com.visafe.domain.contract.dto.response.ContractDraftResponse;
 import com.visafe.domain.contract.dto.response.ContractStageResponse;
 import com.visafe.domain.contract.dto.response.FileDownloadUrlResponse;
+import com.visafe.domain.contract.service.ContractDraftService;
 import com.visafe.domain.contract.service.ContractFileService;
 import com.visafe.domain.contract.service.ContractRegistrationService;
 import com.visafe.domain.member.entity.MemberDetails;
@@ -16,9 +19,11 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PatchMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.PutMapping;
+import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RequestPart;
@@ -33,6 +38,7 @@ public class ContractController {
 
     private final ContractRegistrationService contractRegistrationService;
     private final ContractFileService contractFileService;
+    private final ContractDraftService contractDraftService;
 
     @Operation(
             summary = "계약 생성·원본 업로드",
@@ -79,5 +85,25 @@ public class ContractController {
             @RequestParam(defaultValue = "false") boolean inline,
             @AuthenticationPrincipal MemberDetails member) {
         return contractFileService.getDownloadUrl(contractId, fileId, inline, member);
+    }
+
+    @Operation(
+            summary = "검토할 항목 조회",
+            description = "2단계 검토 화면의 19개 항목을 AI가 읽은 값, 값 출처, 경고, 근거 조항과 함께 조회한다. 추출 중이면 항목이 비어 있다.")
+    @PreAuthorize("hasRole('EMPLOYER')")
+    @GetMapping("/{contractId}/draft")
+    public ContractDraftResponse getDraft(
+            @PathVariable Long contractId, @AuthenticationPrincipal MemberDetails member) {
+        return contractDraftService.getDraft(contractId, member);
+    }
+
+    @Operation(summary = "항목 수정", description = "바꾼 항목만 저장하고 경고를 다시 계산해 검토 화면 데이터를 돌려준다. stage가 REVIEWING일 때만 할 수 있다.")
+    @PreAuthorize("hasRole('EMPLOYER')")
+    @PatchMapping("/{contractId}/draft/terms")
+    public ContractDraftResponse updateTerms(
+            @PathVariable Long contractId,
+            @Valid @RequestBody TermsUpdateRequest request,
+            @AuthenticationPrincipal MemberDetails member) {
+        return contractDraftService.updateTerms(contractId, request, member);
     }
 }
