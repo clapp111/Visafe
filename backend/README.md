@@ -40,6 +40,13 @@ Windows PowerShell에서는 `./gradlew` 대신 `.\gradlew.bat`를 사용합니�
 ./gradlew build   # build/libs/backend-0.0.1-SNAPSHOT.jar 생성
 ```
 
+실제 PostgreSQL 스키마(CHECK 제약, 트리거, 생성 컬럼)가 필요한 테스트는 `IT_DB_URL`이 있을 때만 실행됩니다. Flyway가 V1부터 데모 시드까지 적용하고, 각 테스트는 롤백되어 데이터가 남지 않습니다.
+
+```bash
+docker compose up -d
+IT_DB_URL=jdbc:postgresql://localhost:5432/visafe ./gradlew test   # IT_DB_USERNAME·IT_DB_PASSWORD 기본값 visafe
+```
+
 ## 코드 포맷 / 정적 분석
 
 | 도구 | 역할 | 실행 시점 |
