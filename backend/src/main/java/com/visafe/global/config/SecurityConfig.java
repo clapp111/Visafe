@@ -42,6 +42,8 @@ public class SecurityConfig {
         "/v3/api-docs/**",
         // 로그인·토큰 재발급·로그아웃
         "/api/v1/auth/**",
+        // 확인번호 공개 조회·파일 대조
+        "/api/v1/lookup/**",
         // 헬스 체크
         "/actuator/health",
         "/actuator/health/**",

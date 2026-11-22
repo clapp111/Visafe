@@ -2,6 +2,7 @@ package com.visafe.domain.chain;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
+import java.util.Locale;
 import org.junit.jupiter.api.RepeatedTest;
 import org.junit.jupiter.api.Test;
 
@@ -28,6 +29,21 @@ class ConfirmationNumberTest {
                 assertThat(ConfirmationNumber.isValid(typo)).as(typo).isFalse();
             }
         }
+    }
+
+    @Test
+    void normalizeAcceptsLowercaseSpacesAndMissingHyphens() {
+        String confirmationNo = ConfirmationNumber.generate();
+        String compact = confirmationNo.replace("-", "");
+
+        assertThat(ConfirmationNumber.normalize(compact.toLowerCase(Locale.ROOT)))
+                .contains(confirmationNo);
+        assertThat(ConfirmationNumber.normalize(" " + confirmationNo.replace("-", " ") + " "))
+                .contains(confirmationNo);
+        assertThat(ConfirmationNumber.normalize(confirmationNo)).contains(confirmationNo);
+        assertThat(ConfirmationNumber.normalize("VS-1234-5678")).isEmpty();
+        assertThat(ConfirmationNumber.normalize("AB-7K3F-9QXM")).isEmpty();
+        assertThat(ConfirmationNumber.normalize(null)).isEmpty();
     }
 
     @Test
