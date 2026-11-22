@@ -28,4 +28,6 @@ public interface ContractRepository extends JpaRepository<Contract, Long> {
 
     /** 이 계약을 대체한 새 계약이 이미 있는지 (uq_contracts_previous). */
     boolean existsByPreviousContractId(Long previousContractId);
+
+    boolean existsByConfirmationNo(String confirmationNo);
 }

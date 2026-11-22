@@ -1,5 +1,6 @@
 package com.visafe.domain.contract.repository;
 
+import com.visafe.domain.chain.EventSnapshot;
 import com.visafe.domain.contract.entity.ContractEvent;
 import com.visafe.domain.contract.enums.ContractEventType;
 import java.util.Collection;
@@ -18,4 +19,13 @@ public interface ContractEventRepository extends JpaRepository<ContractEvent, Lo
             """)
     List<ContractEvent> findVersionEvents(
             @Param("versionId") Long versionId, @Param("eventTypes") Collection<ContractEventType> eventTypes);
+
+    /** 계약의 모든 이벤트를 id 순서로 DB 저장값 그대로 읽는다. (events_hash 계산용) */
+    @Query("""
+            select new com.visafe.domain.chain.EventSnapshot(e.id, e.eventType, a.id, e.createdAt)
+            from ContractEvent e left join e.actor a
+            where e.contract.id = :contractId
+            order by e.id
+            """)
+    List<EventSnapshot> findSnapshotsByContractId(@Param("contractId") Long contractId);
 }

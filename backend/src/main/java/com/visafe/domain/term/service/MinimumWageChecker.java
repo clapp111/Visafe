@@ -55,7 +55,7 @@ public class MinimumWageChecker {
     }
 
     /** (종업 − 시업 − 휴게) × 주 근무일 수. 계산할 수 없으면 주 40시간. 종업이 시업보다 이르면 다음 날로 본다. */
-    private static double weeklyHours(ContractLaborTerms terms) {
+    public static double weeklyHours(ContractLaborTerms terms) {
         if (!(terms.getValue(TermField.WORK_START_TIME) instanceof LocalTime start)
                 || !(terms.getValue(TermField.WORK_END_TIME) instanceof LocalTime end)
                 || !(terms.getValue(TermField.BREAK_MINUTES) instanceof Integer breakMinutes)
