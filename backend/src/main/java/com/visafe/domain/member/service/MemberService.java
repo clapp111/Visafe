@@ -25,7 +25,7 @@ public class MemberService {
      *
      * @param memberId 조회할 회원 ID
      * @return 회원 ID, 로그인 이메일, 이름, 역할, 화면 언어를 담은 회원 정보
-     * @throws RestApiException 회원을 찾을 수 없는 경우.
+     * @throws RestApiException 회원을 찾을 수 없는 경우
      */
     public MemberResponse getMember(Long memberId) {
         return MemberResponse.from(findMember(memberId));

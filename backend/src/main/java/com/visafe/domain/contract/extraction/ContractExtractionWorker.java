@@ -69,7 +69,7 @@ public class ContractExtractionWorker {
             ExtractionResult result = contractExtractor.extract(content, file.getMimeType());
             transactionTemplate.executeWithoutResult(status -> save(event, result));
         } catch (RuntimeException e) {
-            log.warn("AI 추출 실패: contractId={}, fileId={}", event.contractId(), event.fileId(), e);
+            log.warn("[AI 추출] 실패 - contractId={}, fileId={}", event.contractId(), event.fileId(), e);
             transactionTemplate.executeWithoutResult(status -> recordFailure(event));
         }
     }
@@ -77,7 +77,7 @@ public class ContractExtractionWorker {
     private void save(ExtractionRequestedEvent event, ExtractionResult result) {
         Contract contract = contractRepository.findById(event.contractId()).orElseThrow();
         if (!isCurrent(contract, event)) {
-            log.info("지난 원본의 추출 결과를 버림: contractId={}, fileId={}", event.contractId(), event.fileId());
+            log.info("[AI 추출] 지난 원본의 결과를 버림 - contractId={}, fileId={}", event.contractId(), event.fileId());
             return;
         }
         ContractVersion version = contract.getCurrentVersion();

@@ -135,7 +135,9 @@ public class ContractFileService {
     }
 
     /**
-     * 트랜잭션이 롤백되면 S3에 올린 파일을 지운다. (아무도 참조하지 않는 파일 정리)
+     * 트랜잭션이 롤백되면 S3에 올린 파일을 지운다.
+     *
+     * <p>아무도 참조하지 않는 파일을 정리하기 위해서다.</p>
      *
      * @param storageKey 올린 파일의 저장 키
      */
@@ -149,7 +151,7 @@ public class ContractFileService {
                 try {
                     fileStorage.delete(storageKey);
                 } catch (RuntimeException e) {
-                    log.warn("롤백된 원본 파일을 지우지 못함: {}", storageKey, e);
+                    log.warn("[원본 파일] 롤백된 파일을 지우지 못함 - storageKey={}", storageKey, e);
                 }
             }
         });

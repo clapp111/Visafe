@@ -105,7 +105,8 @@
 ## `@throws`
 
 - `RestApiException`만 문서화
-- 여러 조건은 쉼표 또는 `또는`으로 연결, 마침표로 종결
+- 여러 조건은 쉼표 또는 `또는`으로 연결
+- 마침표 없음 (`@param`·`@return`과 같음)
 
 ```java
 @throws RestApiException 팀을 찾을 수 없는 경우

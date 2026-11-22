@@ -21,7 +21,7 @@ public class AsyncConfig implements AsyncConfigurer {
     /** 반환값이 없는 비동기 작업의 예외는 호출한 쪽으로 돌아가지 않으므로 로그로 남긴다. */
     @Override
     public AsyncUncaughtExceptionHandler getAsyncUncaughtExceptionHandler() {
-        return (ex, method, params) ->
-                log.error("비동기 작업 실패: {}.{}", method.getDeclaringClass().getSimpleName(), method.getName(), ex);
+        return (ex, method, params) -> log.error(
+                "[비동기] 작업 실패 - method={}.{}", method.getDeclaringClass().getSimpleName(), method.getName(), ex);
     }
 }

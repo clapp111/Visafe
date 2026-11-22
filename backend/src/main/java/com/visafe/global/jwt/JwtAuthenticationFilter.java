@@ -52,7 +52,7 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
 
             MemberDetails member = (MemberDetails) authentication.getPrincipal();
             MDC.put(MDC_MEMBER_ID, String.valueOf(member.getMemberId()));
-            log.debug("[인증 성공] memberId: {}", member.getMemberId());
+            log.debug("[인증] 성공 - memberId={}", member.getMemberId());
         }
 
         try {

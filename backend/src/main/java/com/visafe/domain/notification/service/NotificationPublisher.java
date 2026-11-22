@@ -11,7 +11,7 @@ import org.springframework.transaction.annotation.Transactional;
 
 @Service
 @RequiredArgsConstructor
-@Transactional
+@Transactional(readOnly = true)
 public class NotificationPublisher {
 
     private final NotificationRepository notificationRepository;
@@ -31,6 +31,7 @@ public class NotificationPublisher {
      * @param type 알림 종류
      * @return 저장한 알림
      */
+    @Transactional
     public Notification publish(Member recipient, Contract contract, NotificationType type) {
         NotificationMessage message = NotificationMessage.of(type, recipient.getUiLanguage(), contract.getContractNo());
         return notificationRepository.save(Notification.builder()
