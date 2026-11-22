@@ -10,6 +10,8 @@ public enum ContractEventType {
     // 등록·검토
     CONTRACT_CREATED,
     FILE_UPLOADED,
+    /** AI 추출 시작 (처음, 원본 다시 올리기, 다시 시도 모두). 진행 상태와 시도 횟수 계산에 쓴다. */
+    EXTRACTION_STARTED,
     EXTRACTION_COMPLETED,
     EXTRACTION_FAILED,
     TERM_EDITED,
