@@ -18,39 +18,17 @@ import com.visafe.domain.member.repository.MemberRepository;
 import com.visafe.domain.notification.entity.Notification;
 import com.visafe.domain.notification.enums.NotificationType;
 import com.visafe.domain.notification.service.NotificationPublisher;
+import com.visafe.support.PostgresIntegrationTest;
 import jakarta.persistence.EntityManager;
 import java.util.EnumSet;
 import java.util.Map;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
-import org.junit.jupiter.api.condition.EnabledIfEnvironmentVariable;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.boot.test.context.SpringBootTest;
-import org.springframework.test.context.ActiveProfiles;
-import org.springframework.test.context.DynamicPropertyRegistry;
-import org.springframework.test.context.DynamicPropertySource;
-import org.springframework.transaction.annotation.Transactional;
 
-/**
- * 계약 공통 부품을 실제 PostgreSQL 스키마(Flyway V1~V3 + 데모 시드)에서 확인한다. 각 테스트는 롤백된다.
- * IT_DB_URL이 있을 때만 실행한다: IT_DB_URL=jdbc:postgresql://localhost:5432/visafe (IT_DB_USERNAME·IT_DB_PASSWORD 기본 visafe)
- */
-@SpringBootTest
-@ActiveProfiles("test")
-@Transactional
-@EnabledIfEnvironmentVariable(named = "IT_DB_URL", matches = "jdbc:postgresql:.+")
+/** 계약 공통 부품을 실제 PostgreSQL 스키마에서 확인한다. */
+@PostgresIntegrationTest
 class ContractFoundationPostgresTest {
-
-    @DynamicPropertySource
-    static void postgres(DynamicPropertyRegistry registry) {
-        registry.add("spring.datasource.url", () -> System.getenv("IT_DB_URL"));
-        registry.add("spring.datasource.username", () -> env("IT_DB_USERNAME", "visafe"));
-        registry.add("spring.datasource.password", () -> env("IT_DB_PASSWORD", "visafe"));
-        registry.add("spring.datasource.driver-class-name", () -> "org.postgresql.Driver");
-        registry.add("spring.flyway.enabled", () -> "true");
-        registry.add("spring.flyway.locations", () -> "classpath:db/migration,classpath:db/seed");
-        registry.add("spring.jpa.hibernate.ddl-auto", () -> "validate");
-    }
 
     @Autowired
     private EntityManager em;
@@ -161,10 +139,5 @@ class ContractFoundationPostgresTest {
 
     private Member member(String email) {
         return memberRepository.findByLoginEmail(email).orElseThrow();
-    }
-
-    private static String env(String name, String defaultValue) {
-        String value = System.getenv(name);
-        return value == null || value.isBlank() ? defaultValue : value;
     }
 }
