@@ -1,4 +1,4 @@
- Visafe API 명세서 (v0.1 초안)
+# Visafe API 명세서 (v0.1 초안)
 
 Nov 18, 2026 · @동민
 
@@ -55,6 +55,13 @@ AI 추출, 번역, 블록체인 기록은 요청하면 바로 `202 Accepted`와 
 
 `task`는 `EXTRACTION`, `TRANSLATION`, `CHAIN_RECORD` 중 하나이고, 진행 중인 작업이 없으면 `processing`은 `null`입니다. `status`는 `RUNNING` 또는 `FAILED`입니다.
 
+오래 걸리는 작업을 시작하거나 stage를 바꾸는 API(R1, R2, R3, R6, R7, R8, W2, D3, D4)는 모두 같은 형식(`ContractStageResponse`)으로 응답합니다. HTTP 상태 코드만 API마다 다릅니다.
+
+```json
+{ "contractId": 31, "contractNo": "C-2026-04817", "stage": "TRANSLATING", "versionNo": 1,
+  "processing": { "task": "TRANSLATION", "status": "RUNNING", "attempt": 1, "lastError": null } }
+```
+
 ## 엔드포인트 한눈에 보기
 
 경로는 모두 `/api/v1` 뒤에 붙습니다. 번호는 아래 각 절의 번호와 같습니다.
@@ -83,7 +90,7 @@ AI 추출, 번역, 블록체인 기록은 요청하면 바로 `202 Accepted`와 
 | W4 | POST | `/contracts/{contractId}/questions` | WORKER | ③ 질문하기 |
 | M1 | GET | `/contracts` | EMPLOYER, WORKER | ⑤ 내 계약 목록 |
 | M2 | GET | `/contracts/{contractId}` | 당사자, ADMIN | ⑤ 상세, 완료 화면, 진행 확인 |
-| M3 | GET | `/contracts/{contractId}/files/{fileId}/content` | 당사자, ADMIN | 원본 보기·내려받기 |
+| M3 | GET | `/contracts/{contractId}/files/{fileId}/download-url` | 당사자, ADMIN | 원본 보기·내려받기 |
 | M4 | POST | `/contracts/{contractId}/terminations` | 당사자 | ⑤ 종료 요청 |
 | M5 | POST | `/contracts/{contractId}/terminations/{terminationId}/response` | 상대 당사자 | ⑤ 종료 동의·거절 |
 | M6 | POST | `/contracts/{contractId}/terminations/{terminationId}/cancel` | 요청한 사람 | ⑤ 종료 요청 취소 |
@@ -177,9 +184,11 @@ A1\~A4는 이미 구현되어 있어 그대로 씁니다. 로그인하면 `{gran
 
 ### L2. POST /lookup/{confirmationNo}/file-check — 파일 대조
 
-`multipart/form-data`의 `file` 하나(최대 10MB)를 받아 keccak256 해시를 계산하고, 확정 기록(`chain_records`의 CONFIRM)에 있는 `file_hash`와 비교합니다. 파일은 저장하지 않습니다.
+파일은 서버로 보내지 않습니다. 브라우저가 파일 바이트 전체의 keccak256을 계산해 해시만 보내면(js-sha3 또는 ethers의 keccak256), 서버는 확정 기록(`chain_records`의 CONFIRM)에 있는 `file_hash`와 비교합니다.
 
 ```json
+// 요청
+{ "fileHash": "0x51d0e9b4…a72f0e3b8" }   // 0x + 소문자 16진수 64자리
 // 응답 200
 {
   "match": false,
@@ -188,8 +197,9 @@ A1\~A4는 이미 구현되어 있어 그대로 씁니다. 로그인하면 `{gran
 }
 ```
 
+- `uploadedFileHash`는 요청으로 받은 `fileHash`, `recordedFileHash`는 확정 기록의 `file_hash`입니다.
 - `match: false`이면 화면은 불일치 안내(다시 스캔한 파일은 값이 달라진다는 설명과 1350 문의)를 보여 줍니다.
-- 에러: `404 LOOKUP_NOT_FOUND` · `413 FILE_TOO_LARGE`
+- 에러: `400 FILE_HASH_INVALID_FORMAT` · `404 LOOKUP_NOT_FOUND`
 
 ## ② 고용주 계약 등록 API
 
@@ -213,7 +223,7 @@ A1\~A4는 이미 구현되어 있어 그대로 씁니다. 로그인하면 `{gran
 
 ```json
 // 응답 201 (Location: /api/v1/contracts/31)
-{ "contractId": 31, "contractNo": "C-2026-04817", "stage": "UPLOADED",
+{ "contractId": 31, "contractNo": "C-2026-04817", "stage": "UPLOADED", "versionNo": 1,
   "processing": { "task": "EXTRACTION", "status": "RUNNING", "attempt": 1, "lastError": null } }
 ```
 
@@ -304,7 +314,7 @@ stage가 `UPLOADED`이고 마지막 추출이 실패했을 때만 할 수 있습
 // 요청
 { "confirmedOriginalMatch": true }
 // 응답 202
-{ "contractId": 31, "stage": "TRANSLATING", "versionNo": 1,
+{ "contractId": 31, "contractNo": "C-2026-04817", "stage": "TRANSLATING", "versionNo": 1,
   "processing": { "task": "TRANSLATION", "status": "RUNNING", "attempt": 1, "lastError": null } }
 ```
 
@@ -323,7 +333,7 @@ stage가 `UPLOADED`이고 마지막 추출이 실패했을 때만 할 수 있습
 
 - stage가 `RETURNED`일 때 새 회차(`version_no + 1`, DRAFT)를 만듭니다. 이전 회차의 파일, 항목 값, 부가 정보를 복사하고 `current_contract_version_id`를 바꾼 뒤 stage를 `REVIEWING`으로 둡니다.
 - 이미 `REVIEWING`이면 아무것도 바꾸지 않고 현재 회차를 돌려줍니다. 두 번 눌러도 안전합니다.
-- 응답 200: `{ "contractId": 31, "stage": "REVIEWING", "versionNo": 2 }`
+- 응답 200: 공통 응답 형식 `{ "contractId": 31, "contractNo": "C-2026-04817", "stage": "REVIEWING", "versionNo": 2, "processing": null }`
 
 ## ③ 근로자 확인 API
 
@@ -370,7 +380,7 @@ stage가 `UPLOADED`이고 마지막 추출이 실패했을 때만 할 수 있습
 | `keyTerms` | "꼭 확인할 3가지" 카드(임금, 근로시간, 계약기간) |
 | `items` | 19개 항목. 번역과 쉬운 설명은 `translation_items`에서 옵니다. 값이 빈 항목은 빼고 보냅니다 |
 | `employerInput` | `valueSource`가 `AI`가 아닐 때만 들어갑니다. "고용주 입력 자세히"의 "AI가 읽은 값 / 고용주가 입력한 값"에 씁니다 |
-| `sourceClause.pageNo` | "원본 1쪽 보기" 링크. 원본 파일은 M3로 받아 프론트가 그립니다 |
+| `sourceClause.pageNo` | "원본 1쪽 보기" 링크. 원본 파일은 M3로 받은 URL로 프론트가 그립니다 |
 
 에러: `404 CONTRACT_NOT_FOUND` · `409 TRANSLATION_NOT_READY` (완료된 번역본이 없음)
 
@@ -388,7 +398,7 @@ stage가 `UPLOADED`이고 마지막 추출이 실패했을 때만 할 수 있습
   "reason": "Trong bản gốc ghi 30 phút." }
 
 // 응답 202
-{ "contractId": 31, "stage": "RECORDING",
+{ "contractId": 31, "contractNo": "C-2026-04817", "stage": "RECORDING", "versionNo": 1,
   "processing": { "task": "CHAIN_RECORD", "status": "RUNNING", "attempt": 1, "lastError": null } }
 ```
 
@@ -496,11 +506,25 @@ stage가 `UPLOADED`이고 마지막 추출이 실패했을 때만 할 수 있습
 | `termination` | 진행 중이거나 끝난 종료. 예: `{ terminationId, reasonType, reasonText, endDate, status, requestedByMe }` |
 | `availableActions` | 로그인한 사람이 지금 할 수 있는 일입니다. 화면은 이 값에 따라 버튼을 보여 줍니다: `EDIT_DRAFT`, `START_REVISION`, `RETRY_EXTRACTION`, `RETRY_TRANSLATION`, `RESPOND_REVIEW`, `DOWNLOAD_FILE`, `REQUEST_TERMINATION`, `RESPOND_TERMINATION`, `CANCEL_TERMINATION` |
 
-### M3. GET /contracts/{contractId}/files/{fileId}/content — 원본 파일
+### M3. GET /contracts/{contractId}/files/{fileId}/download-url?inline={inline} — 원본 파일 URL 발급
 
-저장된 바이트를 그대로 내려줍니다. `Content-Type`은 `mime_type`, `Content-Disposition`은 `attachment; filename*=UTF-8''…`입니다. 화면에 미리 보여 줄 때는 `?inline=true`를 붙입니다. 원본 미리보기의 쪽 넘기기는 프론트(pdf.js)가 처리합니다.
+서버가 권한을 확인한 뒤 S3 Presigned GET URL(5분 유효)을 발급합니다. 파일은 서버를 거치지 않고 브라우저가 S3에서 직접 받습니다. 원본 미리보기는 `inline=true`, "등록된 원본 내려받기"는 `inline=false`(기본)로 호출합니다.
 
-- "등록된 원본 내려받기"로 받은 파일로 L2 대조가 되려면, 서버는 파일을 절대 다시 인코딩하거나 압축하지 않아야 합니다.
+```json
+// 응답 200
+{
+  "url": "https://visafe-files.s3.ap-northeast-2.amazonaws.com/contracts/31/...?X-Amz-Signature=...",
+  "expiresAt": "2026-11-13T05:11:00Z",
+  "fileName": "원본_근로계약서.pdf",
+  "mimeType": "application/pdf",
+  "sizeBytes": 1258291
+}
+```
+
+- 서명에 `response-content-type`(= `mime_type`)과 `response-content-disposition`(`attachment` 또는 `inline`; `filename*=UTF-8''…`)을 넣습니다.
+- 미리보기는 pdf.js나 `img`가 `url`을 직접 읽고, 내려받기는 `url`로 이동합니다. 쪽 넘기기는 프론트(pdf.js)가 처리합니다.
+- S3는 저장된 바이트를 그대로 주므로 받은 파일로 L2 대조가 됩니다. 서버는 파일을 다시 인코딩하거나 압축하지 않습니다.
+- S3 버킷 CORS에 프론트 주소의 GET을 허용해야 합니다.
 - 에러: `404 FILE_NOT_FOUND` (다른 계약의 파일인 경우 포함)
 
 ### M4. POST /contracts/{contractId}/terminations — 종료 요청
@@ -511,7 +535,7 @@ stage가 `UPLOADED`이고 마지막 추출이 실패했을 때만 할 수 있습
 // 요청
 { "endDate": "2027-06-30", "reasonText": "귀국 예정" }
 // 응답 201
-{ "terminationId": 3, "reasonType": "MUTUAL", "status": "REQUESTED", "endDate": "2027-06-30" }
+{ "terminationId": 3, "reasonType": "MUTUAL", "reasonText": "귀국 예정", "status": "REQUESTED", "endDate": "2027-06-30" }
 ```
 
 - `contract_terminations`(MUTUAL, REQUESTED)에 요청자와 요청 시각을 넣고, 이벤트 `TERMINATION_REQUESTED`와 상대방 알림 `TERMINATION_REQUESTED`를 남깁니다.
@@ -525,8 +549,8 @@ stage가 `UPLOADED`이고 마지막 추출이 실패했을 때만 할 수 있습
 ```json
 // 요청
 { "decision": "AGREE" }   // 또는 "DECLINE"
-// 응답 200
-{ "terminationId": 3, "status": "AGREED", "endDate": "2027-06-30" }
+// 응답 200: M4와 같은 형식
+{ "terminationId": 3, "reasonType": "MUTUAL", "reasonText": "귀국 예정", "status": "AGREED", "endDate": "2027-06-30" }
 ```
 
 - `AGREE`하면 status는 `AGREED`가 되고 이벤트 `TERMINATION_AGREED`가 남습니다. 종료일이 되면 스케줄러가 `chain_records`(TERMINATE)를 기록하고 계약을 `ENDED`로 바꿉니다. 이때 `terminated_at`, 이벤트 `TERMINATED`, 양쪽 알림 `CONTRACT_TERMINATED`가 남습니다.
@@ -568,17 +592,30 @@ stage가 `UPLOADED`이고 마지막 추출이 실패했을 때만 할 수 있습
 
 R4의 `fields`(AI 값, 값 출처, 경고, 근거 조항)에 M2의 `employer`, `worker`, `file`, `timeline`을 더한 형식입니다. 항목별 수정 이력(`contract_term_edit_logs`)도 `editLogs: [{ key, before, after, editedAt }]`로 함께 줍니다.
 
+```json
+// 응답 200
+{
+  "contractId": 31, "contractNo": "C-2026-04817", "stage": "AUTHORITY_REVIEW", "versionNo": 1,
+  "employer": { "companyName": "한빛정밀", "representativeName": "김민수" },
+  "worker": { "memberId": 12, "name": "Nguyễn Văn An", "nationality": "VN" },
+  "file": { "fileId": 44, "fileName": "표준근로계약서_한빛정밀.pdf", "mimeType": "application/pdf", "sizeBytes": 1258291, "pageCount": 2 },
+  "fields": [ … ],
+  "editLogs": [ { "key": "breakMinutes", "before": null, "after": "60", "editedAt": "2026-11-13T04:20:00Z" } ],
+  "timeline": [ … ]
+}
+```
+
 ### D3. POST /admin/contracts/{contractId}/approve — 확정
 
-본문 없이 호출하며 응답은 202입니다(W2와 같은 형식). `authority_reviews`(APPROVED)를 넣고 stage를 `AUTHORITY_REVIEW → RECORDING`으로 바꿉니다. 이벤트 `AUTHORITY_APPROVED`와 고용주 알림 `AUTHORITY_REVIEWED`를 남기고 블록체인 기록을 시작합니다. 이후 과정은 W2의 `UNDERSTOOD`와 같습니다.
+본문 없이 호출하며 응답은 202입니다(공통 응답 형식, stage `RECORDING`). `authority_reviews`(APPROVED)를 넣고 stage를 `AUTHORITY_REVIEW → RECORDING`으로 바꿉니다. 이벤트 `AUTHORITY_APPROVED`와 고용주 알림 `AUTHORITY_REVIEWED`를 남기고 블록체인 기록을 시작합니다. 이후 과정은 W2의 `UNDERSTOOD`와 같습니다.
 
 ### D4. POST /admin/contracts/{contractId}/reject — 반려
 
 ```json
 // 요청
 { "reason": "월 기본급이 최저임금에 미달합니다. 원본과 함께 다시 확인해 주세요." }
-// 응답 200
-{ "contractId": 31, "stage": "RETURNED" }
+// 응답 200: 공통 응답 형식
+{ "contractId": 31, "contractNo": "C-2026-04817", "stage": "RETURNED", "versionNo": 1, "processing": null }
 ```
 
 - `authority_reviews`(REJECTED, 사유 필수)를 넣고 회차를 `RETURNED`로, stage를 `RETURNED`로 바꿉니다. 이벤트 `AUTHORITY_REJECTED`와 고용주 알림 `AUTHORITY_REVIEWED`를 남깁니다. 고용주는 R8로 다시 고칩니다.
@@ -628,7 +665,7 @@ R4의 `fields`(AI 값, 값 출처, 경고, 근거 조항)에 M2의 `employer`, `
 | `CONTRACT_STAGE_CONFLICT` | 409 | 지금 stage에서는 할 수 없는 작업 | R2\~R8, W2, M4, D3, D4 |
 | `WORKER_NOT_FOUND` | 404 | 근로자 계정이 아님 | R1 |
 | `PREVIOUS_CONTRACT_INVALID` | 409 | 대체할 계약이 확정 상태가 아니거나 당사자가 다름 | R1 |
-| `FILE_TOO_LARGE` | 413 | 10MB 초과 | R1, R2, L2 |
+| `FILE_TOO_LARGE` | 413 | 10MB 초과 | R1, R2 |
 | `FILE_UNSUPPORTED_TYPE` | 415 | PDF·JPG·PNG가 아님 | R1, R2 |
 | `FILE_NOT_FOUND` | 404 | 계약에 속한 파일이 아님 | M3 |
 | `TERM_KEY_UNKNOWN` | 400 | 없는 항목 키 | R5 |
@@ -647,6 +684,7 @@ R4의 `fields`(AI 값, 값 출처, 경고, 근거 조항)에 M2의 `employer`, `
 | `REJECT_REASON_REQUIRED` | 400 | 반려 사유 없음 | D4 |
 | `LOOKUP_INVALID_FORMAT` | 400 | 확인번호 형식이 아님 | L1, L2 |
 | `LOOKUP_NOT_FOUND` | 404 | 확정된 계약 중 그 번호가 없음 | L1, L2 |
+| `FILE_HASH_INVALID_FORMAT` | 400 | 파일 해시가 0x + 소문자 16진수 64자리가 아님 | L2 |
 
 ### C. 구현 전에 정해야 할 것
 
