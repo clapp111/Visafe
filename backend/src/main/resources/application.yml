@@ -107,3 +107,7 @@ visafe:
       # 켜면 올리는 파일마다 Governance 모드 보존 기간을 붙인다. 버킷에 객체 잠금이 켜져 있어야 한다.
       enabled: ${S3_OBJECT_LOCK_ENABLED:false}
       retention: 3y
+
+  # 감독 기관 검토 단계(선택). 계약을 만들 때 이 값을 contracts.requires_authority_review로 복사한다.
+  authority-review:
+    enabled: ${AUTHORITY_REVIEW_ENABLED:false}

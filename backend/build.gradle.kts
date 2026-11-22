@@ -57,6 +57,9 @@ dependencies {
     // keccak256 (파일 해시, 블록체인 기록)
     implementation("org.bouncycastle:bcprov-jdk18on:1.86")
 
+    // 계약서 원본 PDF 쪽 수
+    implementation("org.apache.pdfbox:pdfbox:3.0.8")
+
     // Lombok / config metadata
     compileOnly("org.projectlombok:lombok")
     annotationProcessor("org.projectlombok:lombok")
