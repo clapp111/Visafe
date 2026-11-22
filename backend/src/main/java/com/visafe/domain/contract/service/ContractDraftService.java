@@ -5,6 +5,8 @@ import com.visafe.domain.contract.dto.response.ContractDraftResponse;
 import com.visafe.domain.contract.dto.response.ContractDraftResponse.Attention;
 import com.visafe.domain.contract.dto.response.ContractDraftResponse.AttentionReason;
 import com.visafe.domain.contract.dto.response.ContractDraftResponse.Field;
+import com.visafe.domain.contract.dto.response.ContractDraftResponse.Returned;
+import com.visafe.domain.contract.dto.response.ContractDraftResponse.ReturnedBy;
 import com.visafe.domain.contract.dto.response.ContractDraftResponse.SourceClause;
 import com.visafe.domain.contract.dto.response.ContractDraftResponse.Warning;
 import com.visafe.domain.contract.entity.Contract;
@@ -13,11 +15,16 @@ import com.visafe.domain.contract.entity.ContractFile;
 import com.visafe.domain.contract.entity.ContractVersion;
 import com.visafe.domain.contract.enums.ContractEventType;
 import com.visafe.domain.contract.enums.ContractStage;
+import com.visafe.domain.contract.enums.ContractVersionStatus;
+import com.visafe.domain.contract.repository.ContractEventRepository;
+import com.visafe.domain.contract.repository.ContractVersionRepository;
 import com.visafe.domain.member.entity.Member;
 import com.visafe.domain.member.entity.MemberDetails;
 import com.visafe.domain.member.entity.MemberWorkerProfile;
 import com.visafe.domain.member.repository.MemberRepository;
 import com.visafe.domain.member.repository.MemberWorkerProfileRepository;
+import com.visafe.domain.review.entity.ReviewResponse;
+import com.visafe.domain.review.repository.ReviewResponseRepository;
 import com.visafe.domain.term.TermValueParser;
 import com.visafe.domain.term.entity.ContractLaborTerms;
 import com.visafe.domain.term.entity.ContractTermAnnotation;
@@ -66,6 +73,9 @@ public class ContractDraftService {
     private final ContractTermAnnotationRepository contractTermAnnotationRepository;
     private final ContractTermEditLogRepository contractTermEditLogRepository;
     private final MinimumWageChecker minimumWageChecker;
+    private final ContractVersionRepository contractVersionRepository;
+    private final ContractEventRepository contractEventRepository;
+    private final ReviewResponseRepository reviewResponseRepository;
 
     // =========================================================================
     // ============================= 주요 서비스 기능 =============================
@@ -75,7 +85,8 @@ public class ContractDraftService {
      * 2단계 검토 화면에 보여 줄 항목을 조회한다.
      *
      * <p>검토할 항목 조회 API(R4)에서 쓴다. 현재 회차의 19개 항목을 값, AI가 읽은 값, 값 출처, 경고, 근거 조항과 함께 돌려준다.
-     * 추출이 끝나기 전(UPLOADED)에는 항목이 비어 있다. 최저임금 경고는 저장하지 않고 조회할 때 계산한다.</p>
+     * 추출이 끝나기 전(UPLOADED)에는 항목이 비어 있다. 최저임금 경고는 저장하지 않고 조회할 때 계산한다.
+     * 돌아온 계약이거나 그 계약을 고치는 새 회차면 근로자의 신고 내용을 함께 주고, 신고된 항목을 확인이 필요한 항목 맨 앞에 둔다.</p>
      *
      * @param contractId 계약 ID
      * @param member 로그인한 고용주
@@ -159,8 +170,12 @@ public class ContractDraftService {
                 .map(MemberWorkerProfile::getNationality)
                 .orElse(null);
 
+        Returned returned = returnedOf(contract).orElse(null);
         List<Field> fields = new ArrayList<>();
         List<Attention> attention = new ArrayList<>();
+        if (returned != null) {
+            returned.reportedFields().forEach(key -> attention.add(new Attention(key, AttentionReason.REPORTED)));
+        }
         Optional<ContractLaborTerms> terms = contractLaborTermsRepository.findById(version.getId());
         if (terms.isPresent()) {
             Map<TermField, ContractTermAnnotation> annotations = annotationsOf(version);
@@ -210,7 +225,44 @@ public class ContractDraftService {
                         file.getId(), file.getFileName(), file.getMimeType(), file.getSizeBytes(), file.getPageCount()),
                 fields,
                 attention,
-                null);
+                returned);
+    }
+
+    /**
+     * 돌아온 계약의 신고 내용을 만든다.
+     *
+     * <p>현재 회차가 돌아온 회차이거나, 돌아온 회차를 고치려고 연 새 회차(DRAFT)면 돌아온 회차의 마지막 WORKER_REPORTED 이벤트로 만든다.
+     * 신고 사유 원문은 근로자 응답에서, 한국어 번역은 이벤트 payload에서 가져온다.</p>
+     *
+     * @param contract 계약
+     * @return 신고 내용, 돌아온 계약이 아니면 빈 {@link Optional}
+     */
+    private Optional<Returned> returnedOf(Contract contract) {
+        ContractVersion version = contract.getCurrentVersion();
+        Optional<ContractVersion> returnedVersion;
+        if (version.getStatus() == ContractVersionStatus.RETURNED) {
+            returnedVersion = Optional.of(version);
+        } else if (version.isDraft() && version.getVersionNo() > 1) {
+            returnedVersion = contractVersionRepository
+                    .findByContractIdAndVersionNo(contract.getId(), version.getVersionNo() - 1)
+                    .filter(previous -> previous.getStatus() == ContractVersionStatus.RETURNED);
+        } else {
+            returnedVersion = Optional.empty();
+        }
+        return returnedVersion
+                .flatMap(returned -> contractEventRepository.findFirstByContractVersionIdAndEventTypeOrderByIdDesc(
+                        returned.getId(), ContractEventType.WORKER_REPORTED))
+                .map(event -> {
+                    Map<String, Object> payload = event.getPayload();
+                    String reason = reviewResponseRepository
+                            .findById(((Number) payload.get("reviewResponseId")).longValue())
+                            .map(ReviewResponse::getReason)
+                            .orElse(null);
+                    @SuppressWarnings("unchecked")
+                    List<String> keys = (List<String>) payload.getOrDefault("keys", List.of());
+                    return new Returned(
+                            ReturnedBy.WORKER, event.getCreatedAt(), keys, reason, (String) payload.get("reasonKo"));
+                });
     }
 
     /**

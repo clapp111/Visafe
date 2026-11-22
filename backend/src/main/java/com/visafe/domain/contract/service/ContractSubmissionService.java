@@ -8,6 +8,7 @@ import com.visafe.domain.contract.entity.ContractVersion;
 import com.visafe.domain.contract.enums.ContractEventType;
 import com.visafe.domain.contract.enums.ContractStage;
 import com.visafe.domain.contract.enums.ProcessingStatus;
+import com.visafe.domain.contract.repository.ContractVersionRepository;
 import com.visafe.domain.member.entity.MemberDetails;
 import com.visafe.domain.member.repository.MemberRepository;
 import com.visafe.domain.term.TermItemsHash;
@@ -37,6 +38,7 @@ public class ContractSubmissionService {
     private final ContractEventRecorder contractEventRecorder;
     private final MemberRepository memberRepository;
     private final ContractLaborTermsRepository contractLaborTermsRepository;
+    private final ContractVersionRepository contractVersionRepository;
     private final TranslationRepository translationRepository;
     private final ApplicationEventPublisher eventPublisher;
 
@@ -49,6 +51,7 @@ public class ContractSubmissionService {
      *
      * <p>제출 API(R6)에서 쓴다. 필수 항목이 하나라도 비어 있으면 거절하고, 최저임금 같은 경고는 제출을 막지 않는다.
      * 항목 해시를 계산해 회차를 SUBMITTED로 바꾸고 stage를 TRANSLATING으로 둔 뒤 SUBMITTED 이벤트를 남긴다.
+     * 돌아온 계약을 고친 회차면 이전 회차(RETURNED)를 대체(SUPERSEDED)한다.
      * 계약의 번역 언어로 첫 번역본(PENDING)을 만들고, 커밋된 뒤 비동기로 번역한다.</p>
      *
      * @param contractId 계약 ID
@@ -73,6 +76,12 @@ public class ContractSubmissionService {
         checkRequired(terms);
 
         version.submit(memberRepository.getReferenceById(member.getMemberId()), TermItemsHash.of(terms), Instant.now());
+        if (version.getVersionNo() > 1) {
+            contractVersionRepository
+                    .findByContractIdAndVersionNo(contract.getId(), version.getVersionNo() - 1)
+                    .orElseThrow()
+                    .supersede();
+        }
         contract.changeStage(ContractStage.TRANSLATING);
         contractEventRecorder.record(contract, ContractEventType.SUBMITTED, member.getMemberId(), null);
         startTranslation(contract, 1);

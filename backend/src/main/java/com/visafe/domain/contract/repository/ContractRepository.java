@@ -1,6 +1,7 @@
 package com.visafe.domain.contract.repository;
 
 import com.visafe.domain.contract.entity.Contract;
+import java.util.List;
 import java.util.Optional;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
@@ -21,6 +22,20 @@ public interface ContractRepository extends JpaRepository<Contract, Long> {
             """)
     Optional<Contract> findForEmployer(
             @Param("contractId") Long contractId, @Param("employerMemberId") Long employerMemberId);
+
+    /** 근로자 본인의 계약 전체 (목록용, 사업주·현재 회차 포함). */
+    @Query("""
+            select c from Contract c join fetch c.company left join fetch c.currentVersion
+            where c.worker.id = :workerMemberId
+            """)
+    List<Contract> findAllForWorker(@Param("workerMemberId") Long workerMemberId);
+
+    /** 고용주가 소속된 사업주의 계약 전체 (목록용, 근로자·현재 회차 포함). */
+    @Query("""
+            select c from Contract c join fetch c.worker left join fetch c.currentVersion
+            where c.company.id = (select m.company.id from Member m where m.id = :employerMemberId)
+            """)
+    List<Contract> findAllForEmployer(@Param("employerMemberId") Long employerMemberId);
 
     /** 계약 번호 일련번호 (V4 contract_no_seq). */
     @Query(value = "SELECT nextval('contract_no_seq')", nativeQuery = true)
