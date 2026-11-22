@@ -41,6 +41,18 @@ spring:
   jackson:
     time-zone: UTC
 
+  # 비동기 작업 실행기 (AI 추출, 번역, 블록체인 기록). 외부 API를 기다리는 작업이 대부분이라 크게 잡지 않는다.
+  task:
+    execution:
+      thread-name-prefix: visafe-async-
+      pool:
+        core-size: 4
+        max-size: 8
+        queue-capacity: 100
+      shutdown:
+        await-termination: true
+        await-termination-period: 30s
+
 server:
   port: ${SERVER_PORT:8080}
   shutdown: graceful
