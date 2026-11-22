@@ -1,6 +1,8 @@
 package com.visafe.domain.chain;
 
 import java.security.SecureRandom;
+import java.util.Locale;
+import java.util.Optional;
 
 /**
  * 공개 확인번호 (contracts.confirmation_no). 형식은 {@code VS-XXXX-XXXX}이며 DB CHECK(ck_contracts__confirmation_no)와 같다.
@@ -24,6 +26,24 @@ public final class ConfirmationNumber {
         }
         String code = body.toString() + checkChar(body);
         return "VS-" + code.substring(0, 4) + "-" + code.substring(4);
+    }
+
+    /**
+     * 사용자가 입력한 확인번호를 정리한다. 공백을 지우고 대문자로 바꾼 뒤 하이픈을 {@code VS-XXXX-XXXX} 자리에 맞춘다.
+     * ({@code vs7k3f9qxm}, {@code VS 7K3F 9QXM} → {@code VS-7K3F-9QXM})
+     *
+     * @return 형식과 검사 문자가 맞으면 정리한 번호, 아니면 빈 값
+     */
+    public static Optional<String> normalize(String input) {
+        if (input == null) {
+            return Optional.empty();
+        }
+        String compact = input.replaceAll("[\\s-]", "").toUpperCase(Locale.ROOT);
+        if (compact.length() != 10 || !compact.startsWith("VS")) {
+            return Optional.empty();
+        }
+        String confirmationNo = "VS-" + compact.substring(2, 6) + "-" + compact.substring(6);
+        return isValid(confirmationNo) ? Optional.of(confirmationNo) : Optional.empty();
     }
 
     /** 형식과 검사 문자가 맞는지 확인한다. */

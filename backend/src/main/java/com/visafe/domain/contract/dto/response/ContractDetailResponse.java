@@ -1,5 +1,6 @@
 package com.visafe.domain.contract.dto.response;
 
+import com.visafe.domain.chain.entity.ChainRecord;
 import com.visafe.domain.chain.enums.ChainRecordStatus;
 import com.visafe.domain.chain.enums.RecordType;
 import com.visafe.domain.contract.enums.ContractAction;
@@ -139,5 +140,23 @@ public record ContractDetailResponse(
             Instant minedAt,
 
             @Schema(description = "블록 탐색기 링크, 트랜잭션 해시가 없으면 null", nullable = true)
-            String explorerUrl) {}
+            String explorerUrl) {
+
+        private static final String SEPOLIA = "sepolia";
+        private static final String SEPOLIA_EXPLORER_TX_URL = "https://sepolia.etherscan.io/tx/";
+
+        /** 블록체인 기록으로 만든다. 탐색기 링크는 Sepolia 트랜잭션에만 붙는다. (계약 상세·공개 조회가 함께 씀) */
+        public static ChainRecordItem of(ChainRecord record) {
+            String explorerUrl = record.getTxHash() != null && SEPOLIA.equals(record.getNetwork())
+                    ? SEPOLIA_EXPLORER_TX_URL + record.getTxHash()
+                    : null;
+            return new ChainRecordItem(
+                    record.getRecordType(),
+                    record.getStatus(),
+                    record.getNetwork(),
+                    record.getTxHash(),
+                    record.getMinedAt(),
+                    explorerUrl);
+        }
+    }
 }

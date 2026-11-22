@@ -1,6 +1,5 @@
 package com.visafe.domain.contract.service;
 
-import com.visafe.domain.chain.entity.ChainRecord;
 import com.visafe.domain.chain.repository.ChainRecordRepository;
 import com.visafe.domain.company.entity.Company;
 import com.visafe.domain.contract.dto.response.ContractDetailResponse;
@@ -63,8 +62,6 @@ import org.springframework.transaction.annotation.Transactional;
 public class ContractQueryService {
 
     private static final int MAX_PAGE_SIZE = 100;
-    private static final String SEPOLIA = "sepolia";
-    private static final String SEPOLIA_EXPLORER_TX_URL = "https://sepolia.etherscan.io/tx/";
 
     private final ContractRepository contractRepository;
     private final ContractAccessService contractAccessService;
@@ -387,26 +384,8 @@ public class ContractQueryService {
      */
     private List<ChainRecordItem> chainRecords(Contract contract) {
         return chainRecordRepository.findByContractVersionContractIdOrderByIdAsc(contract.getId()).stream()
-                .map(record -> new ChainRecordItem(
-                        record.getRecordType(),
-                        record.getStatus(),
-                        record.getNetwork(),
-                        record.getTxHash(),
-                        record.getMinedAt(),
-                        explorerUrl(record)))
+                .map(ChainRecordItem::of)
                 .toList();
-    }
-
-    /**
-     * 트랜잭션의 블록 탐색기 링크를 만든다.
-     *
-     * @param record 블록체인 기록
-     * @return Sepolia 탐색기 링크, 트랜잭션 해시가 없거나 다른 네트워크면 {@code null}
-     */
-    private static String explorerUrl(ChainRecord record) {
-        return record.getTxHash() != null && SEPOLIA.equals(record.getNetwork())
-                ? SEPOLIA_EXPLORER_TX_URL + record.getTxHash()
-                : null;
     }
 
     /**
