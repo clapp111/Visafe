@@ -45,4 +45,6 @@ public interface ContractRepository extends JpaRepository<Contract, Long> {
     boolean existsByPreviousContractId(Long previousContractId);
 
     boolean existsByConfirmationNo(String confirmationNo);
+
+    Optional<Contract> findByConfirmationNo(String confirmationNo);
 }
