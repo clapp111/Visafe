@@ -21,4 +21,11 @@ public interface ContractRepository extends JpaRepository<Contract, Long> {
             """)
     Optional<Contract> findForEmployer(
             @Param("contractId") Long contractId, @Param("employerMemberId") Long employerMemberId);
+
+    /** 계약 번호 일련번호 (V4 contract_no_seq). */
+    @Query(value = "SELECT nextval('contract_no_seq')", nativeQuery = true)
+    long nextContractNoSequence();
+
+    /** 이 계약을 대체한 새 계약이 이미 있는지 (uq_contracts_previous). */
+    boolean existsByPreviousContractId(Long previousContractId);
 }
