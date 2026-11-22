@@ -7,7 +7,7 @@ import java.util.Map;
 import org.springframework.stereotype.Component;
 
 /**
- * 실제 LLM 연동 전까지 쓰는 번역기. 번역하지 않고 원문 앞에 언어 표시(예: [vi])를 붙여 돌려준다.
+ * 실제 LLM 연동 전까지 쓰는 번역기. 번역하지 않고 원문 앞에 언어 표시(예: [vi], 한국어 번역은 [ko])를 붙여 돌려준다.
  * 고용주가 고친 값도 그대로 보이므로 근로자 확인 화면과 해시 흐름을 확인할 수 있다.
  */
 @Component
@@ -27,5 +27,10 @@ public class StubContractTranslator implements ContractTranslator {
                                 tag + field.getLabel() + ": " + value,
                                 field.getLabel() + "은(는) " + value + "입니다.")));
         return new TranslationResult(clauses, items);
+    }
+
+    @Override
+    public String translateToKorean(String text, String language) {
+        return "[ko] " + text;
     }
 }
