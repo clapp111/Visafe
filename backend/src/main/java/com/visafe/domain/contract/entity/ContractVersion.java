@@ -94,6 +94,15 @@ public class ContractVersion extends BaseTimeEntity {
         return new ContractVersion(contract, versionNo, contractFile);
     }
 
+    /** 원본을 다시 올려 기준 파일을 바꾼다. 예전 파일은 지우지 않는다. (DRAFT만) */
+    public void replaceFile(ContractFile contractFile) {
+        requireStatus(ContractVersionStatus.DRAFT);
+        if (!Entities.isSame(contractFile.getContract(), contract, Contract::getId)) {
+            throw new IllegalArgumentException("다른 계약의 원본 파일은 지정할 수 없습니다.");
+        }
+        this.contractFile = contractFile;
+    }
+
     /** 고용주가 항목 검토를 마치고 제출한다. */
     public void submit(Member submittedBy, String itemsHash, Instant submittedAt) {
         requireStatus(ContractVersionStatus.DRAFT);

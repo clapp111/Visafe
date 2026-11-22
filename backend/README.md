@@ -44,7 +44,8 @@ Windows PowerShell에서는 `./gradlew` 대신 `.\gradlew.bat`를 사용합니�
 
 ```bash
 docker compose up -d
-IT_DB_URL=jdbc:postgresql://localhost:5432/visafe ./gradlew test   # IT_DB_USERNAME·IT_DB_PASSWORD 기본값 visafe
+# cleanTest: 환경 변수만 바꾸면 Gradle이 이전 결과(건너뜀)를 재사용하므로 다시 실행하게 한다
+IT_DB_URL=jdbc:postgresql://localhost:5432/visafe ./gradlew cleanTest test   # IT_DB_USERNAME·IT_DB_PASSWORD 기본값 visafe
 ```
 
 ## 코드 포맷 / 정적 분석
