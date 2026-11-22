@@ -5,6 +5,7 @@ import com.visafe.domain.contract.entity.ContractEvent;
 import com.visafe.domain.contract.enums.ContractEventType;
 import java.util.Collection;
 import java.util.List;
+import java.util.Optional;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
@@ -19,6 +20,14 @@ public interface ContractEventRepository extends JpaRepository<ContractEvent, Lo
             """)
     List<ContractEvent> findVersionEvents(
             @Param("versionId") Long versionId, @Param("eventTypes") Collection<ContractEventType> eventTypes);
+
+    /** 회차의 마지막 이벤트 중 주어진 종류. */
+    Optional<ContractEvent> findFirstByContractVersionIdAndEventTypeOrderByIdDesc(
+            Long contractVersionId, ContractEventType eventType);
+
+    /** 계약의 모든 이벤트 (행동한 회원 포함, 일어난 순서). */
+    @Query("select e from ContractEvent e left join fetch e.actor where e.contract.id = :contractId order by e.id")
+    List<ContractEvent> findWithActorByContractId(@Param("contractId") Long contractId);
 
     /** 계약의 모든 이벤트를 id 순서로 DB 저장값 그대로 읽는다. (events_hash 계산용) */
     @Query("""

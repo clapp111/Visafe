@@ -100,6 +100,15 @@ public class ContractTermAnnotation extends BaseTimeEntity {
         return new ContractTermAnnotation(contractVersion, fieldName, null, ExtractionStatus.UNREAD, null);
     }
 
+    /** 돌아온 계약의 새 회차로 부가 정보(AI 값, 값 출처, 읽음 여부, 경고, 근거 조항)를 그대로 옮긴다. */
+    public ContractTermAnnotation copyTo(ContractVersion target) {
+        ContractTermAnnotation copy =
+                new ContractTermAnnotation(target, fieldName, aiValue, extractionStatus, contractClause);
+        copy.valueSource = valueSource;
+        copy.warningCode = warningCode;
+        return copy;
+    }
+
     /**
      * 고용주가 값을 고쳤거나 직접 입력했음을 표시한다. AI 값으로 되돌렸으면 다시 AI로 본다.
      * 고용주가 확인한 항목이므로 AI의 확인 필요(NEEDS_CHECK) 표시는 지운다.

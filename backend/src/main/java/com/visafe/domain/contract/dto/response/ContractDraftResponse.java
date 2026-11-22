@@ -6,6 +6,7 @@ import com.visafe.domain.term.enums.TermValueType;
 import com.visafe.domain.term.enums.ValueSource;
 import com.visafe.domain.term.enums.WarningCode;
 import io.swagger.v3.oas.annotations.media.Schema;
+import java.time.Instant;
 import java.util.List;
 import java.util.Map;
 
@@ -33,8 +34,8 @@ public record ContractDraftResponse(
 
         @Schema(description = "화면 상단 '확인이 필요한 항목'") List<Attention> attention,
 
-        @Schema(description = "돌아온 계약의 신고·반려 내용. 신고(#13)·회차 생성(#14) 구현 전에는 항상 null", nullable = true)
-        Object returned) {
+        @Schema(description = "돌아온 계약의 신고 내용. 돌아온 계약(또는 그 계약을 고치는 새 회차)일 때만, 아니면 null", nullable = true)
+        Returned returned) {
 
     @Schema(description = "근로자")
     public record Worker(
@@ -121,13 +122,38 @@ public record ContractDraftResponse(
 
             @Schema(description = "이유", example = "UNREAD") AttentionReason reason) {}
 
-    /** 확인이 필요한 이유. (돌아온 계약의 REPORTED는 #13·#14에서 추가) */
+    @Schema(description = "돌아온 계약의 신고 내용")
+    public record Returned(
+            @Schema(description = "돌려보낸 쪽 (기관 반려 AUTHORITY는 #17에서 추가)", example = "WORKER")
+            ReturnedBy by,
+
+            @Schema(description = "돌려보낸 시각", example = "2026-11-13T05:20:00Z")
+            Instant at,
+
+            @Schema(description = "원본과 다르다고 신고한 항목 키", example = "[\"breakMinutes\"]")
+            List<String> reportedFields,
+
+            @Schema(description = "신고 사유 원문", nullable = true)
+            String reason,
+
+            @Schema(description = "신고 사유 한국어 번역", nullable = true)
+            String reasonKo) {}
+
+    /** 계약을 돌려보낸 쪽. */
+    public enum ReturnedBy {
+        /** 근로자가 "원본과 다릅니다"로 신고함 */
+        WORKER
+    }
+
+    /** 확인이 필요한 이유. */
     public enum AttentionReason {
         /** AI가 읽지 못했고 아직 비어 있음 */
         UNREAD,
         /** 최저임금 미달 */
         MIN_WAGE,
         /** AI가 읽었지만 확인이 필요함 */
-        NEEDS_CHECK
+        NEEDS_CHECK,
+        /** 근로자가 원본과 다르다고 신고함 */
+        REPORTED
     }
 }
