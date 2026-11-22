@@ -111,3 +111,9 @@ visafe:
   # 감독 기관 검토 단계(선택). 계약을 만들 때 이 값을 contracts.requires_authority_review로 복사한다.
   authority-review:
     enabled: ${AUTHORITY_REVIEW_ENABLED:false}
+
+  # 연도별 최저임금 시급(원). 계약 시작일이 속한 연도와 비교하며, 없는 연도는 경고하지 않는다.
+  minimum-wage:
+    hourly:
+      2026: 10320
+      2027: 10700

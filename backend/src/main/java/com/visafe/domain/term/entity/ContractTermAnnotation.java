@@ -100,10 +100,21 @@ public class ContractTermAnnotation extends BaseTimeEntity {
         return new ContractTermAnnotation(contractVersion, fieldName, null, ExtractionStatus.UNREAD, null);
     }
 
-    /** 고용주가 값을 고쳤거나 직접 입력했음을 표시한다. */
-    public void markEditedByEmployer() {
-        this.valueSource =
-                extractionStatus == ExtractionStatus.UNREAD ? ValueSource.EMPLOYER_INPUT : ValueSource.EMPLOYER_EDIT;
+    /**
+     * 고용주가 값을 고쳤거나 직접 입력했음을 표시한다. AI 값으로 되돌렸으면 다시 AI로 본다.
+     * 고용주가 확인한 항목이므로 AI의 확인 필요(NEEDS_CHECK) 표시는 지운다.
+     */
+    public void markEditedByEmployer(boolean sameAsAiValue) {
+        if (sameAsAiValue) {
+            this.valueSource = ValueSource.AI;
+        } else {
+            this.valueSource = extractionStatus == ExtractionStatus.UNREAD
+                    ? ValueSource.EMPLOYER_INPUT
+                    : ValueSource.EMPLOYER_EDIT;
+        }
+        if (warningCode == WarningCode.NEEDS_CHECK) {
+            this.warningCode = null;
+        }
     }
 
     public void changeWarning(WarningCode warningCode) {
