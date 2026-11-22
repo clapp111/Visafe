@@ -3,12 +3,17 @@ package com.visafe.domain.contract.controller;
 import com.visafe.domain.contract.dto.request.ContractCreateRequest;
 import com.visafe.domain.contract.dto.request.ContractSubmitRequest;
 import com.visafe.domain.contract.dto.request.TermsUpdateRequest;
+import com.visafe.domain.contract.dto.response.ContractDetailResponse;
 import com.visafe.domain.contract.dto.response.ContractDraftResponse;
+import com.visafe.domain.contract.dto.response.ContractListResponse;
 import com.visafe.domain.contract.dto.response.ContractStageResponse;
 import com.visafe.domain.contract.dto.response.FileDownloadUrlResponse;
+import com.visafe.domain.contract.enums.ContractStatus;
 import com.visafe.domain.contract.service.ContractDraftService;
 import com.visafe.domain.contract.service.ContractFileService;
+import com.visafe.domain.contract.service.ContractQueryService;
 import com.visafe.domain.contract.service.ContractRegistrationService;
+import com.visafe.domain.contract.service.ContractRevisionService;
 import com.visafe.domain.contract.service.ContractSubmissionService;
 import com.visafe.domain.member.entity.MemberDetails;
 import io.swagger.v3.oas.annotations.Operation;
@@ -32,7 +37,7 @@ import org.springframework.web.bind.annotation.RequestPart;
 import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.multipart.MultipartFile;
 
-@Tag(name = "Contract", description = "계약 등록·원본 파일·제출")
+@Tag(name = "Contract", description = "계약 등록·원본 파일·제출·내 계약")
 @RestController
 @RequestMapping("/api/v1/contracts")
 @RequiredArgsConstructor
@@ -42,6 +47,8 @@ public class ContractController {
     private final ContractFileService contractFileService;
     private final ContractDraftService contractDraftService;
     private final ContractSubmissionService contractSubmissionService;
+    private final ContractRevisionService contractRevisionService;
+    private final ContractQueryService contractQueryService;
 
     @Operation(
             summary = "계약 생성·원본 업로드",
@@ -131,5 +138,36 @@ public class ContractController {
     public ResponseEntity<ContractStageResponse> retryTranslation(
             @PathVariable Long contractId, @AuthenticationPrincipal MemberDetails member) {
         return ResponseEntity.accepted().body(contractSubmissionService.retryTranslation(contractId, member));
+    }
+
+    @Operation(
+            summary = "돌아온 계약 수정 시작",
+            description = "stage가 RETURNED면 이전 회차를 복사한 새 회차를 만들고 REVIEWING으로 바꾼다. 이미 REVIEWING이면 현재 회차를 그대로 돌려준다.")
+    @PreAuthorize("hasRole('EMPLOYER')")
+    @PostMapping("/{contractId}/revisions")
+    public ContractStageResponse startRevision(
+            @PathVariable Long contractId, @AuthenticationPrincipal MemberDetails member) {
+        return contractRevisionService.startRevision(contractId, member);
+    }
+
+    @Operation(
+            summary = "내 계약 목록",
+            description = "고용주는 같은 사업주의 모든 계약, 근로자는 본인 계약을 본다. 할 일이 있는 계약이 먼저이고 그다음 최근 수정 순이다. status를 빼면 전체를 본다.")
+    @PreAuthorize("hasAnyRole('EMPLOYER', 'WORKER')")
+    @GetMapping
+    public ContractListResponse list(
+            @RequestParam(required = false) ContractStatus status,
+            @RequestParam(defaultValue = "0") int page,
+            @RequestParam(defaultValue = "20") int size,
+            @AuthenticationPrincipal MemberDetails member) {
+        return contractQueryService.list(status, page, size, member);
+    }
+
+    @Operation(
+            summary = "계약 상세",
+            description = "계약 정보, 항목과 설명, 진행 이력, 블록체인 기록, 지금 할 수 있는 일을 조회한다. 진행 상황 확인(2~3초 간격)에도 쓴다.")
+    @GetMapping("/{contractId}")
+    public ContractDetailResponse detail(@PathVariable Long contractId, @AuthenticationPrincipal MemberDetails member) {
+        return contractQueryService.detail(contractId, member);
     }
 }
