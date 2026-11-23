@@ -3,15 +3,18 @@ package com.visafe.domain.contract.extraction;
 import com.visafe.domain.contract.extraction.ExtractionResult.Clause;
 import com.visafe.domain.contract.extraction.ExtractionResult.Term;
 import com.visafe.domain.term.enums.TermField;
+import com.visafe.global.config.LlmCondition;
 import java.util.List;
 import java.util.Map;
+import org.springframework.boot.autoconfigure.condition.ConditionalOnExpression;
 import org.springframework.stereotype.Component;
 
 /**
- * 실제 LLM 연동 전까지 쓰는 추출기. 원본과 관계없이 표준근로계약서 예시 결과를 돌려준다.
+ * AI API 키(LLM_API_KEY)가 없을 때 쓰는 추출기. 원본과 관계없이 표준근로계약서 예시 결과를 돌려준다.
  * 검토 화면을 확인할 수 있도록 휴게시간은 읽지 못한 것으로, 주휴일은 확인이 필요한 것으로 둔다.
  */
 @Component
+@ConditionalOnExpression(LlmCondition.DISABLED)
 public class StubContractExtractor implements ContractExtractor {
 
     private static final List<Clause> CLAUSES = List.of(

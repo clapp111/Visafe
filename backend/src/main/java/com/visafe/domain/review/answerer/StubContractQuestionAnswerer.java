@@ -1,14 +1,17 @@
 package com.visafe.domain.review.answerer;
 
+import com.visafe.global.config.LlmCondition;
 import java.util.Arrays;
 import java.util.List;
+import org.springframework.boot.autoconfigure.condition.ConditionalOnExpression;
 import org.springframework.stereotype.Component;
 
 /**
- * 실제 LLM 연동 전까지 쓰는 답변기. 질문과 단어(두 글자 이상)가 가장 많이 겹치는 조항 하나를 근거로 인용하고,
+ * AI API 키(LLM_API_KEY)가 없을 때 쓰는 답변기. 질문과 단어(두 글자 이상)가 가장 많이 겹치는 조항 하나를 근거로 인용하고,
  * 그 조항을 확인하라는 고정 문장을 언어 표시(예: [vi])와 함께 돌려준다. 상담센터 안내는 하지 않는다.
  */
 @Component
+@ConditionalOnExpression(LlmCondition.DISABLED)
 public class StubContractQuestionAnswerer implements ContractQuestionAnswerer {
 
     @Override

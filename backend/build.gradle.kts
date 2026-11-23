@@ -60,6 +60,9 @@ dependencies {
     // 계약서 원본 PDF 쪽 수
     implementation("org.apache.pdfbox:pdfbox:3.0.8")
 
+    // AI 추출·번역·질문 답변 (Claude API)
+    implementation("com.anthropic:anthropic-java:3.12.0")
+
     // Lombok / config metadata
     compileOnly("org.projectlombok:lombok")
     annotationProcessor("org.projectlombok:lombok")

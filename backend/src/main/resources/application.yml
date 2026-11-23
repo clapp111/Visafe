@@ -108,6 +108,11 @@ visafe:
       enabled: ${S3_OBJECT_LOCK_ENABLED:false}
       retention: 3y
 
+  # AI(Claude) 추출·번역·질문 답변. 키가 비어 있으면 실제 호출 대신 stub 구현을 쓴다.
+  llm:
+    api-key: ${LLM_API_KEY:}
+    base-url: ${LLM_BASE_URL:https://factchat-cloud.mindlogic.ai/v1/gateway/claude}
+
   # 감독 기관 검토 단계(선택). 계약을 만들 때 이 값을 contracts.requires_authority_review로 복사한다.
   authority-review:
     enabled: ${AUTHORITY_REVIEW_ENABLED:false}
