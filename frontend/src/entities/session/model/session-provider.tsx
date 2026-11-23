@@ -23,12 +23,18 @@ type Session =
   | { status: "restoring" | "guest" | "signed-out"; member?: undefined }
   | { status: "authenticated"; member: SessionMember };
 
+type MemberLanguage = Pick<
+  components["schemas"]["MemberResponse"],
+  "id" | "uiLanguage"
+>;
+
 interface SessionContextValue {
   session: Session;
   login: (
     values: components["schemas"]["LoginRequest"],
   ) => Promise<SessionMember>;
   logout: () => Promise<void>;
+  updateMemberLanguage: (member: MemberLanguage) => void;
   isLoggingIn: boolean;
   loginError: unknown;
 }
@@ -93,12 +99,25 @@ export function SessionProvider({ children }: { children: ReactNode }) {
     router.replace(routes.login);
   }
 
+  function updateMemberLanguage({ id, uiLanguage }: MemberLanguage) {
+    if (id === undefined || (uiLanguage !== "ko" && uiLanguage !== "vi")) {
+      return;
+    }
+
+    setSession((current) =>
+      current.status === "authenticated" && current.member.id === id
+        ? { ...current, member: { ...current.member, uiLanguage } }
+        : current,
+    );
+  }
+
   return (
     <SessionContext.Provider
       value={{
         session,
         login,
         logout,
+        updateMemberLanguage,
         isLoggingIn: loginMutation.isPending,
         loginError: loginMutation.error,
       }}

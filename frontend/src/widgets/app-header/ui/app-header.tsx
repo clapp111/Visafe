@@ -3,6 +3,7 @@
 import Link from "next/link";
 import { Suspense } from "react";
 import { routes } from "@/shared/config";
+import type { UiLanguage } from "@/shared/i18n";
 import { GlobeIcon, ShieldCheckIcon, UserIcon } from "@/shared/ui";
 import {
   DEFAULT_HEADER_LABELS,
@@ -16,11 +17,13 @@ export interface AppHeaderProps {
   /** 로그인한 회원. 없으면 로그인 전 헤더([로그인] 링크) */
   user?: { name: string; role: MemberRole } | null;
   onLogout?: () => void;
+  language?: UiLanguage;
   /** 다른 화면 언어로 바꾸는 버튼. 버튼에는 바꿀 언어의 이름을 그 언어로 쓴다 (예: "Tiếng Việt") */
   languageToggle?: {
     label: string;
     lang: string;
     ariaLabel: string;
+    disabled?: boolean;
     onToggle: () => void;
   };
   labels?: AppHeaderLabels;
@@ -29,6 +32,7 @@ export interface AppHeaderProps {
 export function AppHeader({
   user,
   onLogout,
+  language,
   languageToggle,
   labels = DEFAULT_HEADER_LABELS,
 }: AppHeaderProps) {
@@ -36,11 +40,12 @@ export function AppHeader({
     <>
       <a
         href="#main"
+        lang={language}
         className="absolute -top-12 left-4 z-20 rounded-md bg-foreground px-4 py-2 text-primary-foreground focus:top-2"
       >
         {labels.skipToContent}
       </a>
-      <header className="border-b-2 border-border bg-surface">
+      <header lang={language} className="border-b-2 border-border bg-surface">
         <div className="mx-auto flex max-w-[1200px] flex-wrap items-center justify-between gap-x-8 gap-y-4 px-6 pt-4 pb-5">
           <Link
             href={routes.home}
@@ -67,6 +72,7 @@ export function AppHeader({
                   <button
                     type="button"
                     aria-label={languageToggle.ariaLabel}
+                    disabled={languageToggle.disabled}
                     onClick={languageToggle.onToggle}
                     className="flex min-h-11 cursor-pointer items-center gap-1.5 px-4"
                   >

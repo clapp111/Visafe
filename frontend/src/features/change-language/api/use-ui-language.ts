@@ -18,7 +18,12 @@ type LanguageContext =
       onMemberUpdated: (member: Member) => void;
     };
 
-async function updateUiLanguage(uiLanguage: UiLanguage): Promise<Member> {
+async function updateUiLanguage({
+  uiLanguage,
+}: {
+  memberId: number;
+  uiLanguage: UiLanguage;
+}): Promise<Member> {
   const request: components["schemas"]["MemberUpdateRequest"] = { uiLanguage };
   const { data } = await api.patch<Member>("/members/me", request);
   return data;
@@ -32,11 +37,13 @@ export function useUiLanguage(context: LanguageContext) {
     context.mode === "member"
       ? resolveUiLanguage(context.member?.uiLanguage)
       : guest.language;
-  const isChangingLanguage = context.mode === "member" && mutation.isPending;
+  const memberId = context.mode === "member" ? context.member?.id : undefined;
+  const isCurrentMember =
+    memberId !== undefined && mutation.variables?.memberId === memberId;
+  const isChangingLanguage = isCurrentMember && mutation.isPending;
   const canChangeLanguage =
-    context.mode === "guest" ||
-    (context.member !== undefined && !isChangingLanguage);
-  const error = context.mode === "member" ? mutation.error : null;
+    context.mode === "guest" || (memberId !== undefined && !isChangingLanguage);
+  const error = isCurrentMember ? mutation.error : null;
 
   function changeLanguage(next: UiLanguage) {
     if (!canChangeLanguage || next === language) {
@@ -45,8 +52,11 @@ export function useUiLanguage(context: LanguageContext) {
 
     if (context.mode === "guest") {
       guest.setGuestLanguage(next);
-    } else {
-      mutation.mutate(next, { onSuccess: context.onMemberUpdated });
+    } else if (memberId !== undefined) {
+      mutation.mutate(
+        { memberId, uiLanguage: next },
+        { onSuccess: context.onMemberUpdated },
+      );
     }
   }
 
@@ -58,5 +68,6 @@ export function useUiLanguage(context: LanguageContext) {
     isChangingLanguage,
     hasLanguageChangeError: error !== null,
     errorCode: getApiErrorCode(error),
+    dismissLanguageError: mutation.reset,
   };
 }
