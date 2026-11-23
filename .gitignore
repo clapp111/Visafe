@@ -1,7 +1,6 @@
 .idea
 
 # 워크플로우 설정 시 제거 (backend는 설정 완료)
-.github/workflows/frontend.yml
 .github/workflows/contracts.yml
 
 # 세션 시작 시 적용되는 지침
