@@ -16,6 +16,8 @@ export const LOGIN_LABELS = {
   emailInvalid: "이메일 형식이 올바르지 않습니다.",
   passwordRequired: "비밀번호를 입력해 주세요.",
   failedHint: "입력한 내용을 다시 확인해 주세요.",
+  invalidCredentials: "이메일 또는 비밀번호가 올바르지 않습니다.",
+  loginUnavailable: "로그인에 실패했습니다. 다시 시도해 주세요.",
   guestHint: "계약이 유효한지만 확인하려면 로그인하지 않아도 됩니다.",
   guestLink: "확인번호로 계약 조회",
 };

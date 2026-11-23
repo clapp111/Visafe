@@ -1,13 +1,40 @@
 "use client";
 
 import Link from "next/link";
+import { useRouter } from "next/navigation";
+import { getPostLoginPath, useSession } from "@/entities/session";
+import { getApiErrorCode } from "@/shared/api";
 import { routes } from "@/shared/config";
 import { InfoIcon } from "@/shared/ui";
 import { LOGIN_LABELS } from "../model/labels";
+import type { LoginValues } from "../model/schema";
 import { LoginForm } from "./login-form";
 
 export function LoginPage() {
   const labels = LOGIN_LABELS;
+  const router = useRouter();
+  const { session, login, isLoggingIn, loginError } = useSession();
+  const isSubmitting = session.status === "restoring" || isLoggingIn;
+  const errorMessage = loginError
+    ? getApiErrorCode(loginError) === "AUTH_LOGIN_FAILED"
+      ? labels.invalidCredentials
+      : labels.loginUnavailable
+    : undefined;
+
+  async function handleSubmit(values: LoginValues) {
+    if (isSubmitting) {
+      return;
+    }
+
+    const returnTo = new URLSearchParams(window.location.search).get("next");
+    try {
+      const member = await login(values);
+      router.replace(getPostLoginPath(member.role, returnTo));
+    } catch {
+      // The login mutation supplies the form's error message.
+    }
+  }
+
   return (
     <div className="mx-auto max-w-[1200px] px-6 pt-6 pb-20">
       <nav aria-label={labels.breadcrumb} className="mb-8 text-sm text-muted">
@@ -28,8 +55,12 @@ export function LoginPage() {
           <p className="text-muted">{labels.description}</p>
         </div>
 
-        {/* A1 로그인 요청·실패 안내·로그인 후 이동은 Codex 연동에서 붙인다 */}
-        <LoginForm onSubmit={() => {}} labels={labels} />
+        <LoginForm
+          onSubmit={handleSubmit}
+          isSubmitting={isSubmitting}
+          errorMessage={errorMessage}
+          labels={labels}
+        />
 
         <div className="flex items-start gap-3 rounded-md bg-surface-muted px-5 py-4">
           <InfoIcon size={24} className="mt-0.5 shrink-0 text-primary" />
