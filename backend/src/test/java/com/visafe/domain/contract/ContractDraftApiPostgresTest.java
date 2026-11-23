@@ -35,6 +35,7 @@ import java.nio.charset.StandardCharsets;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.TimeZone;
 import org.apache.pdfbox.pdmodel.PDDocument;
 import org.apache.pdfbox.pdmodel.PDPage;
 import org.junit.jupiter.api.BeforeEach;
@@ -170,6 +171,32 @@ class ContractDraftApiPostgresTest {
                         "monthlyBaseWage:2300000→2000000",
                         "weeklyHoliday:일요일→토요일");
         assertThat(termEditedEvents(contract)).hasSize(2);
+    }
+
+    @Test
+    void workTimesAreStoredWithoutTimeZoneShift() throws Exception {
+        Contract contract = extractedContract();
+        // 문제는 JVM 기본 시간대가 UTC가 아닐 때만 드러나므로, 저장하는 동안만 한국 시간대로 바꾼다.
+        TimeZone original = TimeZone.getDefault();
+        TimeZone.setDefault(TimeZone.getTimeZone("Asia/Seoul"));
+        try {
+            updateTerms(contract, "{\"workStartTime\": \"08:30\", \"workEndTime\": \"17:30\"}")
+                    .andExpect(status().isOk());
+            em.flush();
+            em.clear();
+        } finally {
+            TimeZone.setDefault(original);
+        }
+
+        Object[] stored = (Object[])
+                em.createNativeQuery("select work_start_time::text, work_end_time::text from contract_labor_terms"
+                                + " where contract_version_id = :versionId")
+                        .setParameter("versionId", contract.getCurrentVersion().getId())
+                        .getSingleResult();
+        assertThat(stored).containsExactly("08:30:00", "17:30:00");
+        getDraft(contract)
+                .andExpect(field("workStartTime", "value").value("08:30"))
+                .andExpect(field("workEndTime", "value").value("17:30"));
     }
 
     @Test
