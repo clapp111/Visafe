@@ -64,6 +64,9 @@ public enum CustomErrorCode implements ErrorCode {
     AUTHORITY_ALREADY_REVIEWED(HttpStatus.CONFLICT, 409, "이미 검토한 회차입니다."),
     REJECT_REASON_REQUIRED(HttpStatus.BAD_REQUEST, 400, "반려 사유를 입력해 주세요."),
 
+    // 알림
+    NOTIFICATION_NOT_FOUND(HttpStatus.NOT_FOUND, 404, "알림을 찾을 수 없습니다."),
+
     // 공개 조회
     LOOKUP_INVALID_FORMAT(HttpStatus.BAD_REQUEST, 400, "확인번호 형식이 올바르지 않습니다."),
     LOOKUP_NOT_FOUND(HttpStatus.NOT_FOUND, 404, "확인번호에 해당하는 계약이 없습니다."),
