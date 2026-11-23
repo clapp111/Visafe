@@ -4,6 +4,7 @@ export {
   CircleCheckIcon,
   CloseIcon,
   ErrorIcon,
+  EyeIcon,
   FileIcon,
   GlobeIcon,
   InfoIcon,

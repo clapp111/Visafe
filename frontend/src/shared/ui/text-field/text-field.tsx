@@ -1,4 +1,4 @@
-import type { InputHTMLAttributes, ReactNode } from "react";
+import type { ComponentProps, ReactNode } from "react";
 import { cn } from "@/shared/lib";
 import {
   Field,
@@ -7,8 +7,9 @@ import {
   type FieldStatus,
 } from "../field";
 
+// ComponentProps<"input">에는 ref가 들어 있어 react-hook-form의 register를 그대로 펼칠 수 있다
 export interface TextFieldProps extends Omit<
-  InputHTMLAttributes<HTMLInputElement>,
+  ComponentProps<"input">,
   "id" | "size"
 > {
   id: string;
