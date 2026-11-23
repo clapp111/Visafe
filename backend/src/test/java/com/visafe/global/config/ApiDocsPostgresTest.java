@@ -15,7 +15,8 @@ import org.springframework.boot.webmvc.test.autoconfigure.AutoConfigureMockMvc;
 import org.springframework.test.web.servlet.MockMvc;
 
 /**
- * Swagger 문서(/v3/api-docs)의 성공 응답 코드가 실제 응답 코드와 같고, 로그인이 필요한 API에 401이 문서화됐는지 확인한다.
+ * Swagger 문서(/v3/api-docs)의 성공 응답 코드가 실제 응답 코드와 같고, 로그인이 필요한 API에 401이 문서화됐는지,
+ * 같은 이름의 중첩 record가 바깥 클래스 이름이 붙은 별도 스키마로 나오는지 확인한다.
  */
 @PostgresIntegrationTest
 @AutoConfigureMockMvc
@@ -81,6 +82,30 @@ class ApiDocsPostgresTest {
                 assertThat(codes).as(operation).contains("401");
             }
         });
+    }
+
+    @Test
+    void nestedRecordsWithSameNameGetSeparateSchemas() throws Exception {
+        String docs =
+                mockMvc.perform(get("/v3/api-docs")).andReturn().getResponse().getContentAsString();
+
+        assertThat(JsonPath.<String>read(
+                        docs, "$.components.schemas.ContractListResponse.properties.content.items.$ref"))
+                .endsWith("/ContractListResponseItem");
+        assertThat(JsonPath.<Map<String, Object>>read(docs, "$.components.schemas.ContractListResponseItem.properties"))
+                .containsKeys("todo", "counterpartyName");
+        assertThat(JsonPath.<Map<String, Object>>read(
+                        docs, "$.components.schemas.ContractReviewResponseItem.properties"))
+                .containsKey("employerInput");
+        assertThat(JsonPath.<Map<String, Object>>read(
+                        docs, "$.components.schemas.AdminContractListResponseItem.properties"))
+                .containsKey("warningCount");
+        assertThat(JsonPath.<Map<String, Object>>read(
+                        docs, "$.components.schemas.LookupResponseTermination.properties"))
+                .containsKey("terminatedAt");
+        assertThat(JsonPath.<Map<String, Object>>read(
+                        docs, "$.components.schemas.ContractDetailResponseTermination.properties"))
+                .containsKey("requestedByMe");
     }
 
     @SuppressWarnings("unchecked")
