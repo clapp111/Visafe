@@ -7,9 +7,12 @@ import com.visafe.domain.contract.enums.ContractAction;
 import com.visafe.domain.contract.enums.ContractEventType;
 import com.visafe.domain.contract.enums.ContractStage;
 import com.visafe.domain.contract.enums.ContractStatus;
+import com.visafe.domain.contract.enums.TerminationReasonType;
+import com.visafe.domain.contract.enums.TerminationStatus;
 import com.visafe.domain.term.enums.ValueSource;
 import io.swagger.v3.oas.annotations.media.Schema;
 import java.time.Instant;
+import java.time.LocalDate;
 import java.util.List;
 import java.util.Map;
 
@@ -50,8 +53,8 @@ public record ContractDetailResponse(
 
         @Schema(description = "블록체인 기록") List<ChainRecordItem> chainRecords,
 
-        @Schema(description = "진행 중이거나 끝난 종료. 계약 종료 기능(#16) 구현 전에는 항상 null", nullable = true)
-        Object termination,
+        @Schema(description = "진행 중이거나 완료된 종료 (REQUESTED·AGREED), 없으면 null", nullable = true)
+        Termination termination,
 
         @Schema(description = "지금 할 수 있는 일") List<ContractAction> availableActions) {
 
@@ -121,6 +124,25 @@ public record ContractDetailResponse(
                             + "EXTRACTION_FAILED·TRANSLATION_FAILED: error), 없으면 null",
                     nullable = true)
             Map<String, Object> detail) {}
+
+    @Schema(description = "종료")
+    public record Termination(
+            @Schema(description = "종료 ID", example = "3") Long terminationId,
+
+            @Schema(description = "EXPIRED | MUTUAL | REPLACED", example = "MUTUAL")
+            TerminationReasonType reasonType,
+
+            @Schema(description = "사유", example = "귀국 예정", nullable = true)
+            String reasonText,
+
+            @Schema(description = "종료일 (마지막 근무일)", example = "2027-06-30")
+            LocalDate endDate,
+
+            @Schema(description = "REQUESTED | AGREED", example = "REQUESTED")
+            TerminationStatus status,
+
+            @Schema(description = "로그인한 사람이 요청했는지", example = "false")
+            boolean requestedByMe) {}
 
     @Schema(description = "블록체인 기록")
     public record ChainRecordItem(
