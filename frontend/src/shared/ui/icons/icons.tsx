@@ -106,3 +106,39 @@ export function FileIcon(props: IconProps) {
     </Icon>
   );
 }
+
+export function ShieldCheckIcon(props: IconProps) {
+  return (
+    <Icon {...props}>
+      <path d="M12 3 4 6v6c0 4.5 3.4 8.2 8 9 4.6-.8 8-4.5 8-9V6l-8-3z" />
+      <path d="m8.5 12 2.5 2.5 4.5-5" />
+    </Icon>
+  );
+}
+
+export function GlobeIcon(props: IconProps) {
+  return (
+    <Icon {...props}>
+      <circle cx="12" cy="12" r="9" />
+      <path d="M3 12h18" />
+      <path d="M12 3c2.5 2.6 3.8 5.6 3.8 9s-1.3 6.4-3.8 9c-2.5-2.6-3.8-5.6-3.8-9S9.5 5.6 12 3z" />
+    </Icon>
+  );
+}
+
+export function UserIcon(props: IconProps) {
+  return (
+    <Icon {...props}>
+      <circle cx="12" cy="8" r="4" />
+      <path d="M4 21c0-4 3.6-7 8-7s8 3 8 7" />
+    </Icon>
+  );
+}
+
+export function ChevronDownIcon(props: IconProps) {
+  return (
+    <Icon strokeWidth={1.8} {...props}>
+      <path d="m6 9 6 6 6-6" />
+    </Icon>
+  );
+}
