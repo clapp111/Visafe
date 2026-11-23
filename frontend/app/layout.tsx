@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import { Noto_Sans_KR } from "next/font/google";
 import type { ReactNode } from "react";
 import { QueryProvider } from "@/app/entrypoint";
+import { AppShell } from "@/app/layout";
 import "@/app/styles/globals.css";
 
 // 근로자 화면은 베트남어라 vietnamese 부분집합도 미리 받는다. 한글은 unicode-range로 필요할 때 받는다
@@ -18,8 +19,10 @@ export const metadata: Metadata = {
 export default function RootLayout({ children }: { children: ReactNode }) {
   return (
     <html lang="ko" className={notoSansKr.variable}>
-      <body>
-        <QueryProvider>{children}</QueryProvider>
+      <body className="flex min-h-screen flex-col">
+        <QueryProvider>
+          <AppShell>{children}</AppShell>
+        </QueryProvider>
       </body>
     </html>
   );
