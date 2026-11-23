@@ -2,7 +2,7 @@ package com.visafe.domain.translation.translator;
 
 /**
  * 계약서 조항과 항목을 근로자의 언어로 번역하고 항목마다 쉬운 설명을 붙인다.
- * 실제 LLM 구현 전까지는 {@link StubContractTranslator}를 쓴다.
+ * AI API 키가 있으면 Claude 구현을, 없으면 {@link StubContractTranslator}를 쓴다.
  */
 public interface ContractTranslator {
 

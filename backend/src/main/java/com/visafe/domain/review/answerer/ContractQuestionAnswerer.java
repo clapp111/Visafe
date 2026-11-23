@@ -1,7 +1,7 @@
 package com.visafe.domain.review.answerer;
 
 /**
- * 근로자의 질문에 이 계약서 조항만 근거로 답한다. 실제 LLM 구현 전까지는 {@link StubContractQuestionAnswerer}를 쓴다.
+ * 근로자의 질문에 이 계약서 조항만 근거로 답한다. AI API 키가 있으면 Claude 구현을, 없으면 {@link StubContractQuestionAnswerer}를 쓴다.
  */
 public interface ContractQuestionAnswerer {
 
