@@ -1,11 +1,15 @@
 package com.visafe.domain.chain;
 
 import com.visafe.domain.chain.entity.ChainRecord;
+import com.visafe.domain.contract.enums.TerminationReasonType;
 import com.visafe.global.crypto.Keccak256;
 import java.nio.charset.StandardCharsets;
+import java.security.SecureRandom;
+import java.time.LocalDate;
 import java.time.temporal.ChronoUnit;
 import java.util.ArrayList;
 import java.util.Comparator;
+import java.util.HexFormat;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
@@ -23,11 +27,15 @@ import tools.jackson.databind.json.JsonMapper;
  *       (id 순서, 시각은 DB에 저장된 값을 밀리초로 자름, payload는 제외)</li>
  *   <li>record_hash(CONFIRM): {@code {"anchorKey","eventsHash","fileHash","hashRuleVersion":1,"itemsHash",
  *       "recordType":"CONFIRM","translationHash","workerId"}}</li>
+ *   <li>record_hash(TERMINATE): {@code {"anchorKey","endDate":"2027-06-30","eventsHash","hashRuleVersion":1,
+ *       "previousRecordHash","reasonType":"MUTUAL","recordType":"TERMINATE","workerId"}} (previousRecordHash는 확정 기록의 해시)</li>
  * </ul>
  */
 public final class ChainRecordHash {
 
     private static final JsonMapper JSON = JsonMapper.builder().build();
+    private static final SecureRandom RANDOM = new SecureRandom();
+    private static final int NONCE_BYTES = 32;
 
     private ChainRecordHash() {}
 
@@ -64,6 +72,33 @@ public final class ChainRecordHash {
         record.put("translationHash", translationHash);
         record.put("workerId", workerId);
         return keccak(JSON.writeValueAsString(record));
+    }
+
+    /** 종료 기록의 묶음 해시를 만든다. */
+    public static String terminateRecordHash(
+            String anchorKey,
+            LocalDate endDate,
+            String eventsHash,
+            String previousRecordHash,
+            TerminationReasonType reasonType,
+            String workerId) {
+        Map<String, Object> record = new LinkedHashMap<>();
+        record.put("anchorKey", anchorKey);
+        record.put("endDate", endDate.toString());
+        record.put("eventsHash", eventsHash);
+        record.put("hashRuleVersion", ChainRecord.CURRENT_HASH_RULE_VERSION);
+        record.put("previousRecordHash", previousRecordHash);
+        record.put("reasonType", reasonType.name());
+        record.put("recordType", "TERMINATE");
+        record.put("workerId", workerId);
+        return keccak(JSON.writeValueAsString(record));
+    }
+
+    /** 근로자 식별값에 섞을 32바이트 무작위값을 만든다. (0x + 소문자 16진수 64자리) */
+    public static String newNonce() {
+        byte[] bytes = new byte[NONCE_BYTES];
+        RANDOM.nextBytes(bytes);
+        return "0x" + HexFormat.of().formatHex(bytes);
     }
 
     /** events_hash 입력이 되는 JSON 문자열을 만든다. */

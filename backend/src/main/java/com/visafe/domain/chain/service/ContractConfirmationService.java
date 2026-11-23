@@ -13,8 +13,6 @@ import com.visafe.domain.contract.repository.ContractRepository;
 import com.visafe.domain.contract.service.ContractEventRecorder;
 import com.visafe.domain.review.entity.ReviewResponse;
 import com.visafe.domain.translation.entity.Translation;
-import java.security.SecureRandom;
-import java.util.HexFormat;
 import java.util.Map;
 import lombok.RequiredArgsConstructor;
 import org.springframework.context.ApplicationEventPublisher;
@@ -25,9 +23,6 @@ import org.springframework.transaction.annotation.Transactional;
 @RequiredArgsConstructor
 @Transactional(readOnly = true)
 public class ContractConfirmationService {
-
-    private static final SecureRandom RANDOM = new SecureRandom();
-    private static final int NONCE_BYTES = 32;
 
     private final ContractRepository contractRepository;
     private final ContractEventRepository contractEventRepository;
@@ -58,7 +53,7 @@ public class ContractConfirmationService {
                 ChainRecordHash.eventsHash(contractEventRepository.findSnapshotsByContractId(contract.getId()));
         String confirmationNo = newConfirmationNo();
         String anchorKey = ChainRecordHash.anchorKey(confirmationNo);
-        String nonce = newNonce();
+        String nonce = ChainRecordHash.newNonce();
         String fileHash = version.getContractFile().getFileHash();
         String recordHash = ChainRecordHash.confirmRecordHash(
                 anchorKey,
@@ -103,16 +98,5 @@ public class ContractConfirmationService {
             confirmationNo = ConfirmationNumber.generate();
         } while (contractRepository.existsByConfirmationNo(confirmationNo));
         return confirmationNo;
-    }
-
-    /**
-     * 근로자 식별값에 섞을 32바이트 무작위값을 만든다.
-     *
-     * @return 0x + 소문자 16진수 64자리
-     */
-    private static String newNonce() {
-        byte[] bytes = new byte[NONCE_BYTES];
-        RANDOM.nextBytes(bytes);
-        return "0x" + HexFormat.of().formatHex(bytes);
     }
 }

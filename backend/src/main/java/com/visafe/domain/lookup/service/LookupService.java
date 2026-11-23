@@ -211,7 +211,7 @@ public class LookupService {
         String expected = recomputeRecordHash(contract, version, terms, record);
         try {
             IntegrityStatus status = chainRecorder
-                    .readRecordHash(record.getAnchorKey())
+                    .readRecordHash(record.getAnchorKey(), RecordType.CONFIRM)
                     .filter(expected::equals)
                     .map(onChain -> IntegrityStatus.VERIFIED)
                     .orElse(IntegrityStatus.MISMATCH);
@@ -225,7 +225,8 @@ public class LookupService {
     /**
      * DB 원본으로 확정 기록의 묶음 해시를 다시 계산한다.
      *
-     * <p>이력 해시는 이 기록의 CHAIN_RECORD_REQUESTED 이벤트보다 앞선 이벤트로 계산한다. (기록을 시작할 때와 같은 범위)</p>
+     * <p>이력 해시는 확정 기록의 CHAIN_RECORD_REQUESTED 이벤트(회차의 첫 기록 요청)보다 앞선 이벤트로 계산한다.
+     * (기록을 시작할 때와 같은 범위. 뒤에 종료 기록 요청이 이어져도 범위는 같다)</p>
      *
      * @param contract 계약
      * @param version 확정 회차
@@ -236,7 +237,7 @@ public class LookupService {
     private String recomputeRecordHash(
             Contract contract, ContractVersion version, ContractLaborTerms terms, ChainRecord record) {
         Long requestedEventId = contractEventRepository
-                .findFirstByContractVersionIdAndEventTypeOrderByIdDesc(
+                .findFirstByContractVersionIdAndEventTypeOrderByIdAsc(
                         version.getId(), ContractEventType.CHAIN_RECORD_REQUESTED)
                 .map(ContractEvent::getId)
                 .orElse(Long.MAX_VALUE);
