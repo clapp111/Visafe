@@ -1,6 +1,6 @@
 package com.visafe.domain.review.answerer;
 
-import com.visafe.global.config.LlmCondition;
+import com.visafe.infra.ai.LlmCondition;
 import java.util.Arrays;
 import java.util.List;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnExpression;

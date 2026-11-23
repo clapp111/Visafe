@@ -1,4 +1,4 @@
-package com.visafe.global.config;
+package com.visafe.infra.ai;
 
 import org.springframework.boot.context.properties.ConfigurationProperties;
 

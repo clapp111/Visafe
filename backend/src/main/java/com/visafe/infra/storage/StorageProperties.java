@@ -1,4 +1,4 @@
-package com.visafe.global.storage;
+package com.visafe.infra.storage;
 
 import jakarta.validation.Valid;
 import jakarta.validation.constraints.NotBlank;

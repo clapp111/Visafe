@@ -8,7 +8,6 @@ import com.visafe.domain.translation.translator.ContractTranslationWorker;
 import com.visafe.domain.translation.translator.ContractTranslator;
 import com.visafe.domain.translation.translator.TranslationResult;
 import com.visafe.domain.translation.translator.TranslationSource;
-import com.visafe.global.config.LlmCondition;
 import java.util.EnumMap;
 import java.util.List;
 import java.util.Map;

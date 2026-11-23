@@ -1,4 +1,4 @@
-package com.visafe.global.config;
+package com.visafe.infra.ai;
 
 /**
  * AI 구현을 고르는 조건식. API 키가 있으면 Claude 구현을, 없으면 stub 구현을 빈으로 등록한다.

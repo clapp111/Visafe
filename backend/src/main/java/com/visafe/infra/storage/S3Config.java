@@ -1,6 +1,5 @@
-package com.visafe.global.config;
+package com.visafe.infra.storage;
 
-import com.visafe.global.storage.StorageProperties;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import software.amazon.awssdk.auth.credentials.AwsBasicCredentials;
