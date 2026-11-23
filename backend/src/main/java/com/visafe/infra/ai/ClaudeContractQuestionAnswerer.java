@@ -6,7 +6,6 @@ import com.fasterxml.jackson.annotation.JsonPropertyDescription;
 import com.visafe.domain.review.answerer.ContractQuestionAnswerer;
 import com.visafe.domain.review.answerer.QuestionAnswer;
 import com.visafe.domain.review.answerer.QuestionSource;
-import com.visafe.global.config.LlmCondition;
 import java.time.Duration;
 import java.util.List;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnExpression;

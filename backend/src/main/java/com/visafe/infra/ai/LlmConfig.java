@@ -1,4 +1,4 @@
-package com.visafe.global.config;
+package com.visafe.infra.ai;
 
 import com.anthropic.client.AnthropicClient;
 import com.anthropic.client.okhttp.AnthropicOkHttpClient;

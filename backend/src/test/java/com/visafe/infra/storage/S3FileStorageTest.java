@@ -1,4 +1,4 @@
-package com.visafe.global.storage;
+package com.visafe.infra.storage;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
@@ -7,6 +7,8 @@ import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
+import com.visafe.global.storage.FileStorageException;
+import com.visafe.global.storage.PresignedDownload;
 import java.net.URLDecoder;
 import java.nio.charset.StandardCharsets;
 import java.time.Clock;

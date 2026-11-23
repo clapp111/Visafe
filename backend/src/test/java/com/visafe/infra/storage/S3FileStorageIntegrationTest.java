@@ -1,10 +1,11 @@
-package com.visafe.global.storage;
+package com.visafe.infra.storage;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 
-import com.visafe.global.config.S3Config;
 import com.visafe.global.crypto.Keccak256;
+import com.visafe.global.storage.FileStorageException;
+import com.visafe.global.storage.PresignedDownload;
 import java.net.URI;
 import java.net.http.HttpClient;
 import java.net.http.HttpRequest;

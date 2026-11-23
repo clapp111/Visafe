@@ -10,7 +10,6 @@ import com.fasterxml.jackson.annotation.JsonPropertyDescription;
 import com.visafe.domain.contract.extraction.ContractExtractor;
 import com.visafe.domain.contract.extraction.ExtractionResult;
 import com.visafe.domain.term.enums.TermField;
-import com.visafe.global.config.LlmCondition;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Base64;

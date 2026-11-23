@@ -1,7 +1,7 @@
 package com.visafe.domain.translation.translator;
 
 import com.visafe.domain.term.enums.TermField;
-import com.visafe.global.config.LlmCondition;
+import com.visafe.infra.ai.LlmCondition;
 import java.util.EnumMap;
 import java.util.List;
 import java.util.Map;

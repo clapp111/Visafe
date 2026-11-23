@@ -3,7 +3,7 @@ package com.visafe.domain.contract.extraction;
 import com.visafe.domain.contract.extraction.ExtractionResult.Clause;
 import com.visafe.domain.contract.extraction.ExtractionResult.Term;
 import com.visafe.domain.term.enums.TermField;
-import com.visafe.global.config.LlmCondition;
+import com.visafe.infra.ai.LlmCondition;
 import java.util.List;
 import java.util.Map;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnExpression;
