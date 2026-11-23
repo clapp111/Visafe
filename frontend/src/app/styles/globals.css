@@ -1,0 +1,36 @@
+@import "tailwindcss";
+
+/* 와이어프레임 색. 상태 색은 배지·알림에 글자와 함께 쓴다 */
+@theme {
+  --color-background: #ffffff;
+  --color-surface: #ffffff;
+  --color-surface-muted: #f4f5f6;
+  --color-foreground: #1e2124;
+  --color-muted: #464c53;
+  --color-border: #cdd1d5;
+  --color-border-strong: #8a949e;
+  --color-divider: #e6e8ea;
+  --color-primary: #0b4ea2;
+  --color-primary-hover: #083a7a;
+  --color-primary-subtle: #eaf2fe;
+  --color-primary-foreground: #ffffff;
+  --color-success: #1e6b2e;
+  --color-success-subtle: #eaf6ec;
+  --color-success-border: #8fcb9b;
+  --color-warning: #8a4b00;
+  --color-warning-subtle: #fff3e0;
+  --color-warning-border: #e5a54b;
+  --color-danger: #b3261e;
+  --color-highlight: #fff0a8;
+}
+
+/* next/font가 html에 선언하는 변수를 쓰므로 inline으로 둔다 */
+@theme inline {
+  --font-sans: var(--font-noto-sans-kr), sans-serif;
+}
+
+@layer base {
+  body {
+    @apply bg-background font-sans text-foreground;
+  }
+}
