@@ -10,18 +10,50 @@
   --color-border: #cdd1d5;
   --color-border-strong: #8a949e;
   --color-divider: #e6e8ea;
+  --color-neutral-border: #b1b8be;
+  --color-overlay: rgb(30 33 36 / 0.6);
   --color-primary: #0b4ea2;
   --color-primary-hover: #083a7a;
   --color-primary-subtle: #eaf2fe;
+  --color-primary-border: #9cbdeb;
   --color-primary-foreground: #ffffff;
   --color-success: #1e6b2e;
   --color-success-subtle: #eaf6ec;
   --color-success-border: #8fcb9b;
   --color-warning: #8a4b00;
+  --color-warning-accent: #b35c00;
   --color-warning-subtle: #fff3e0;
+  --color-warning-surface: #fffaf2;
   --color-warning-border: #e5a54b;
   --color-danger: #b3261e;
+  --color-danger-subtle: #fdeeee;
+  --color-danger-border: #e8a39e;
   --color-highlight: #fff0a8;
+  --color-highlight-subtle: #fff7cc;
+  --color-highlight-border: #d9b800;
+  --color-highlight-foreground: #5c4a00;
+
+  /* 와이어프레임 글자 크기 (본문 17px) */
+  --text-xs: 13px;
+  --text-xs--line-height: 1.5;
+  --text-sm: 15px;
+  --text-sm--line-height: 1.5;
+  --text-base: 17px;
+  --text-base--line-height: 1.5;
+  --text-lg: 19px;
+  --text-lg--line-height: 1.5;
+  --text-xl: 22px;
+  --text-xl--line-height: 1.4;
+  --text-2xl: 24px;
+  --text-2xl--line-height: 1.4;
+  --text-3xl: 28px;
+  --text-3xl--line-height: 1.4;
+  --text-4xl: 32px;
+  --text-4xl--line-height: 1.4;
+  --text-5xl: 40px;
+  --text-5xl--line-height: 1.4;
+
+  --radius-lg: 10px;
 }
 
 /* next/font가 html에 선언하는 변수를 쓰므로 inline으로 둔다 */
@@ -31,6 +63,11 @@
 
 @layer base {
   body {
-    @apply bg-background font-sans text-foreground;
+    @apply bg-background font-sans text-base text-foreground;
+  }
+
+  :focus-visible {
+    outline: 3px solid var(--color-primary);
+    outline-offset: 2px;
   }
 }
