@@ -1,5 +1,7 @@
 package com.visafe.domain.contract.service;
 
+import com.visafe.domain.authority.enums.ReviewDecision;
+import com.visafe.domain.authority.repository.AuthorityReviewRepository;
 import com.visafe.domain.contract.dto.request.TermsUpdateRequest;
 import com.visafe.domain.contract.dto.response.ContractDraftResponse;
 import com.visafe.domain.contract.dto.response.ContractDraftResponse.Attention;
@@ -76,6 +78,7 @@ public class ContractDraftService {
     private final ContractVersionRepository contractVersionRepository;
     private final ContractEventRepository contractEventRepository;
     private final ReviewResponseRepository reviewResponseRepository;
+    private final AuthorityReviewRepository authorityReviewRepository;
 
     // =========================================================================
     // ============================= 주요 서비스 기능 =============================
@@ -86,7 +89,8 @@ public class ContractDraftService {
      *
      * <p>검토할 항목 조회 API(R4)에서 쓴다. 현재 회차의 19개 항목을 값, AI가 읽은 값, 값 출처, 경고, 근거 조항과 함께 돌려준다.
      * 추출이 끝나기 전(UPLOADED)에는 항목이 비어 있다. 최저임금 경고는 저장하지 않고 조회할 때 계산한다.
-     * 돌아온 계약이거나 그 계약을 고치는 새 회차면 근로자의 신고 내용을 함께 주고, 신고된 항목을 확인이 필요한 항목 맨 앞에 둔다.</p>
+     * 돌아온 계약이거나 그 계약을 고치는 새 회차면 근로자의 신고 내용(또는 기관의 반려 사유)을 함께 주고,
+     * 신고된 항목을 확인이 필요한 항목 맨 앞에 둔다.</p>
      *
      * @param contractId 계약 ID
      * @param member 로그인한 고용주
@@ -151,6 +155,18 @@ public class ContractDraftService {
         return toResponse(contract);
     }
 
+    /**
+     * 회차의 19개 항목을 검토 화면과 같은 형식으로 만든다.
+     *
+     * <p>기관 검토 화면(D2)에서 쓴다. 값, AI가 읽은 값, 값 출처, 경고(최저임금 미달·확인 필요), 근거 조항을 담는다.</p>
+     *
+     * @param version 회차
+     * @return 19개 항목 (TermField 순서), 추출 전이면 빈 목록
+     */
+    public List<Field> fieldsOf(ContractVersion version) {
+        return buildFields(version, new ArrayList<>());
+    }
+
     // =========================================================================
     // ================================ 헬퍼 함수 ================================
     // =========================================================================
@@ -171,11 +187,35 @@ public class ContractDraftService {
                 .orElse(null);
 
         Returned returned = returnedOf(contract).orElse(null);
-        List<Field> fields = new ArrayList<>();
         List<Attention> attention = new ArrayList<>();
         if (returned != null) {
             returned.reportedFields().forEach(key -> attention.add(new Attention(key, AttentionReason.REPORTED)));
         }
+        List<Field> fields = buildFields(version, attention);
+
+        return new ContractDraftResponse(
+                contract.getId(),
+                contract.getContractNo(),
+                contract.getStage(),
+                version.getVersionNo(),
+                contractProcessingService.resolve(contract),
+                new ContractDraftResponse.Worker(worker.getId(), worker.getName(), nationality),
+                new ContractDraftResponse.File(
+                        file.getId(), file.getFileName(), file.getMimeType(), file.getSizeBytes(), file.getPageCount()),
+                fields,
+                attention,
+                returned);
+    }
+
+    /**
+     * 회차의 19개 항목을 값, AI가 읽은 값, 값 출처, 경고, 근거 조항과 함께 만들고 확인이 필요한 항목을 모은다.
+     *
+     * @param version 회차
+     * @param attention 확인이 필요한 항목을 더할 목록
+     * @return 19개 항목 (TermField 순서), 추출 전이면 빈 목록
+     */
+    private List<Field> buildFields(ContractVersion version, List<Attention> attention) {
+        List<Field> fields = new ArrayList<>();
         Optional<ContractLaborTerms> terms = contractLaborTermsRepository.findById(version.getId());
         if (terms.isPresent()) {
             Map<TermField, ContractTermAnnotation> annotations = annotationsOf(version);
@@ -213,26 +253,15 @@ public class ContractDraftService {
                         sourceClause(annotation.getContractClause())));
             }
         }
-
-        return new ContractDraftResponse(
-                contract.getId(),
-                contract.getContractNo(),
-                contract.getStage(),
-                version.getVersionNo(),
-                contractProcessingService.resolve(contract),
-                new ContractDraftResponse.Worker(worker.getId(), worker.getName(), nationality),
-                new ContractDraftResponse.File(
-                        file.getId(), file.getFileName(), file.getMimeType(), file.getSizeBytes(), file.getPageCount()),
-                fields,
-                attention,
-                returned);
+        return fields;
     }
 
     /**
      * 돌아온 계약의 신고 내용을 만든다.
      *
      * <p>현재 회차가 돌아온 회차이거나, 돌아온 회차를 고치려고 연 새 회차(DRAFT)면 돌아온 회차의 마지막 WORKER_REPORTED 이벤트로 만든다.
-     * 신고 사유 원문은 근로자 응답에서, 한국어 번역은 이벤트 payload에서 가져온다.</p>
+     * 신고 사유 원문은 근로자 응답에서, 한국어 번역은 이벤트 payload에서 가져온다.
+     * 근로자 신고가 없으면 기관 반려로 돌아온 것이므로 반려 기록으로 만든다. 반려 사유는 한국어라 reasonKo에도 그대로 넣는다.</p>
      *
      * @param contract 계약
      * @return 신고 내용, 돌아온 계약이 아니면 빈 {@link Optional}
@@ -249,9 +278,13 @@ public class ContractDraftService {
         } else {
             returnedVersion = Optional.empty();
         }
-        return returnedVersion
-                .flatMap(returned -> contractEventRepository.findFirstByContractVersionIdAndEventTypeOrderByIdDesc(
-                        returned.getId(), ContractEventType.WORKER_REPORTED))
+        if (returnedVersion.isEmpty()) {
+            return Optional.empty();
+        }
+        Long returnedVersionId = returnedVersion.get().getId();
+        return contractEventRepository
+                .findFirstByContractVersionIdAndEventTypeOrderByIdDesc(
+                        returnedVersionId, ContractEventType.WORKER_REPORTED)
                 .map(event -> {
                     Map<String, Object> payload = event.getPayload();
                     String reason = reviewResponseRepository
@@ -262,7 +295,16 @@ public class ContractDraftService {
                     List<String> keys = (List<String>) payload.getOrDefault("keys", List.of());
                     return new Returned(
                             ReturnedBy.WORKER, event.getCreatedAt(), keys, reason, (String) payload.get("reasonKo"));
-                });
+                })
+                .or(() -> authorityReviewRepository
+                        .findByContractVersionId(returnedVersionId)
+                        .filter(review -> review.getDecision() == ReviewDecision.REJECTED)
+                        .map(review -> new Returned(
+                                ReturnedBy.AUTHORITY,
+                                review.getCreatedAt(),
+                                List.of(),
+                                review.getReason(),
+                                review.getReason())));
     }
 
     /**

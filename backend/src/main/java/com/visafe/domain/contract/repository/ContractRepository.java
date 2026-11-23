@@ -1,6 +1,7 @@
 package com.visafe.domain.contract.repository;
 
 import com.visafe.domain.contract.entity.Contract;
+import com.visafe.domain.contract.enums.ContractStage;
 import java.time.LocalDate;
 import java.util.List;
 import java.util.Optional;
@@ -37,6 +38,13 @@ public interface ContractRepository extends JpaRepository<Contract, Long> {
             where c.company.id = (select m.company.id from Member m where m.id = :employerMemberId)
             """)
     List<Contract> findAllForEmployer(@Param("employerMemberId") Long employerMemberId);
+
+    /** 주어진 stage의 계약 전체 (기관 목록용, 사업주·근로자·현재 회차 포함). */
+    @Query("""
+            select c from Contract c join fetch c.company join fetch c.worker left join fetch c.currentVersion
+            where c.stage = :stage
+            """)
+    List<Contract> findAllWithPartiesByStage(@Param("stage") ContractStage stage);
 
     /** 계약 번호 일련번호 (V4 contract_no_seq). */
     @Query(value = "SELECT nextval('contract_no_seq')", nativeQuery = true)
