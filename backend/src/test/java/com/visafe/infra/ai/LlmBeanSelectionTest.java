@@ -1,4 +1,4 @@
-package com.visafe.global.config;
+package com.visafe.infra.ai;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
@@ -9,9 +9,6 @@ import com.visafe.domain.review.answerer.ContractQuestionAnswerer;
 import com.visafe.domain.review.answerer.StubContractQuestionAnswerer;
 import com.visafe.domain.translation.translator.ContractTranslator;
 import com.visafe.domain.translation.translator.StubContractTranslator;
-import com.visafe.infra.ai.ClaudeContractExtractor;
-import com.visafe.infra.ai.ClaudeContractQuestionAnswerer;
-import com.visafe.infra.ai.ClaudeContractTranslator;
 import org.junit.jupiter.api.Test;
 import org.springframework.boot.context.properties.EnableConfigurationProperties;
 import org.springframework.boot.test.context.runner.ApplicationContextRunner;
