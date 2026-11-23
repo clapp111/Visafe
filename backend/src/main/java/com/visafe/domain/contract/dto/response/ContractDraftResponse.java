@@ -34,7 +34,7 @@ public record ContractDraftResponse(
 
         @Schema(description = "화면 상단 '확인이 필요한 항목'") List<Attention> attention,
 
-        @Schema(description = "돌아온 계약의 신고 내용. 돌아온 계약(또는 그 계약을 고치는 새 회차)일 때만, 아니면 null", nullable = true)
+        @Schema(description = "돌아온 계약의 신고·반려 내용. 돌아온 계약(또는 그 계약을 고치는 새 회차)일 때만, 아니면 null", nullable = true)
         Returned returned) {
 
     @Schema(description = "근로자")
@@ -122,27 +122,29 @@ public record ContractDraftResponse(
 
             @Schema(description = "이유", example = "UNREAD") AttentionReason reason) {}
 
-    @Schema(description = "돌아온 계약의 신고 내용")
+    @Schema(description = "돌아온 계약의 신고·반려 내용")
     public record Returned(
-            @Schema(description = "돌려보낸 쪽 (기관 반려 AUTHORITY는 #17에서 추가)", example = "WORKER")
+            @Schema(description = "돌려보낸 쪽 (WORKER: 근로자 신고, AUTHORITY: 기관 반려)", example = "WORKER")
             ReturnedBy by,
 
             @Schema(description = "돌려보낸 시각", example = "2026-11-13T05:20:00Z")
             Instant at,
 
-            @Schema(description = "원본과 다르다고 신고한 항목 키", example = "[\"breakMinutes\"]")
+            @Schema(description = "원본과 다르다고 신고한 항목 키 (기관 반려면 빈 목록)", example = "[\"breakMinutes\"]")
             List<String> reportedFields,
 
-            @Schema(description = "신고 사유 원문", nullable = true)
+            @Schema(description = "신고 사유 원문 (기관 반려면 반려 사유)", nullable = true)
             String reason,
 
-            @Schema(description = "신고 사유 한국어 번역", nullable = true)
+            @Schema(description = "신고 사유 한국어 번역 (기관 반려면 반려 사유 그대로)", nullable = true)
             String reasonKo) {}
 
     /** 계약을 돌려보낸 쪽. */
     public enum ReturnedBy {
         /** 근로자가 "원본과 다릅니다"로 신고함 */
-        WORKER
+        WORKER,
+        /** 감독 기관이 반려함 */
+        AUTHORITY
     }
 
     /** 확인이 필요한 이유. */

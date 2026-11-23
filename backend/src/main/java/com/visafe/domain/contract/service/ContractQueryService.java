@@ -377,10 +377,12 @@ public class ContractQueryService {
     /**
      * 진행 이력을 만든다. 이어진 TERM_EDITED는 한 줄로 묶고(시각은 마지막 수정, 키는 합침) 내부 ID는 내보내지 않는다.
      *
+     * <p>계약 상세(M2)와 기관 검토 화면(D2)이 함께 쓴다.</p>
+     *
      * @param contract 계약
      * @return 일어난 순서의 진행 이력
      */
-    private List<TimelineEntry> timeline(Contract contract) {
+    public List<TimelineEntry> timeline(Contract contract) {
         List<TimelineEntry> timeline = new ArrayList<>();
         Set<Object> editedKeys = new LinkedHashSet<>();
         for (ContractEvent event : contractEventRepository.findWithActorByContractId(contract.getId())) {
@@ -443,6 +445,7 @@ public class ContractQueryService {
                 detail.put("reasonKo", payload.get("reasonKo"));
             }
             case EXTRACTION_FAILED, TRANSLATION_FAILED -> detail.put("error", payload.get("error"));
+            case AUTHORITY_REJECTED -> detail.put("reason", payload.get("reason"));
             default -> {
                 return null;
             }
