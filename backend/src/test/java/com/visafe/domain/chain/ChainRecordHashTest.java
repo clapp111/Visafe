@@ -3,9 +3,11 @@ package com.visafe.domain.chain;
 import static org.assertj.core.api.Assertions.assertThat;
 
 import com.visafe.domain.contract.enums.ContractEventType;
+import com.visafe.domain.contract.enums.TerminationReasonType;
 import com.visafe.global.crypto.Keccak256;
 import java.nio.charset.StandardCharsets;
 import java.time.Instant;
+import java.time.LocalDate;
 import java.util.List;
 import org.junit.jupiter.api.Test;
 
@@ -39,6 +41,22 @@ class ChainRecordHashTest {
 
         assertThat(ChainRecordHash.confirmRecordHash(HASH_A, HASH_B, HASH_A, HASH_B, HASH_A, HASH_B))
                 .isEqualTo(keccak(json));
+    }
+
+    @Test
+    void terminateRecordHashBindsPreviousRecordAndReason() {
+        String json = "{\"anchorKey\":\"" + HASH_A + "\",\"endDate\":\"2027-06-30\",\"eventsHash\":\"" + HASH_B
+                + "\",\"hashRuleVersion\":1,\"previousRecordHash\":\"" + HASH_A + "\",\"reasonType\":\"MUTUAL\","
+                + "\"recordType\":\"TERMINATE\",\"workerId\":\"" + HASH_B + "\"}";
+
+        assertThat(ChainRecordHash.terminateRecordHash(
+                        HASH_A, LocalDate.of(2027, 6, 30), HASH_B, HASH_A, TerminationReasonType.MUTUAL, HASH_B))
+                .isEqualTo(keccak(json));
+    }
+
+    @Test
+    void nonceIs32RandomBytesInHex() {
+        assertThat(ChainRecordHash.newNonce()).matches("^0x[0-9a-f]{64}$").isNotEqualTo(ChainRecordHash.newNonce());
     }
 
     @Test

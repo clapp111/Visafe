@@ -1,5 +1,6 @@
 package com.visafe.domain.chain.recorder;
 
+import com.visafe.domain.chain.enums.RecordType;
 import com.visafe.global.crypto.Keccak256;
 import java.nio.charset.StandardCharsets;
 import java.util.Map;
@@ -21,15 +22,15 @@ public class StubChainRecorder implements ChainRecorder {
     private final Map<String, String> recordHashes = new ConcurrentHashMap<>();
 
     @Override
-    public ChainReceipt record(String anchorKey, String recordHash) {
+    public ChainReceipt record(String anchorKey, RecordType recordType, String recordHash) {
         String txHash = Keccak256.hash(("stub-tx:" + recordHash).getBytes(StandardCharsets.UTF_8));
-        recordHashes.put(anchorKey, recordHash);
+        recordHashes.put(anchorKey + ":" + recordType, recordHash);
         return new ChainReceipt(txHash, blockNumber.getAndIncrement());
     }
 
     @Override
-    public Optional<String> readRecordHash(String anchorKey) {
-        String recordHash = recordHashes.get(anchorKey);
+    public Optional<String> readRecordHash(String anchorKey, RecordType recordType) {
+        String recordHash = recordHashes.get(anchorKey + ":" + recordType);
         if (recordHash == null) {
             throw new IllegalStateException("stub 기록기 메모리에 없는 기록입니다. (서버 재시작 등)");
         }

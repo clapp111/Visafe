@@ -10,8 +10,10 @@ import com.visafe.domain.contract.enums.ContractEventType;
 import com.visafe.domain.contract.enums.ContractStage;
 import com.visafe.domain.contract.enums.ContractStatus;
 import com.visafe.domain.contract.enums.ProcessingStatus;
+import com.visafe.domain.contract.enums.TerminationStatus;
 import com.visafe.domain.contract.extraction.ExtractionRequestedEvent;
 import com.visafe.domain.contract.repository.ContractRepository;
+import com.visafe.domain.contract.repository.ContractTerminationRepository;
 import com.visafe.domain.contract.repository.ContractVersionRepository;
 import com.visafe.domain.member.entity.Member;
 import com.visafe.domain.member.entity.MemberDetails;
@@ -27,6 +29,7 @@ import com.visafe.global.exception.CustomErrorCode;
 import com.visafe.global.exception.RestApiException;
 import java.time.Year;
 import java.time.ZoneId;
+import java.util.EnumSet;
 import java.util.Map;
 import lombok.RequiredArgsConstructor;
 import org.springframework.context.ApplicationEventPublisher;
@@ -42,6 +45,7 @@ public class ContractRegistrationService {
     private static final ZoneId KOREA = ZoneId.of("Asia/Seoul");
 
     private final ContractRepository contractRepository;
+    private final ContractTerminationRepository contractTerminationRepository;
     private final ContractVersionRepository contractVersionRepository;
     private final MemberRepository memberRepository;
     private final MemberWorkerProfileRepository memberWorkerProfileRepository;
@@ -177,7 +181,7 @@ public class ContractRegistrationService {
      * @param previousContractId 이전 계약 ID
      * @param employer 로그인한 고용주
      * @param worker 새 계약의 근로자
-     * @return 같은 사업주·근로자의 확정 계약으로, 아직 다른 계약이 대체하지 않은 것
+     * @return 같은 사업주·근로자의 확정 계약으로, 아직 다른 계약이 대체하지 않았고 진행 중인 종료가 없는 것
      * @throws RestApiException 대체할 수 없는 계약인 경우
      */
     private Contract findReplaceable(Long previousContractId, Member employer, Member worker) {
@@ -187,6 +191,10 @@ public class ContractRegistrationService {
                 .filter(previous -> Entities.isSame(previous.getCompany(), employer.getCompany(), c -> c.getId()))
                 .filter(previous -> Entities.isSame(previous.getWorker(), worker, Member::getId))
                 .filter(previous -> !contractRepository.existsByPreviousContractId(previous.getId()))
+                .filter(previous -> contractTerminationRepository
+                        .findFirstByContractIdAndStatusInOrderByIdDesc(
+                                previous.getId(), EnumSet.of(TerminationStatus.REQUESTED, TerminationStatus.AGREED))
+                        .isEmpty())
                 .orElseThrow(() -> new RestApiException(CustomErrorCode.PREVIOUS_CONTRACT_INVALID));
     }
 

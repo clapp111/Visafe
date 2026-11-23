@@ -159,7 +159,7 @@ class LookupApiPostgresTest {
     @Test
     void chainReadFailureIsUnavailable() throws Exception {
         Contract contract = confirmedContract();
-        doThrow(new IllegalStateException("RPC 시간 초과")).when(chainRecorder).readRecordHash(anyString());
+        doThrow(new IllegalStateException("RPC 시간 초과")).when(chainRecorder).readRecordHash(anyString(), any());
 
         lookup(contract.getConfirmationNo())
                 .andExpect(status().isOk())

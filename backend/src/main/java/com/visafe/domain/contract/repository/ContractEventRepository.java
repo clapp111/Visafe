@@ -25,6 +25,10 @@ public interface ContractEventRepository extends JpaRepository<ContractEvent, Lo
     Optional<ContractEvent> findFirstByContractVersionIdAndEventTypeOrderByIdDesc(
             Long contractVersionId, ContractEventType eventType);
 
+    /** 회차의 첫 이벤트 중 주어진 종류. */
+    Optional<ContractEvent> findFirstByContractVersionIdAndEventTypeOrderByIdAsc(
+            Long contractVersionId, ContractEventType eventType);
+
     /** 계약의 모든 이벤트 (행동한 회원 포함, 일어난 순서). */
     @Query("select e from ContractEvent e left join fetch e.actor where e.contract.id = :contractId order by e.id")
     List<ContractEvent> findWithActorByContractId(@Param("contractId") Long contractId);

@@ -14,6 +14,7 @@ import com.visafe.domain.contract.dto.response.ProcessingResponse;
 import com.visafe.domain.contract.entity.Contract;
 import com.visafe.domain.contract.entity.ContractEvent;
 import com.visafe.domain.contract.entity.ContractFile;
+import com.visafe.domain.contract.entity.ContractTermination;
 import com.visafe.domain.contract.entity.ContractVersion;
 import com.visafe.domain.contract.enums.ContractAction;
 import com.visafe.domain.contract.enums.ContractEventType;
@@ -21,8 +22,10 @@ import com.visafe.domain.contract.enums.ContractStage;
 import com.visafe.domain.contract.enums.ContractStatus;
 import com.visafe.domain.contract.enums.ContractTodo;
 import com.visafe.domain.contract.enums.ProcessingStatus;
+import com.visafe.domain.contract.enums.TerminationStatus;
 import com.visafe.domain.contract.repository.ContractEventRepository;
 import com.visafe.domain.contract.repository.ContractRepository;
+import com.visafe.domain.contract.repository.ContractTerminationRepository;
 import com.visafe.domain.member.entity.Member;
 import com.visafe.domain.member.entity.MemberDetails;
 import com.visafe.domain.member.entity.MemberWorkerProfile;
@@ -43,6 +46,7 @@ import java.time.LocalDate;
 import java.time.LocalTime;
 import java.util.ArrayList;
 import java.util.Comparator;
+import java.util.EnumSet;
 import java.util.LinkedHashMap;
 import java.util.LinkedHashSet;
 import java.util.List;
@@ -73,6 +77,7 @@ public class ContractQueryService {
     private final TranslationRepository translationRepository;
     private final TranslationItemRepository translationItemRepository;
     private final ChainRecordRepository chainRecordRepository;
+    private final ContractTerminationRepository contractTerminationRepository;
 
     // =========================================================================
     // ============================= 주요 서비스 기능 =============================
@@ -110,7 +115,7 @@ public class ContractQueryService {
                 .collect(Collectors.toMap(terms -> terms.getContractVersion().getId(), Function.identity()));
 
         List<Item> items = contracts.stream()
-                .map(contract -> toItem(contract, employer, termsByVersionId))
+                .map(contract -> toItem(contract, employer, member.getMemberId(), termsByVersionId))
                 .sorted(Comparator.comparing((Item item) -> item.todo() == null)
                         .thenComparing(Item::updatedAt, Comparator.reverseOrder())
                         .thenComparing(Item::contractId, Comparator.reverseOrder()))
@@ -137,7 +142,7 @@ public class ContractQueryService {
      *
      * <p>계약 상세 API(M2)에서 쓴다. 항목 설명은 현재 회차의 마지막 완료 번역본에서 가져오며,
      * 근로자에게는 모국어 쉬운 설명, 고용주·관리자에게는 한국어 설명을 준다. 진행 이력은 이어진 항목 수정을 한 줄로 묶고,
-     * 할 수 있는 일은 역할과 stage, 진행 상태로 정한다.</p>
+     * 종료는 진행 중이거나 완료된 것(REQUESTED·AGREED)만 보여 주며, 할 수 있는 일은 역할과 stage, 진행 상태, 종료 상태로 정한다.</p>
      *
      * @param contractId 계약 ID
      * @param member 로그인한 당사자 또는 관리자
@@ -151,6 +156,7 @@ public class ContractQueryService {
         Company company = contract.getCompany();
         Member worker = contract.getWorker();
         ProcessingResponse processing = contractProcessingService.resolve(contract);
+        Optional<ContractTermination> termination = activeTermination(contract);
 
         return new ContractDetailResponse(
                 contract.getId(),
@@ -177,8 +183,16 @@ public class ContractQueryService {
                 terms(version, member.getRole() == MemberRole.WORKER),
                 timeline(contract),
                 chainRecords(contract),
-                null,
-                availableActions(contract, member.getRole(), processing));
+                termination
+                        .map(active -> new ContractDetailResponse.Termination(
+                                active.getId(),
+                                active.getReasonType(),
+                                active.getReasonText(),
+                                active.getEndDate(),
+                                active.getStatus(),
+                                isRequester(active, member.getMemberId())))
+                        .orElse(null),
+                availableActions(contract, member, processing, termination));
     }
 
     // =========================================================================
@@ -190,10 +204,12 @@ public class ContractQueryService {
      *
      * @param contract 계약
      * @param employer 로그인한 사람이 고용주인지
+     * @param memberId 로그인한 회원 ID
      * @param termsByVersionId 회차 ID → 항목 값
      * @return 목록의 계약
      */
-    private Item toItem(Contract contract, boolean employer, Map<Long, ContractLaborTerms> termsByVersionId) {
+    private Item toItem(
+            Contract contract, boolean employer, Long memberId, Map<Long, ContractLaborTerms> termsByVersionId) {
         ContractVersion version = contract.getCurrentVersion();
         Optional<ContractLaborTerms> terms =
                 Optional.ofNullable(version == null ? null : termsByVersionId.get(version.getId()));
@@ -207,7 +223,7 @@ public class ContractQueryService {
                 terms.map(t -> (LocalDate) t.getValue(TermField.END_DATE)).orElse(null),
                 contract.getStatus(),
                 contract.getStage(),
-                employer ? employerTodo(contract) : workerTodo(contract),
+                employer ? employerTodo(contract, memberId) : workerTodo(contract, memberId),
                 contract.getUpdatedAt());
     }
 
@@ -215,14 +231,16 @@ public class ContractQueryService {
      * 고용주가 해야 할 일을 정한다.
      *
      * @param contract 계약
+     * @param memberId 로그인한 고용주 ID
      * @return 할 일, 없으면 {@code null}
      */
-    private ContractTodo employerTodo(Contract contract) {
+    private ContractTodo employerTodo(Contract contract, Long memberId) {
         return switch (contract.getStage()) {
             case RETURNED -> ContractTodo.FIX_REQUIRED;
             case REVIEWING -> ContractTodo.REVIEW_INCOMPLETE;
             case UPLOADED -> failed(contract) ? ContractTodo.EXTRACTION_FAILED : null;
             case TRANSLATING -> failed(contract) ? ContractTodo.TRANSLATION_FAILED : null;
+            case DONE -> terminationTodo(contract, memberId);
             default -> null;
         };
     }
@@ -231,10 +249,66 @@ public class ContractQueryService {
      * 근로자가 해야 할 일을 정한다.
      *
      * @param contract 계약
+     * @param memberId 로그인한 근로자 ID
      * @return 할 일, 없으면 {@code null}
      */
-    private static ContractTodo workerTodo(Contract contract) {
-        return contract.getStage() == ContractStage.AWAITING_WORKER ? ContractTodo.CONFIRM_REQUIRED : null;
+    private ContractTodo workerTodo(Contract contract, Long memberId) {
+        return switch (contract.getStage()) {
+            case AWAITING_WORKER -> ContractTodo.CONFIRM_REQUIRED;
+            case DONE -> terminationTodo(contract, memberId);
+            default -> null;
+        };
+    }
+
+    /**
+     * 상대방의 종료 요청에 응답해야 하는지 정한다.
+     *
+     * @param contract 확정된 계약
+     * @param memberId 로그인한 회원 ID
+     * @return 계약 당사자이고 상대방이 요청한 종료가 응답을 기다리면 TERMINATION_RESPONSE, 아니면 {@code null}
+     */
+    private ContractTodo terminationTodo(Contract contract, Long memberId) {
+        boolean waiting = isParty(contract, memberId)
+                && activeTermination(contract)
+                        .filter(active -> active.getStatus() == TerminationStatus.REQUESTED)
+                        .filter(active -> !isRequester(active, memberId))
+                        .isPresent();
+        return waiting ? ContractTodo.TERMINATION_RESPONSE : null;
+    }
+
+    /**
+     * 계약의 진행 중이거나 완료된 종료(REQUESTED·AGREED, 계약당 하나)를 찾는다.
+     *
+     * @param contract 계약
+     * @return 종료, 없으면 빈 {@link Optional}
+     */
+    private Optional<ContractTermination> activeTermination(Contract contract) {
+        return contractTerminationRepository.findFirstByContractIdAndStatusInOrderByIdDesc(
+                contract.getId(), EnumSet.of(TerminationStatus.REQUESTED, TerminationStatus.AGREED));
+    }
+
+    /**
+     * 회원이 계약을 등록한 고용주나 근로자인지 확인한다.
+     *
+     * @param contract 계약
+     * @param memberId 회원 ID
+     * @return 계약 당사자면 {@code true}, 그렇지 않으면 {@code false}
+     */
+    private static boolean isParty(Contract contract, Long memberId) {
+        return contract.getEmployer().getId().equals(memberId)
+                || contract.getWorker().getId().equals(memberId);
+    }
+
+    /**
+     * 회원이 종료를 요청한 사람인지 확인한다.
+     *
+     * @param termination 종료
+     * @param memberId 회원 ID
+     * @return 요청자면 {@code true}, 그렇지 않으면 {@code false}
+     */
+    private static boolean isRequester(ContractTermination termination, Long memberId) {
+        return termination.getRequestedBy() != null
+                && termination.getRequestedBy().getId().equals(memberId);
     }
 
     /**
@@ -391,13 +465,21 @@ public class ContractQueryService {
     /**
      * 로그인한 사람이 지금 할 수 있는 일을 정한다.
      *
+     * <p>종료 요청은 확정된 계약의 당사자가, 진행 중인 종료가 없고 새 계약으로 대체되는 중이 아닐 때 할 수 있다.
+     * 응답을 기다리는 종료 요청은 요청자가 취소하고 상대방이 응답한다.</p>
+     *
      * @param contract 계약
-     * @param role 로그인한 사람의 역할
+     * @param member 로그인한 회원
      * @param processing 진행 중인 작업
+     * @param termination 진행 중이거나 완료된 종료
      * @return 할 수 있는 일
      */
-    private static List<ContractAction> availableActions(
-            Contract contract, MemberRole role, ProcessingResponse processing) {
+    private List<ContractAction> availableActions(
+            Contract contract,
+            MemberDetails member,
+            ProcessingResponse processing,
+            Optional<ContractTermination> termination) {
+        MemberRole role = member.getRole();
         List<ContractAction> actions = new ArrayList<>();
         boolean failed = processing != null && processing.status() == ProcessingStatus.FAILED;
         if (role == MemberRole.EMPLOYER) {
@@ -419,6 +501,18 @@ public class ContractQueryService {
         }
         if (role == MemberRole.WORKER && contract.getStage() == ContractStage.AWAITING_WORKER) {
             actions.add(ContractAction.RESPOND_REVIEW);
+        }
+        if (contract.getStage() == ContractStage.DONE && isParty(contract, member.getMemberId())) {
+            if (termination.isEmpty()) {
+                if (!contractRepository.existsByPreviousContractId(contract.getId())) {
+                    actions.add(ContractAction.REQUEST_TERMINATION);
+                }
+            } else if (termination.get().getStatus() == TerminationStatus.REQUESTED) {
+                actions.add(
+                        isRequester(termination.get(), member.getMemberId())
+                                ? ContractAction.CANCEL_TERMINATION
+                                : ContractAction.RESPOND_TERMINATION);
+            }
         }
         actions.add(ContractAction.DOWNLOAD_FILE);
         return actions;

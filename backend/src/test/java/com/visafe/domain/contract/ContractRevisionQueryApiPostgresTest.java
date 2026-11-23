@@ -275,11 +275,13 @@ class ContractRevisionQueryApiPostgresTest {
         assertThat(worker.<String>read("$.chainRecords[0].explorerUrl"))
                 .isEqualTo("https://sepolia.etherscan.io/tx/" + worker.read("$.chainRecords[0].txHash"));
         assertThat(worker.<Object>read("$.termination")).isNull();
-        assertThat(worker.<List<String>>read("$.availableActions")).containsExactly("DOWNLOAD_FILE");
+        assertThat(worker.<List<String>>read("$.availableActions"))
+                .containsExactly("REQUEST_TERMINATION", "DOWNLOAD_FILE");
 
         DocumentContext employer = detail(contract, employerToken);
         assertThat(employer.<String>read("$.terms[11].explanation")).isEqualTo("휴게시간(분)은(는) 60입니다.");
-        assertThat(employer.<List<String>>read("$.availableActions")).containsExactly("DOWNLOAD_FILE");
+        assertThat(employer.<List<String>>read("$.availableActions"))
+                .containsExactly("REQUEST_TERMINATION", "DOWNLOAD_FILE");
 
         detailRequest(contract, login("admin@demo.visafe.test")).andExpect(status().isOk());
         detailRequest(contract, login("worker2@demo.visafe.test"))

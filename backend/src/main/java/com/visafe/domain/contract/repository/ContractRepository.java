@@ -1,6 +1,7 @@
 package com.visafe.domain.contract.repository;
 
 import com.visafe.domain.contract.entity.Contract;
+import java.time.LocalDate;
 import java.util.List;
 import java.util.Optional;
 import org.springframework.data.jpa.repository.JpaRepository;
@@ -47,4 +48,14 @@ public interface ContractRepository extends JpaRepository<Contract, Long> {
     boolean existsByConfirmationNo(String confirmationNo);
 
     Optional<Contract> findByConfirmationNo(String confirmationNo);
+
+    /** 계약 종료일(현재 회차의 항목 값)이 지났는데 아직 확정 상태인 계약 ID. */
+    @Query("""
+            select c.id from Contract c, ContractLaborTerms t
+            where t.contractVersion = c.currentVersion
+              and c.stage = com.visafe.domain.contract.enums.ContractStage.DONE
+              and t.endDate < :today
+            order by c.id
+            """)
+    List<Long> findExpiredIds(@Param("today") LocalDate today);
 }

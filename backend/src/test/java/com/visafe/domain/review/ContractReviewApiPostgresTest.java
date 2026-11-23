@@ -256,7 +256,7 @@ class ContractReviewApiPostgresTest {
         respond(contract, understoodBody(contract)).andExpect(status().isAccepted());
         em.flush();
         em.clear();
-        doThrow(new IllegalStateException("RPC 시간 초과")).when(chainRecorder).record(anyString(), anyString());
+        doThrow(new IllegalStateException("RPC 시간 초과")).when(chainRecorder).record(anyString(), any(), anyString());
 
         chainRecordWorker.record(new ChainRecordRequestedEvent(
                 contract.getId(), chainRecord(contract).getId()));
