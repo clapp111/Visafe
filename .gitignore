@@ -7,3 +7,6 @@
 # 세션 시작 시 적용되는 지침
 CLAUDE.md
 AGENTS.md
+
+# 테스트용 샘플 파일
+samples/
