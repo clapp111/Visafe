@@ -1,4 +1,5 @@
 export { getApiErrorCode } from "./error";
+export { getApiErrorFeedback, type ApiErrorAction } from "./error-feedback";
 export {
   api,
   authApi,
