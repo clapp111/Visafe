@@ -16,8 +16,10 @@ import java.time.LocalTime;
 import lombok.AccessLevel;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
+import org.hibernate.annotations.JdbcType;
 import org.hibernate.annotations.JdbcTypeCode;
 import org.hibernate.type.SqlTypes;
+import org.hibernate.type.descriptor.jdbc.LocalTimeJdbcType;
 
 /**
  * C. 근로계약 항목 (contract_labor_terms). 제출 회차(contract_versions)와 1:1.
@@ -79,11 +81,15 @@ public class ContractLaborTerms extends BaseTimeEntity {
     @Column(name = "job_description", columnDefinition = "text")
     private String jobDescription;
 
+    // 시각(TIME)은 기본 바인딩이 hibernate.jdbc.time_zone(UTC)으로 변환되어 JVM 시간대만큼 밀리므로, 변환 없이 그대로 저장한다.
+
     /** 시업 시각 */
+    @JdbcType(LocalTimeJdbcType.class)
     @Column(name = "work_start_time")
     private LocalTime workStartTime;
 
     /** 종업 시각 */
+    @JdbcType(LocalTimeJdbcType.class)
     @Column(name = "work_end_time")
     private LocalTime workEndTime;
 
