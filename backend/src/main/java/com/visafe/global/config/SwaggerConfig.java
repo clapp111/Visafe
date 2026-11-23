@@ -1,5 +1,8 @@
 package com.visafe.global.config;
 
+import io.swagger.v3.core.jackson.ModelResolver;
+import io.swagger.v3.core.jackson.TypeNameResolver;
+import io.swagger.v3.core.util.Json31;
 import io.swagger.v3.oas.models.Components;
 import io.swagger.v3.oas.models.OpenAPI;
 import io.swagger.v3.oas.models.info.Info;
@@ -28,6 +31,22 @@ public class SwaggerConfig {
                 .components(new Components().addSecuritySchemes("bearerAuth", securityScheme))
                 .info(apiInfo())
                 .servers(SERVER_LIST);
+    }
+
+    // 응답 DTO마다 Item·Termination 같은 같은 이름의 중첩 record가 있어, 단순 이름이면 스키마 하나로 합쳐진다.
+    // 기본 ModelResolver(OpenAPI 3.1)를 같은 설정으로 바꿔 끼우고 중첩 클래스 이름 앞에 바깥 클래스 이름을 붙인다.
+    @Bean
+    public ModelResolver modelResolver() {
+        return new ModelResolver(Json31.mapper(), new NestedClassTypeNameResolver()).openapi31(true);
+    }
+
+    private static class NestedClassTypeNameResolver extends TypeNameResolver {
+
+        @Override
+        protected String getNameOfClass(Class<?> cls) {
+            Class<?> outer = cls.getEnclosingClass();
+            return outer == null ? super.getNameOfClass(cls) : getNameOfClass(outer) + super.getNameOfClass(cls);
+        }
     }
 
     private Info apiInfo() {
