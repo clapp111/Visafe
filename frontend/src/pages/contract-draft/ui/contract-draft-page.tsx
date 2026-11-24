@@ -20,12 +20,14 @@ import { ErrorState, FieldMessage, LoadingState } from "@/shared/ui";
 import { ContractFileViewer } from "@/widgets/contract-file-viewer";
 import { RegisterSteps } from "@/widgets/register-steps";
 import { CONTRACT_DRAFT_LABELS } from "../model/labels";
+import { missingRequiredKeys } from "../model/missing-required";
 import { AttentionSummary } from "./attention-summary";
 import { ExtractionState } from "./extraction-state";
 import { ReturnedNotice } from "./returned-notice";
 import { ReuploadDialog } from "./reupload-dialog";
+import { SubmitDialog } from "./submit-dialog";
+import { fieldInputId, type TermValue } from "./term-field-input";
 import { TermFieldsForm } from "./term-fields-form";
-import type { TermValue } from "./term-field-input";
 
 function getDraftErrorMessage(error: unknown) {
   const code = getApiErrorCode(error);
@@ -51,6 +53,8 @@ export function ContractDraftPage({ contractId }: { contractId: number }) {
   const replaceFile = useReplaceDraftFile(contractId);
   const [page, setPage] = useState(1);
   const [reuploadOpen, setReuploadOpen] = useState(false);
+  // R6 제출을 연결하기 전까지 확인 창은 열고 닫기만 한다
+  const [submitOpen, setSubmitOpen] = useState(false);
   const [fieldErrors, setFieldErrors] = useState<Record<string, string>>({});
   const draft = draftQuery.data;
   const shouldRedirect =
@@ -96,6 +100,22 @@ export function ContractDraftPage({ contractId }: { contractId: number }) {
   // Esc로도 창이 닫히므로 올리는 중이어도 상태를 맞춘다. 업로드는 계속되고, 끝나면 R4를 다시 불러온다
   function closeReupload() {
     setReuploadOpen(false);
+  }
+
+  /** 빈 필수 항목이 있으면 그 칸에 안내하고 첫 칸으로 옮긴다. 없으면 제출 확인 창을 연다. */
+  function requestSubmit() {
+    const missing = missingRequiredKeys(draft?.fields ?? []);
+    if (missing.length === 0) {
+      setSubmitOpen(true);
+      return;
+    }
+    setFieldErrors((current) => ({
+      ...current,
+      ...Object.fromEntries(
+        missing.map((key) => [key, labels.requiredMissing]),
+      ),
+    }));
+    document.getElementById(fieldInputId(missing[0]))?.focus();
   }
 
   function handleReupload(file: File) {
@@ -198,7 +218,7 @@ export function ContractDraftPage({ contractId }: { contractId: number }) {
               fieldErrors={fieldErrors}
               onCommitField={handleCommitField}
               onShowSource={setPage}
-              onSubmit={() => {}}
+              onSubmit={requestSubmit}
               onReupload={openReupload}
               isSaving={saveTerm.isSaving}
               labels={labels}
@@ -223,6 +243,14 @@ export function ContractDraftPage({ contractId }: { contractId: number }) {
               ? getDraftErrorMessage(replaceFile.error)
               : undefined
           }
+          labels={labels}
+        />
+      )}
+      {submitOpen && (
+        <SubmitDialog
+          draft={draft}
+          onClose={() => setSubmitOpen(false)}
+          onConfirm={() => {}}
           labels={labels}
         />
       )}

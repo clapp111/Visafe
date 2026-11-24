@@ -101,6 +101,25 @@ export const CONTRACT_DRAFT_LABELS = {
   cancel: "취소",
   upload: "올리고 다시 읽기",
   uploading: "올리는 중",
+
+  requiredMissing: "필수 항목입니다. 값을 입력해 주세요.",
+  submitTitle: "근로자에게 확인 요청을 보낼까요?",
+  submitDescription:
+    "제출하면 번역이 시작되고, 번역이 끝나는 대로 근로자에게 확인 요청이 전달됩니다.",
+  recipient: "받는 사람",
+  termsToConfirm: "확정할 항목",
+  termCount: (count: number, employerCount: number) =>
+    employerCount > 0
+      ? `${count}개 (고용주 입력 ${employerCount}개 포함)`
+      : `${count}개`,
+  remainingWarnings: (count: number) =>
+    `확인 필요 항목 ${count}개가 남아 있습니다.`,
+  remainingWarningsHint: (names: string) =>
+    `${names} 항목은 근로자 화면에도 같은 안내가 표시됩니다.`,
+  submitNote:
+    "보낸 뒤 내용을 고치면 근로자의 확인이 무효가 되어 다시 확인을 받아야 합니다.",
+  send: "보내기",
+  sending: "보내는 중",
 };
 
 export type ContractDraftLabels = typeof CONTRACT_DRAFT_LABELS;
