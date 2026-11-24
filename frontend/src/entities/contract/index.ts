@@ -8,6 +8,10 @@ export {
 } from "./api/use-contract-draft";
 export { useContractList } from "./api/use-contract-list";
 export { useContractProgress } from "./api/use-contract-progress";
+export {
+  useConfirmContractReview,
+  useContractReview,
+} from "./api/use-contract-review";
 export { useCreateContract } from "./api/use-create-contract";
 export { useFileCheck } from "./api/use-file-check";
 export {

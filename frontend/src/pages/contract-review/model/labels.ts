@@ -11,6 +11,8 @@ export const CONTRACT_REVIEW_LABELS = {
   title: "근로계약 내용 확인",
   description:
     "고용주가 근로계약서 확인을 요청했습니다. 내용을 천천히 읽고, 이해했는지 알려 주세요.",
+  loading: "계약 내용을 불러오는 중",
+  loadError: "계약 내용을 불러오지 못했습니다",
 
   summary: {
     employer: "고용주",

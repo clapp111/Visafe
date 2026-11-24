@@ -1,13 +1,16 @@
 "use client";
 
 import Link from "next/link";
-import { useSearchParams } from "next/navigation";
+import { useRouter } from "next/navigation";
 import { useState } from "react";
-import { getApiErrorFeedback } from "@/shared/api";
+import {
+  useConfirmContractReview,
+  useContractReview,
+} from "@/entities/contract";
+import { getApiErrorCode, getApiErrorFeedback } from "@/shared/api";
 import { routes } from "@/shared/config";
-import { Alert, buttonClass } from "@/shared/ui";
+import { Alert, buttonClass, ErrorState, LoadingState } from "@/shared/ui";
 import { ContractFileViewer } from "@/widgets/contract-file-viewer";
-import { getReviewFixture } from "../model/fixtures";
 import { CONTRACT_REVIEW_LABELS } from "../model/labels";
 import { ClausesSection } from "./clauses-section";
 import { KeyTermsSection } from "./key-terms-section";
@@ -17,13 +20,29 @@ import { ReviewSummary } from "./review-summary";
 
 export function ContractReviewPage({ contractId }: { contractId: number }) {
   const labels = CONTRACT_REVIEW_LABELS;
-  const searchParams = useSearchParams();
-  const state = searchParams?.get("state");
-  // 화면 확인용: ?state=outdated 새 번역본 안내, ?state=done 응답할 수 없는 계약
-  const review = getReviewFixture(contractId, state);
-  const [outdated, setOutdated] = useState(state === "outdated");
+  const router = useRouter();
+  const reviewQuery = useContractReview(contractId);
+  const confirmation = useConfirmContractReview(contractId);
   const [page, setPage] = useState(1);
 
+  if (reviewQuery.isPending) {
+    return <LoadingState label={labels.loading} />;
+  }
+
+  const translationId = reviewQuery.data?.translationId;
+  if (reviewQuery.isError || typeof translationId !== "number") {
+    return (
+      <ErrorState
+        title={labels.loadError}
+        message={
+          getApiErrorFeedback(getApiErrorCode(reviewQuery.error), "ko").message
+        }
+        onRetry={() => void reviewQuery.refetch()}
+      />
+    );
+  }
+
+  const review = reviewQuery.data;
   const items = review.items ?? [];
   const warnings = review.warnings ?? [];
   const employerKeys = new Set(
@@ -33,6 +52,10 @@ export function ContractReviewPage({ contractId }: { contractId: number }) {
   );
   const warningKeys = new Set(warnings.map((warning) => warning.key ?? ""));
   const minWage = warnings.find((warning) => warning.code === "MIN_WAGE");
+  const responseErrorCode = getApiErrorCode(confirmation.error);
+  const canReload =
+    responseErrorCode === "TRANSLATION_OUTDATED" ||
+    responseErrorCode === "CONTRACT_STAGE_CONFLICT";
 
   return (
     <div className="mx-auto max-w-[1200px] px-6 pt-6 pb-20">
@@ -114,15 +137,26 @@ export function ContractReviewPage({ contractId }: { contractId: number }) {
 
           {review.canRespond ? (
             <ReviewConfirm
-              key={review.translationId}
-              onConfirm={() => {}}
+              key={translationId}
+              onConfirm={() =>
+                confirmation.mutate(translationId, {
+                  onSuccess: () =>
+                    router.push(routes.contractReviewDone(contractId)),
+                })
+              }
               onReport={() => {}}
+              isSubmitting={confirmation.isPending}
               error={
-                outdated
+                confirmation.isError
                   ? {
-                      message: getApiErrorFeedback("TRANSLATION_OUTDATED", "ko")
+                      message: getApiErrorFeedback(responseErrorCode, "ko")
                         .message,
-                      onReload: () => setOutdated(false),
+                      onReload: canReload
+                        ? () => {
+                            confirmation.reset();
+                            void reviewQuery.refetch();
+                          }
+                        : undefined,
                     }
                   : undefined
               }

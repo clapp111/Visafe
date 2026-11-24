@@ -1,6 +1,5 @@
 import type { Metadata } from "next";
 import { notFound } from "next/navigation";
-import { Suspense } from "react";
 import { ContractReviewPage } from "@/pages/contract-review";
 
 export const metadata: Metadata = {
@@ -15,9 +14,5 @@ export default async function Page({
   const { contractId } = await params;
   const id = Number(contractId);
   if (!Number.isSafeInteger(id) || id <= 0) notFound();
-  return (
-    <Suspense>
-      <ContractReviewPage contractId={id} />
-    </Suspense>
-  );
+  return <ContractReviewPage contractId={id} />;
 }
