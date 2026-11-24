@@ -7,3 +7,4 @@ export {
 } from "./api/use-file-download-url";
 export { useLookup } from "./api/use-lookup";
 export { useWorkerSearch } from "./api/use-worker-search";
+export { CONTRACT_FILE_ACCEPT, checkContractFile } from "./model/contract-file";

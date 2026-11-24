@@ -1,7 +1,7 @@
 import type { components } from "@/shared/api";
-import { cn } from "@/shared/lib";
+import { cn, formatDateTime } from "@/shared/lib";
 import { Badge, CheckIcon, MinusCircleIcon } from "@/shared/ui";
-import { formatDate, formatDateTime, formatPeriod } from "../lib/format";
+import { formatDate, formatPeriod } from "../lib/format";
 import type { LookupResultLabels } from "../model/labels";
 
 type LookupResponse = components["schemas"]["LookupResponse"];

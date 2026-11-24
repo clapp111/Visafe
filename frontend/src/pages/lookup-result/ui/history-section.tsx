@@ -1,5 +1,5 @@
 import type { components } from "@/shared/api";
-import { formatDateTime } from "../lib/format";
+import { formatDateTime } from "@/shared/lib";
 import type { LookupResultLabels } from "../model/labels";
 
 type HistoryEntry = components["schemas"]["LookupResponseHistoryEntry"];
