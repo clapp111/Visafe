@@ -6,6 +6,7 @@ import { useState } from "react";
 import {
   useConfirmContractReview,
   useContractReview,
+  useReportContractReview,
 } from "@/entities/contract";
 import { getApiErrorCode, getApiErrorFeedback } from "@/shared/api";
 import { routes } from "@/shared/config";
@@ -24,6 +25,7 @@ export function ContractReviewPage({ contractId }: { contractId: number }) {
   const router = useRouter();
   const reviewQuery = useContractReview(contractId);
   const confirmation = useConfirmContractReview(contractId);
+  const report = useReportContractReview(contractId);
   const [page, setPage] = useState(1);
   const [reportOpen, setReportOpen] = useState(false);
   // 신고를 보낸 뒤에는 W1이 canRespond false가 되므로, 응답할 수 없다는 안내 대신 결과를 보인다
@@ -33,8 +35,13 @@ export function ContractReviewPage({ contractId }: { contractId: number }) {
     return <LoadingState label={labels.loading} />;
   }
 
-  const translationId = reviewQuery.data?.translationId;
-  if (reviewQuery.isError || typeof translationId !== "number") {
+  const review = reviewQuery.data;
+  const translationId = review?.translationId;
+  if (
+    !review ||
+    typeof translationId !== "number" ||
+    (reviewQuery.isError && !reportOpen && !reported)
+  ) {
     return (
       <ErrorState
         title={labels.loadError}
@@ -46,7 +53,6 @@ export function ContractReviewPage({ contractId }: { contractId: number }) {
     );
   }
 
-  const review = reviewQuery.data;
   const items = review.items ?? [];
   const warnings = review.warnings ?? [];
   const employerKeys = new Set(
@@ -164,7 +170,11 @@ export function ContractReviewPage({ contractId }: { contractId: number }) {
                     router.push(routes.contractReviewDone(contractId)),
                 })
               }
-              onReport={() => setReportOpen(true)}
+              onReport={() => {
+                if (report.isPending) return;
+                report.reset();
+                setReportOpen(true);
+              }}
               isSubmitting={confirmation.isPending}
               error={
                 confirmation.isError
@@ -205,11 +215,23 @@ export function ContractReviewPage({ contractId }: { contractId: number }) {
         <ReportDialog
           onClose={() => setReportOpen(false)}
           items={items}
-          // 화면 확인용: 보낸 것처럼 결과를 보인다. API 연동 단계에서 W2 REPORTED로 바꾼다
-          onSubmit={() => {
-            setReportOpen(false);
-            setReported(true);
-          }}
+          onSubmit={({ keys, reason }) =>
+            report.mutate(
+              { translationId, keys, reason },
+              {
+                onSuccess: () => {
+                  setReportOpen(false);
+                  setReported(true);
+                },
+              },
+            )
+          }
+          isSubmitting={report.isPending}
+          errorMessage={
+            report.isError
+              ? getApiErrorFeedback(getApiErrorCode(report.error), "ko").message
+              : undefined
+          }
           labels={labels}
         />
       )}
