@@ -2,8 +2,9 @@
 
 import { useRef, useState } from "react";
 import type { components } from "@/shared/api";
+import { formatFileSize } from "@/shared/lib";
 import { Alert, Button, FileIcon } from "@/shared/ui";
-import { formatFileSize, shortenHash } from "../lib/format";
+import { shortenHash } from "../lib/format";
 import type { LookupResultLabels } from "../model/labels";
 
 type FileCheckResponse = components["schemas"]["FileCheckResponse"];
