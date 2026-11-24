@@ -37,13 +37,6 @@ export function shortenHash(hash: string) {
   return hash.length > 20 ? `${hash.slice(0, 10)}…${hash.slice(-8)}` : hash;
 }
 
-/** 파일 크기. 1MB 미만은 KB, 그 이상은 소수 첫째 자리까지 MB로 보인다. */
-export function formatFileSize(bytes: number) {
-  return bytes < 1024 * 1024
-    ? `${Math.max(1, Math.round(bytes / 1024))}KB`
-    : `${(bytes / 1024 / 1024).toFixed(1)}MB`;
-}
-
 /** 계약 시작일부터 종료일까지의 길이를 반올림한 개월 수로 센다. */
 export function countContractMonths(startDate: string, endDate: string) {
   const days = (Date.parse(endDate) - Date.parse(startDate)) / 86_400_000;
