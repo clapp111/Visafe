@@ -1,7 +1,6 @@
 import type { components } from "@/shared/api";
-import { formatDateTime } from "@/shared/lib";
+import { formatDateTime, shortenHash } from "@/shared/lib";
 import { Table } from "@/shared/ui";
-import { shortenHash } from "../lib/format";
 import type { LookupResultLabels } from "../model/labels";
 
 type ChainRecord =
