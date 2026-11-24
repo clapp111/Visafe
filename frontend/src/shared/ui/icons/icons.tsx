@@ -143,6 +143,15 @@ export function ChevronDownIcon(props: IconProps) {
   );
 }
 
+export function ArrowRightIcon(props: IconProps) {
+  return (
+    <Icon {...props}>
+      <path d="M5 12h14" />
+      <path d="m13 6 6 6-6 6" />
+    </Icon>
+  );
+}
+
 export function EyeIcon(props: IconProps) {
   return (
     <Icon {...props}>
