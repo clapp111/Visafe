@@ -1,0 +1,104 @@
+import type { components } from "@/shared/api";
+
+type Schemas = components["schemas"];
+
+/** 계약 등록 2단계 문구. 화면 언어(#54)가 붙으면 언어별 값으로 바꾼다. */
+export const CONTRACT_DRAFT_LABELS = {
+  breadcrumb: "현재 위치",
+  home: "홈",
+  register: "계약 등록",
+  title: "계약 내용 검토 · 수정",
+  description: [
+    "AI가 원본 계약서에서 읽어 온 핵심 항목입니다.",
+    "왼쪽 원본과 비교해, 원본과 다르거나 비어 있는 항목은 고쳐 주세요.",
+  ],
+
+  attentionTitle: (count: number) =>
+    `확인이 필요한 항목이 ${count}개 있습니다.`,
+  attentionReasons: {
+    UNREAD: "원본에서 읽지 못했습니다. 직접 입력해 주세요.",
+    MIN_WAGE: "최저임금보다 낮을 수 있습니다.",
+    NEEDS_CHECK: "다시 확인이 필요합니다.",
+    REPORTED: "근로자가 원본과 다르다고 신고했습니다.",
+  } satisfies Record<
+    NonNullable<Schemas["ContractDraftResponseAttention"]["reason"]>,
+    string
+  >,
+
+  returnedTitle: {
+    WORKER: "근로자가 원본과 다른 부분을 신고해 계약이 돌아왔습니다",
+    AUTHORITY: "감독 기관이 계약을 반려했습니다",
+  } satisfies Record<
+    NonNullable<Schemas["ContractDraftResponseReturned"]["by"]>,
+    string
+  >,
+  returnedAt: "돌아온 일시",
+  reportedFields: "신고한 항목",
+  returnedReason: {
+    WORKER: "근로자 사유",
+    AUTHORITY: "반려 사유",
+  },
+  reasonOriginal: "원문",
+  returnedHint:
+    "신고된 항목을 원본과 비교해 고친 뒤 다시 제출하면, 번역을 거쳐 근로자가 다시 확인합니다. 원본 파일 자체가 잘못됐다면 원본을 다시 올려 주세요.",
+
+  viewerHint: "쪽을 넘겨서 오른쪽 항목과 비교해 주세요.",
+  viewerPreview: (page: number) => `원본 계약서 ${page}쪽 미리보기`,
+  viewerDownload: "원본 내려받기",
+
+  fieldsTitle: "추출된 핵심 항목",
+  required: "필수",
+  groups: {
+    parties: "계약 당사자",
+    period: "계약기간 · 근무 장소",
+    hours: "근로시간 · 휴일",
+    wage: "임금 · 숙식",
+  },
+  partiesHint:
+    "고용주(사업주)는 회사이고, 대표자는 회사를 대표해 서명한 사람입니다.",
+  valueSources: {
+    EMPLOYER_EDIT: "직접 수정함",
+    EMPLOYER_INPUT: "직접 입력함",
+  },
+  reported: "근로자 신고",
+  sourceClause: (pageNo: number, clauseNo?: string | null) =>
+    clauseNo ? `원본 ${pageNo}쪽 · ${clauseNo}` : `원본 ${pageNo}쪽`,
+  unread: "원본에서 읽지 못했습니다. 직접 입력해 주세요.",
+  warningPrefix: "확인 필요:",
+  aiValue: (value: string) => `AI가 읽은 값: ${value}`,
+
+  extracting: "AI가 원본에서 항목을 읽는 중입니다",
+  extractingHint: "보통 1~2분 걸립니다. 이 화면을 닫아도 계속 진행됩니다.",
+  extractionFailed: "AI가 원본에서 항목을 읽지 못했습니다",
+  extractionFailedHint:
+    "다시 시도하거나, 글자가 잘 보이는 파일로 원본을 다시 올려 주세요.",
+  retryExtraction: "다시 시도",
+
+  confirmNotice:
+    "인식된 값은 틀릴 수 있습니다. 모든 항목을 원본과 비교한 뒤 확인해 주세요.",
+  confirmCheck: "위 항목이 업로드한 원본 계약서의 내용과 같음을 확인했습니다.",
+  confirmRequired: "원본 계약서와 같은지 확인한 뒤 체크해 주세요.",
+  confirmHint:
+    "직접 수정하거나 입력한 항목은 근로자 화면에 형광펜과 '고용주 입력' 표시로 구분되며, 근로자는 인식된 값과 원본을 함께 확인할 수 있습니다.",
+  reupload: "이전: 원본 다시 올리기",
+  submit: "제출하고 확인 요청 보내기",
+  saving: "저장하는 중",
+
+  reuploadTitle: "원본을 다시 올릴까요?",
+  reuploadDescription:
+    "새 원본을 올리면 지금까지 고친 항목이 모두 지워지고, AI가 처음부터 다시 읽습니다.",
+  reuploadFileLabel: "새 원본 파일",
+  reuploadFileHint: "PDF, JPG, PNG · 최대 10MB",
+  dropLabel: "파일을 이곳에 끌어다 놓거나",
+  selectFile: "파일 선택",
+  fileListLabel: "올릴 파일",
+  removeFile: "삭제",
+  fileRequired: "새 원본 파일을 골라 주세요.",
+  fileTypeInvalid: "PDF, JPG, PNG 파일만 올릴 수 있습니다.",
+  fileTooLarge: "10MB 이하 파일만 올릴 수 있습니다.",
+  cancel: "취소",
+  upload: "올리고 다시 읽기",
+  uploading: "올리는 중",
+};
+
+export type ContractDraftLabels = typeof CONTRACT_DRAFT_LABELS;
