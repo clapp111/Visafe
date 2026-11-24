@@ -5,11 +5,13 @@ import type { ContractListLabels } from "../model/labels";
 export function ListPagination({
   page,
   totalPages,
+  disabled,
   onChange,
   labels,
 }: {
   page: number;
   totalPages: number;
+  disabled: boolean;
   onChange: (page: number) => void;
   labels: ContractListLabels;
 }) {
@@ -21,7 +23,7 @@ export function ListPagination({
       <Button
         variant="secondary"
         size="md"
-        disabled={page <= 0}
+        disabled={disabled || page <= 0}
         onClick={() => onChange(page - 1)}
       >
         {labels.previousPage}
@@ -32,7 +34,7 @@ export function ListPagination({
       <Button
         variant="secondary"
         size="md"
-        disabled={page >= totalPages - 1}
+        disabled={disabled || page >= totalPages - 1}
         onClick={() => onChange(page + 1)}
       >
         {labels.nextPage}

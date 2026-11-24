@@ -13,6 +13,9 @@ export const CONTRACT_LIST_LABELS = {
       "내가 맺은 근로계약입니다. 계약을 누르면 내용과 확인 기록을 볼 수 있습니다.",
   },
   newContract: "새 계약 등록",
+  loading: "계약 목록을 불러오는 중",
+  loadError: "계약 목록을 불러오지 못했습니다",
+  revisionError: "계약 수정을 시작하지 못했습니다",
   todoBanner: (count: number) => `처리할 일이 있는 계약이 ${count}건 있습니다`,
   todoBannerAction: "지금 처리하기",
 

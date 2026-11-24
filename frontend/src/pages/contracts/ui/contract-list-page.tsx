@@ -3,10 +3,18 @@
 import Link from "next/link";
 import { usePathname, useRouter, useSearchParams } from "next/navigation";
 import { useState } from "react";
+import { useContractList, useStartContractRevision } from "@/entities/contract";
 import { useSession } from "@/entities/session";
+import { getApiErrorCode, getApiErrorFeedback } from "@/shared/api";
 import { routes } from "@/shared/config";
-import { Alert, Button, EmptyState, buttonClass } from "@/shared/ui";
-import { getListFixture } from "../model/fixtures";
+import {
+  Alert,
+  Button,
+  EmptyState,
+  ErrorState,
+  LoadingState,
+  buttonClass,
+} from "@/shared/ui";
 import { CONTRACT_LIST_LABELS } from "../model/labels";
 import { todoTarget } from "../model/todo-target";
 import { ContractTable } from "./contract-table";
@@ -28,20 +36,42 @@ export function ContractListPage() {
     (value) => value === statusParam,
   );
   const [page, setPage] = useState(0);
-  // M1 내 계약 목록·R8 수정 시작을 연결하기 전까지 예시값으로 화면을 보인다 (?empty=1: 빈 목록)
-  const list = getListFixture(
-    role,
-    status,
-    searchParams?.has("empty") ?? false,
-  );
+  const listQuery = useContractList(status, page);
+  const revision = useStartContractRevision();
+  const revisingId = revision.isPending ? revision.variables : undefined;
+
+  if (listQuery.isPending) {
+    return <LoadingState label={labels.loading} />;
+  }
+  if (listQuery.isError) {
+    return (
+      <ErrorState
+        title={labels.loadError}
+        message={
+          getApiErrorFeedback(getApiErrorCode(listQuery.error), "ko").message
+        }
+        onRetry={() => void listQuery.refetch()}
+      />
+    );
+  }
+
+  const list = listQuery.data;
   const items = list.content ?? [];
   const firstTodo = items.find((item) => item.todo);
   const firstTodoTarget = firstTodo && todoTarget(firstTodo);
+  const firstTodoId = firstTodo?.contractId;
   const totalPages = list.page?.totalPages ?? 1;
 
   function changeStatus(next: StatusFilterValue) {
     setPage(0);
     router.replace(next ? `${pathname}?status=${next}` : pathname);
+  }
+
+  function startRevision(contractId: number) {
+    if (revision.isPending) return;
+    revision.mutate(contractId, {
+      onSuccess: () => router.push(routes.contractDraft(contractId)),
+    });
   }
 
   return (
@@ -86,11 +116,16 @@ export function ContractListPage() {
               >
                 {labels.todoBannerAction}
               </Link>
-            ) : (
-              <Button variant="secondary" size="md" onClick={() => {}}>
+            ) : firstTodoId !== undefined ? (
+              <Button
+                variant="secondary"
+                size="md"
+                disabled={revisingId === firstTodoId}
+                onClick={() => startRevision(firstTodoId)}
+              >
                 {labels.todoBannerAction}
               </Button>
-            ))
+            ) : null)
           }
         />
       )}
@@ -102,18 +137,26 @@ export function ContractListPage() {
         labels={labels}
       />
 
+      {revision.isError && (
+        <Alert tone="danger" title={labels.revisionError} className="mb-4">
+          {getApiErrorFeedback(getApiErrorCode(revision.error), "ko").message}
+        </Alert>
+      )}
+
       {items.length > 0 ? (
         <>
           <ContractTable
             items={items}
             role={role}
-            onRevise={() => {}}
+            onRevise={startRevision}
+            revisingId={revisingId}
             labels={labels}
           />
           {totalPages > 1 && (
             <ListPagination
-              page={page}
+              page={list.page?.number ?? page}
               totalPages={totalPages}
+              disabled={listQuery.isPlaceholderData}
               onChange={setPage}
               labels={labels}
             />
