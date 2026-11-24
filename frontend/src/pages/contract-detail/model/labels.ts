@@ -90,11 +90,13 @@ export const CONTRACT_DETAIL_LABELS = {
   lookup: "조회 화면에서 보기",
   download: "등록된 원본 내려받기",
   downloading: "내려받는 중",
+  downloadError: "등록된 원본을 내려받지 못했습니다",
   editDraft: "이어서 검토",
   retry: "다시 시도하러 가기",
   respondReview: "계약 내용 확인하기",
   startRevision: "수정하기",
   revising: "수정을 시작하는 중",
+  revisionError: "계약 수정을 시작하지 못했습니다",
 
   viewerHint:
     "'등록된 원본 내려받기'로 받은 파일은 나중에 조회 화면에서 대조할 수 있습니다. 파일을 다시 저장하거나 스캔하면 대조할 수 없으니 받은 그대로 보관하세요.",

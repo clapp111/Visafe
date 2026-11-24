@@ -50,9 +50,17 @@ export function useFileDownloadUrl(contractId: number, fileId: number) {
   });
 }
 
-export function useDownloadContractFile(contractId: number, fileId: number) {
+export function useDownloadContractFile(
+  contractId: number,
+  fileId: number | undefined,
+) {
   return useMutation({
-    mutationFn: () => getFileDownloadUrl(contractId, fileId, false),
+    mutationFn: () => {
+      if (fileId === undefined) {
+        throw new Error("Contract detail did not include a file ID");
+      }
+      return getFileDownloadUrl(contractId, fileId, false);
+    },
     onSuccess: ({ url }) => window.location.assign(url),
   });
 }
