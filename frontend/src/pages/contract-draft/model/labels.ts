@@ -8,6 +8,8 @@ export const CONTRACT_DRAFT_LABELS = {
   home: "홈",
   register: "계약 등록",
   title: "계약 내용 검토 · 수정",
+  loading: "계약 내용을 불러오는 중입니다",
+  loadError: "계약 내용을 불러오지 못했습니다",
   description: [
     "AI가 원본 계약서에서 읽어 온 핵심 항목입니다.",
     "왼쪽 원본과 비교해, 원본과 다르거나 비어 있는 항목은 고쳐 주세요.",

@@ -1,24 +1,127 @@
 "use client";
 
+import { isAxiosError } from "axios";
 import Link from "next/link";
-import { useState } from "react";
+import { useRouter } from "next/navigation";
+import { useEffect, useState } from "react";
+import {
+  useContractDraft,
+  useReplaceDraftFile,
+  useRetryDraftExtraction,
+  useSaveDraftTerm,
+} from "@/entities/contract";
+import {
+  getApiErrorCode,
+  getApiErrorFeedback,
+  type components,
+} from "@/shared/api";
 import { routes } from "@/shared/config";
+import { ErrorState, FieldMessage, LoadingState } from "@/shared/ui";
 import { ContractFileViewer } from "@/widgets/contract-file-viewer";
 import { RegisterSteps } from "@/widgets/register-steps";
-import { getDraftFixture } from "../model/fixtures";
 import { CONTRACT_DRAFT_LABELS } from "../model/labels";
 import { AttentionSummary } from "./attention-summary";
 import { ExtractionState } from "./extraction-state";
 import { ReturnedNotice } from "./returned-notice";
 import { ReuploadDialog } from "./reupload-dialog";
 import { TermFieldsForm } from "./term-fields-form";
+import type { TermValue } from "./term-field-input";
+
+function getDraftErrorMessage(error: unknown) {
+  const code = getApiErrorCode(error);
+  if (
+    code === "TERM_VALUE_INVALID" &&
+    isAxiosError<components["schemas"]["ErrorResponse"]>(error) &&
+    error.response?.status === 400
+  ) {
+    const reason = error.response.data?.message;
+    if (typeof reason === "string" && reason.trim()) {
+      return reason;
+    }
+  }
+  return getApiErrorFeedback(code, "ko").message;
+}
 
 export function ContractDraftPage({ contractId }: { contractId: number }) {
   const labels = CONTRACT_DRAFT_LABELS;
-  // R4 검토 항목 조회·R5 저장·R3·R2를 연결하기 전까지 예시값으로 화면을 보인다
-  const draft = getDraftFixture(contractId);
+  const router = useRouter();
+  const draftQuery = useContractDraft(contractId);
+  const saveTerm = useSaveDraftTerm(contractId);
+  const retryExtraction = useRetryDraftExtraction(contractId);
+  const replaceFile = useReplaceDraftFile(contractId);
   const [page, setPage] = useState(1);
   const [reuploadOpen, setReuploadOpen] = useState(false);
+  const [fieldErrors, setFieldErrors] = useState<Record<string, string>>({});
+  const draft = draftQuery.data;
+  const shouldRedirect =
+    (draft !== undefined &&
+      draft.stage !== "UPLOADED" &&
+      draft.stage !== "REVIEWING") ||
+    getApiErrorCode(draftQuery.error) === "CONTRACT_STAGE_CONFLICT";
+
+  useEffect(() => {
+    if (shouldRedirect) {
+      router.replace(routes.contract(contractId));
+    }
+  }, [contractId, router, shouldRedirect]);
+
+  async function handleCommitField(key: string, value: TermValue) {
+    if (draft?.stage !== "REVIEWING" || value === undefined) {
+      return;
+    }
+    try {
+      await saveTerm.mutateAsync({ key, value });
+      setFieldErrors((current) => {
+        const next = { ...current };
+        delete next[key];
+        return next;
+      });
+    } catch (error) {
+      setFieldErrors((current) => ({
+        ...current,
+        [key]: getDraftErrorMessage(error),
+      }));
+      if (getApiErrorCode(error) === "CONTRACT_STAGE_CONFLICT") {
+        void draftQuery.refetch();
+      }
+    }
+  }
+
+  function openReupload() {
+    replaceFile.reset();
+    setReuploadOpen(true);
+  }
+
+  function closeReupload() {
+    if (!replaceFile.isPending) {
+      setReuploadOpen(false);
+    }
+  }
+
+  function handleReupload(file: File) {
+    replaceFile.mutate(file, {
+      onSuccess: () => {
+        retryExtraction.reset();
+        setFieldErrors({});
+        setPage(1);
+        setReuploadOpen(false);
+      },
+    });
+  }
+
+  if (shouldRedirect || draftQuery.isPending) {
+    return <LoadingState label={labels.loading} />;
+  }
+  if (draftQuery.isError || !draft) {
+    return (
+      <ErrorState
+        title={labels.loadError}
+        message={getDraftErrorMessage(draftQuery.error)}
+        onRetry={() => void draftQuery.refetch()}
+      />
+    );
+  }
+
   const fields = draft.fields ?? [];
   const attention = draft.attention ?? [];
   const extraction =
@@ -83,20 +186,28 @@ export function ContractDraftPage({ contractId }: { contractId: number }) {
           {extraction ? (
             <ExtractionState
               failed={extraction.status === "FAILED"}
-              onRetry={() => {}}
-              onReupload={() => setReuploadOpen(true)}
+              onRetry={() => retryExtraction.mutate()}
+              isRetrying={retryExtraction.isPending}
+              onReupload={openReupload}
               labels={labels}
             />
           ) : (
             <TermFieldsForm
               fields={fields}
               reportedKeys={draft.returned?.reportedFields}
-              onCommitField={() => {}}
+              fieldErrors={fieldErrors}
+              onCommitField={handleCommitField}
               onShowSource={setPage}
               onSubmit={() => {}}
-              onReupload={() => setReuploadOpen(true)}
+              onReupload={openReupload}
+              isSaving={saveTerm.isSaving}
               labels={labels}
             />
+          )}
+          {extraction?.status === "FAILED" && retryExtraction.isError && (
+            <FieldMessage status="error">
+              {getDraftErrorMessage(retryExtraction.error)}
+            </FieldMessage>
           )}
         </div>
       </div>
@@ -104,8 +215,14 @@ export function ContractDraftPage({ contractId }: { contractId: number }) {
       {reuploadOpen && (
         <ReuploadDialog
           open
-          onClose={() => setReuploadOpen(false)}
-          onSubmit={() => setReuploadOpen(false)}
+          onClose={closeReupload}
+          onSubmit={handleReupload}
+          isUploading={replaceFile.isPending}
+          errorMessage={
+            replaceFile.isError
+              ? getDraftErrorMessage(replaceFile.error)
+              : undefined
+          }
           labels={labels}
         />
       )}
