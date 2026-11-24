@@ -8,4 +8,9 @@ export default defineConfig([
     files: ["./src/entities/contract/**"],
     rules: { "fsd/insignificant-slice": "off" },
   },
+  {
+    // 계약 등록 2단계에서 공통 미리보기를 사용하기 전까지 적용한다.
+    files: ["./src/widgets/contract-file-viewer/**"],
+    rules: { "fsd/insignificant-slice": "off" },
+  },
 ]);
