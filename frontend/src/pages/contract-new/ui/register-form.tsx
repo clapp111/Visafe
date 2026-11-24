@@ -190,7 +190,11 @@ export function RegisterForm({
         <WorkerPicker
           workers={workers}
           isSearching={isSearchingWorkers}
-          onSearch={onSearchWorkers}
+          onSearch={(name) => {
+            // 다시 검색하면 고른 근로자를 취소한다 (새 결과에 없는 사람이 선택된 채로 남지 않게)
+            setWorkerMemberId(undefined);
+            onSearchWorkers(name);
+          }}
           selectedId={workerMemberId}
           onSelect={(memberId) => {
             setWorkerMemberId(memberId);
