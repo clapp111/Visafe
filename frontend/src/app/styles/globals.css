@@ -65,6 +65,7 @@
 @layer base {
   body {
     @apply bg-background font-sans text-base text-foreground;
+    zoom: 0.75;
   }
 
   :focus-visible {
