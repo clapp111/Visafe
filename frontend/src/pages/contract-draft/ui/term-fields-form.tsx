@@ -1,9 +1,9 @@
 "use client";
 
 import { type FormEvent, useState } from "react";
+import { FIELD_GROUPS } from "@/entities/contract";
 import type { components } from "@/shared/api";
 import { ArrowRightIcon, Button, Checkbox, FieldMessage } from "@/shared/ui";
-import { FIELD_GROUPS } from "../model/field-groups";
 import type { ContractDraftLabels } from "../model/labels";
 import { TermFieldInput, type TermValue } from "./term-field-input";
 
