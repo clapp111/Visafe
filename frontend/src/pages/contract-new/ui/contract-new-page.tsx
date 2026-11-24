@@ -6,13 +6,13 @@ import { useState } from "react";
 import { useCreateContract, useWorkerSearch } from "@/entities/contract";
 import { getApiErrorCode, getApiErrorFeedback } from "@/shared/api";
 import { routes } from "@/shared/config";
+import { RegisterSteps } from "@/widgets/register-steps";
 import { CONTRACT_NEW_LABELS } from "../model/labels";
 import {
   RegisterForm,
   type RegisterIntent,
   type RegisterValues,
 } from "./register-form";
-import { RegisterSteps } from "./register-steps";
 
 export function ContractNewPage() {
   const labels = CONTRACT_NEW_LABELS;
@@ -81,7 +81,7 @@ export function ContractNewPage() {
         {labels.description[1]}
       </p>
 
-      <RegisterSteps current={1} labels={labels.steps} />
+      <RegisterSteps current={1} />
 
       <RegisterForm
         workers={workerSearch.data}
