@@ -1,6 +1,6 @@
 import type { components } from "@/shared/api";
+import { countContractMonths, formatPeriod } from "@/shared/lib";
 import { Table } from "@/shared/ui";
-import { countContractMonths, formatPeriod } from "../lib/format";
 import type { LookupResultLabels } from "../model/labels";
 
 type LookupResponse = components["schemas"]["LookupResponse"];
