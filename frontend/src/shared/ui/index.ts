@@ -10,6 +10,7 @@ export * from "./file-list";
 export * from "./icons";
 export * from "./select";
 export * from "./state";
+export * from "./step-list";
 export * from "./table";
 export * from "./text-field";
 export * from "./textarea";
