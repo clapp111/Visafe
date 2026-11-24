@@ -1,6 +1,6 @@
 "use client";
 
-import { useQuery } from "@tanstack/react-query";
+import { keepPreviousData, useQuery } from "@tanstack/react-query";
 import { api, type components, type operations } from "@/shared/api";
 
 type ListResponse = components["schemas"]["ContractListResponse"];
@@ -21,8 +21,7 @@ export function useContractList(status: ListParams["status"], page: number) {
       });
       return data;
     },
-    placeholderData: (previous, previousQuery) =>
-      previousQuery?.queryKey[2] === status ? previous : undefined,
+    placeholderData: keepPreviousData,
     retry: false,
   });
 }
