@@ -1,30 +1,62 @@
 "use client";
 
+import { useQueryClient } from "@tanstack/react-query";
 import Link from "next/link";
-import { useSearchParams } from "next/navigation";
+import { useRouter } from "next/navigation";
+import { useEffect } from "react";
+import { useContractDetail } from "@/entities/contract";
+import { getApiErrorCode, getApiErrorFeedback } from "@/shared/api";
 import { routes } from "@/shared/config";
 import { cn, formatDateTime, shortenHash } from "@/shared/lib";
 import {
   Badge,
   CheckIcon,
+  ErrorState,
   LoadingState,
   StepList,
   buttonClass,
 } from "@/shared/ui";
-import { getReviewDoneFixture } from "../model/fixtures";
 import { CONTRACT_REVIEW_DONE_LABELS } from "../model/labels";
 import { buildReviewDoneSteps, getReviewDonePhase } from "../model/steps";
 import { CopyButton } from "./copy-button";
 
 export function ContractReviewDonePage({ contractId }: { contractId: number }) {
   const labels = CONTRACT_REVIEW_DONE_LABELS;
-  const searchParams = useSearchParams();
-  // 화면 확인용: ?state=failed | authority | done (기본 recording)
-  const detail = getReviewDoneFixture(contractId, searchParams?.get("state"));
-  const phase = getReviewDonePhase(detail.stage);
+  const router = useRouter();
+  const queryClient = useQueryClient();
+  const detailQuery = useContractDetail(contractId);
+  const detail = detailQuery.data;
+  const stage = detail?.stage;
+  const phase = getReviewDonePhase(stage);
+  const hasCurrentStage =
+    detailQuery.isSuccess && detailQuery.isFetchedAfterMount;
 
-  // 확인 완료 이후 stage가 아니면 다른 화면으로 보낸다 (API 연동 단계)
-  if (!phase) {
+  useEffect(() => {
+    if (!hasCurrentStage) return;
+    if (stage === "DONE") {
+      void queryClient.invalidateQueries({ queryKey: ["contracts", "list"] });
+    } else if (!phase) {
+      router.replace(
+        stage === "AWAITING_WORKER"
+          ? routes.contractReview(contractId)
+          : routes.contract(contractId),
+      );
+    }
+  }, [contractId, hasCurrentStage, phase, queryClient, router, stage]);
+
+  if (detailQuery.isError) {
+    return (
+      <ErrorState
+        title={labels.loadError}
+        message={
+          getApiErrorFeedback(getApiErrorCode(detailQuery.error), "ko").message
+        }
+        onRetry={() => void detailQuery.refetch()}
+      />
+    );
+  }
+
+  if (!detail || !phase) {
     return <LoadingState label={labels.loading} />;
   }
 

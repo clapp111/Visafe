@@ -1,3 +1,4 @@
+export { useContractDetail } from "./api/use-contract-detail";
 export {
   useContractDraft,
   useReplaceDraftFile,
