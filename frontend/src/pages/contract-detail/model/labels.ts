@@ -118,6 +118,50 @@ export const CONTRACT_DETAIL_LABELS = {
 
   historyTitle: "확인 이력",
   chainTitle: "블록체인 기록",
+
+  termination: {
+    sectionTitle: "계약을 끝내야 하나요?",
+    sectionDescription:
+      "계약기간이 끝나면 자동으로 종료됩니다. 기간 전에 끝내려면 종료 요청을 보내고, 상대방이 동의하면 종료가 기록됩니다. 확정된 계약 내용은 바꿀 수 없으며, 조건이 바뀌면 새 계약을 맺습니다.",
+    request: "종료 요청",
+
+    requestedByOther: (name: string) => `${name} 님이 계약 종료를 요청했습니다`,
+    requestedByOtherFallback: "상대방이 계약 종료를 요청했습니다",
+    requestedByOtherHint:
+      "동의하면 마지막 근무일 다음 날 계약이 끝나고 블록체인에 종료가 기록됩니다. 거절하면 계약이 그대로 유지됩니다.",
+    requestedByMe: "종료 요청을 보냈습니다",
+    requestedByMeHint:
+      "상대방의 응답을 기다리고 있습니다. 동의하기 전까지는 요청을 취소할 수 있습니다.",
+    agreed: "계약 종료에 합의했습니다",
+    agreedHint: (endDate: string) =>
+      `${endDate}까지 근무하고, 다음 날 계약이 끝납니다.`,
+    lastWorkDay: "마지막 근무일",
+    reason: "종료 사유",
+    noReason: "적지 않음",
+    agree: "동의",
+    decline: "거절",
+    cancel: "요청 취소",
+    responding: "처리하는 중",
+    actionError: "종료 요청을 처리하지 못했습니다",
+
+    dialogTitle: "계약 종료를 요청할까요?",
+    dialogDescription:
+      "상대방이 동의하면 마지막 근무일 다음 날 계약이 끝나고 블록체인에 종료가 기록됩니다.",
+    lastWorkDayHint: (range: string) => `${range} 사이에서 고를 수 있습니다.`,
+    lastWorkDayRequired: "마지막 근무일을 골라 주세요.",
+    lastWorkDayInvalid:
+      "마지막 근무일은 오늘부터 계약 종료일까지 고를 수 있습니다.",
+    reasonOptional: "(선택)",
+    reasonHint: "상대방에게 함께 전달됩니다.",
+    close: "취소",
+    send: "종료 요청 보내기",
+    sending: "보내는 중",
+
+    agreeTitle: "계약 종료에 동의할까요?",
+    agreeDescription: (endDate: string) =>
+      `동의하면 ${endDate}까지 근무하고 다음 날 계약이 끝납니다. 블록체인에 종료가 기록되며 되돌릴 수 없습니다.`,
+    agreeConfirm: "동의",
+  },
 } satisfies TermValueLabels & Record<string, unknown>;
 
 export type ContractDetailLabels = typeof CONTRACT_DETAIL_LABELS;
