@@ -13,6 +13,9 @@ export const routes = {
     `/contracts/new/${encodeURIComponent(contractId)}/done`,
   contract: (contractId: number | string) =>
     `/contracts/${encodeURIComponent(contractId)}`,
+  /** 근로자 계약 내용 확인 (#64) */
+  contractReview: (contractId: number | string) =>
+    `/contracts/${encodeURIComponent(contractId)}/review`,
   adminContracts: "/admin/contracts",
   /** 기관 목록의 보기 (PENDING이 기본이라 쿼리 없이 연다) */
   adminContractsView: (
