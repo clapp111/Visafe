@@ -1,20 +1,69 @@
 "use client";
 
 import Link from "next/link";
+import { useRouter } from "next/navigation";
+import { useEffect, useState } from "react";
+import {
+  useContractProgress,
+  useRetryContractTranslation,
+} from "@/entities/contract";
+import { getApiErrorCode, getApiErrorFeedback } from "@/shared/api";
 import { routes } from "@/shared/config";
 import { cn } from "@/shared/lib";
-import { Alert, Badge, Button, CheckIcon, buttonClass } from "@/shared/ui";
-import { getSubmittedFixture } from "../model/fixtures";
+import {
+  Alert,
+  Badge,
+  Button,
+  CheckIcon,
+  ErrorState,
+  FieldMessage,
+  LoadingState,
+  buttonClass,
+} from "@/shared/ui";
 import { CONTRACT_SUBMITTED_LABELS } from "../model/labels";
 import { ProgressSteps } from "./progress-steps";
 
 export function ContractSubmittedPage({ contractId }: { contractId: number }) {
   const labels = CONTRACT_SUBMITTED_LABELS;
-  // M2 진행 상황 폴링·R7 번역 다시 시도를 연결하기 전까지 예시값으로 화면을 보인다
-  const detail = getSubmittedFixture(contractId);
+  const router = useRouter();
+  const [openedAt] = useState(Date.now);
+  const retryTranslation = useRetryContractTranslation(contractId);
+  const progress = useContractProgress(
+    retryTranslation.data ?? { contractId, stage: "TRANSLATING" },
+    retryTranslation.data ? retryTranslation.submittedAt : openedAt,
+  );
+  const detail = progress.data;
+  const stage = detail?.stage;
+  const redirectTo =
+    stage === "UPLOADED" || stage === "REVIEWING"
+      ? routes.contractDraft(contractId)
+      : stage && stage !== "TRANSLATING" && stage !== "AWAITING_WORKER"
+        ? routes.contract(contractId)
+        : undefined;
+
+  useEffect(() => {
+    if (redirectTo) router.replace(redirectTo);
+  }, [redirectTo, router]);
+
+  if (progress.status === "request-error") {
+    return (
+      <ErrorState
+        title={labels.loadError}
+        message={
+          getApiErrorFeedback(getApiErrorCode(progress.error), "ko").message
+        }
+        onRetry={progress.refetch}
+      />
+    );
+  }
+  if (redirectTo || !detail) {
+    return <LoadingState label={labels.loading} />;
+  }
+
   const phase = detail.stage === "TRANSLATING" ? "translating" : "awaiting";
   const translationFailed =
     detail.stage === "TRANSLATING" && detail.processing?.status === "FAILED";
+  const canRetry = detail.availableActions?.includes("RETRY_TRANSLATION");
   const [before, after] = labels.description[phase];
 
   return (
@@ -71,12 +120,30 @@ export function ContractSubmittedPage({ contractId }: { contractId: number }) {
               accent="left"
               title={labels.translationFailedTitle}
               action={
-                <Button size="md" onClick={() => {}}>
-                  {labels.retryTranslation}
-                </Button>
+                canRetry && (
+                  <Button
+                    size="md"
+                    disabled={retryTranslation.isPending}
+                    onClick={() => retryTranslation.mutate()}
+                  >
+                    {retryTranslation.isPending
+                      ? labels.retrying
+                      : labels.retryTranslation}
+                  </Button>
+                )
               }
             >
               {labels.translationFailedHint}
+              {retryTranslation.isError && (
+                <FieldMessage status="error">
+                  {
+                    getApiErrorFeedback(
+                      getApiErrorCode(retryTranslation.error),
+                      "ko",
+                    ).message
+                  }
+                </FieldMessage>
+              )}
             </Alert>
           )}
           <p className="text-sm text-muted">

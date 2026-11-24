@@ -3,6 +3,8 @@ export const CONTRACT_SUBMITTED_LABELS = {
   breadcrumb: "현재 위치",
   home: "홈",
   register: "계약 등록",
+  loading: "제출 진행 상황을 불러오는 중",
+  loadError: "제출 진행 상황을 불러오지 못했습니다",
 
   title: {
     translating: "확인 요청이 접수되었습니다",
