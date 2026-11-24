@@ -224,7 +224,7 @@ export function ContractDraftPage({ contractId }: { contractId: number }) {
         />
       )}
 
-      <div className="flex flex-wrap items-start gap-10">
+      <div className="flex flex-wrap items-start gap-10 lg:flex-nowrap">
         {draft.contractId !== undefined && draft.file?.fileId !== undefined && (
           <ContractFileViewer
             id="contract-draft-original"

@@ -27,4 +27,7 @@ export const routes = {
     view === "PENDING" ? "/admin/contracts" : `/admin/contracts?view=${view}`,
   adminContract: (contractId: number | string) =>
     `/admin/contracts/${encodeURIComponent(contractId)}`,
+  /** 기관 확정 완료 (블록체인 기록 진행) */
+  adminContractDone: (contractId: number | string) =>
+    `/admin/contracts/${encodeURIComponent(contractId)}/done`,
 } as const;

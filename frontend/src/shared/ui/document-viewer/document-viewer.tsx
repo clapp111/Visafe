@@ -42,7 +42,7 @@ export interface DocumentViewerProps {
   /** 맨 아래 안내 */
   hint?: ReactNode;
   labels?: Partial<DocumentViewerLabels>;
-  /** 예: 스크롤을 따라 고정할 때 "lg:sticky lg:top-6" */
+  /** 예: 스크롤을 따라 고정할 때 "lg:sticky lg:top-6" (감싸는 줄도 lg부터 두 칸이 나란히 놓이게 lg:flex-nowrap) */
   className?: string;
 }
 
