@@ -5,12 +5,18 @@ function isWithin(pathname: string, root: string): boolean {
   return pathname === root || pathname.startsWith(`${root}/`);
 }
 
+/** 근로자 계약 내용 확인 /contracts/{id}/review 와 그 아래 */
+const CONTRACT_REVIEW_PATH = /^\/contracts\/[^/]+\/review(\/|$)/;
+
 export function canAccessProtectedRoute(pathname: string, role: MemberRole) {
   if (isWithin(pathname, routes.adminContracts)) {
     return role === "ADMIN";
   }
   if (isWithin(pathname, routes.contractNew)) {
     return role === "EMPLOYER";
+  }
+  if (CONTRACT_REVIEW_PATH.test(pathname)) {
+    return role === "WORKER";
   }
 
   return isWithin(pathname, routes.contracts) && role !== "ADMIN";
