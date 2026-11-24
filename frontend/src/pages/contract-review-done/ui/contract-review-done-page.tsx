@@ -11,6 +11,7 @@ import { cn, formatDateTime, shortenHash } from "@/shared/lib";
 import {
   Badge,
   CheckIcon,
+  CopyButton,
   ErrorState,
   LoadingState,
   StepList,
@@ -18,7 +19,6 @@ import {
 } from "@/shared/ui";
 import { CONTRACT_REVIEW_DONE_LABELS } from "../model/labels";
 import { buildReviewDoneSteps, getReviewDonePhase } from "../model/steps";
-import { CopyButton } from "./copy-button";
 
 export function ContractReviewDonePage({ contractId }: { contractId: number }) {
   const labels = CONTRACT_REVIEW_DONE_LABELS;

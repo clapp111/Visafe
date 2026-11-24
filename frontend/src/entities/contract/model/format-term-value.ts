@@ -1,14 +1,24 @@
 import { formatDate } from "@/shared/lib";
-import type { ContractReviewLabels } from "./labels";
+
+/** 항목 값 글자 (화면 언어별 문구를 넘긴다) */
+export interface TermValueLabels {
+  noValue: string;
+  units: {
+    won: (amount: string) => string;
+    minutes: (minutes: number) => string;
+    daysPerWeek: (days: number) => string;
+    payDay: (day: number) => string;
+  };
+}
 
 /**
  * 항목 값을 화면 글자로 바꾼다. W1 value는 날짜 2027-01-02, 시각 09:00, 정수,
- * employerInput.aiValue는 같은 값을 글자로 준다.
+ * employerInput.aiValue는 같은 값을 글자로 준다. M2 terms[].value도 같다.
  */
 export function formatTermValue(
   key: string | undefined,
   value: string | number | null | undefined,
-  labels: ContractReviewLabels,
+  labels: TermValueLabels,
 ) {
   if (value === null || value === undefined || value === "") {
     return labels.noValue;

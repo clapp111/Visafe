@@ -25,3 +25,7 @@ export { useRetryContractTranslation } from "./api/use-retry-contract-translatio
 export { useWorkerSearch } from "./api/use-worker-search";
 export { CONTRACT_FILE_ACCEPT, checkContractFile } from "./model/contract-file";
 export { FIELD_GROUPS, type FieldGroupId } from "./model/field-groups";
+export {
+  formatTermValue,
+  type TermValueLabels,
+} from "./model/format-term-value";

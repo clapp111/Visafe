@@ -1,7 +1,7 @@
 "use client";
 
 import { useState } from "react";
-import { Button } from "@/shared/ui";
+import { Button } from "../button";
 
 /** 글자를 클립보드에 복사하고 잠시 '복사했습니다'로 바꿔 보인다 */
 export function CopyButton({

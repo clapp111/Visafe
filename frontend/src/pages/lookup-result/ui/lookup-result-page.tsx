@@ -9,11 +9,10 @@ import { getApiErrorCode, getApiErrorFeedback } from "@/shared/api";
 import { routes } from "@/shared/config";
 import { formatDate } from "@/shared/lib";
 import { ErrorState, LoadingState } from "@/shared/ui";
+import { ChainRecordsTable, HistoryList } from "@/widgets/contract-records";
 import { hashFile } from "../lib/hash-file";
 import { LOOKUP_RESULT_LABELS } from "../model/labels";
-import { ChainRecordsSection } from "./chain-records-section";
 import { FileCheckSection } from "./file-check-section";
-import { HistorySection } from "./history-section";
 import { KeyTermsSection } from "./key-terms-section";
 import { NotFoundGuide } from "./not-found-guide";
 import { ResultSection } from "./result-section";
@@ -183,16 +182,13 @@ export function LookupResultPage({
 
           {result.chainRecords && result.chainRecords.length > 0 && (
             <ResultSection id="lookup-chain" title={labels.chainTitle}>
-              <ChainRecordsSection
-                records={result.chainRecords}
-                labels={labels}
-              />
+              <ChainRecordsTable records={result.chainRecords} />
             </ResultSection>
           )}
 
           {result.history && result.history.length > 0 && (
             <ResultSection id="lookup-history" title={labels.historyTitle}>
-              <HistorySection history={result.history} labels={labels} />
+              <HistoryList history={result.history} />
             </ResultSection>
           )}
         </div>

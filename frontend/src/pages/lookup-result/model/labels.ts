@@ -95,38 +95,7 @@ export const LOOKUP_RESULT_LABELS = {
   ],
 
   chainTitle: "블록체인 기록",
-  chainCaption: "블록체인 트랜잭션",
-  chainRecord: "기록",
-  chainTime: "일시",
-  chainTxHash: "트랜잭션 해시",
-  chainLink: "링크",
-  chainExplorer: "탐색기에서 보기",
-  recordTypes: {
-    CONFIRM: "확정",
-    TERMINATE: "종료",
-  } satisfies Record<
-    NonNullable<Schemas["ContractDetailResponseChainRecordItem"]["recordType"]>,
-    string
-  >,
-  /** 블록에 포함되기 전이라 일시가 없을 때 일시 칸에 보인다 */
-  chainPending: "기록 중",
-  chainHint:
-    "네트워크: Sepolia 테스트넷 · 기록 주체: Visafe 서버 지갑. 계약서 내용은 블록체인에 올라가지 않고 해시만 기록됩니다.",
-
   historyTitle: "확인 이력",
-  /** 조회 API가 공개하는 이벤트(SUBMITTED, WORKER_UNDERSTOOD, AUTHORITY_APPROVED, CONFIRMED, TERMINATED)만 둔다 */
-  historyEvents: {
-    SUBMITTED: "고용주 제출",
-    WORKER_UNDERSTOOD: "근로자 확인",
-    AUTHORITY_APPROVED: "감독 기관 확인",
-    CONFIRMED: "확정 · 확인번호 발급",
-    TERMINATED: "계약 종료",
-  } as Partial<
-    Record<NonNullable<Schemas["LookupResponseHistoryEntry"]["type"]>, string>
-  >,
-  confirmedDetail: "블록체인 기록 완료",
-  translationBasis: (language: string) => `${language} 번역본 기준`,
-  languageNames: { vi: "베트남어" } as Record<string, string>,
 
   notFoundTitle: "확인번호를 다시 확인해 주세요",
   notFoundTips: {

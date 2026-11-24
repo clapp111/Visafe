@@ -1,21 +1,14 @@
 import type { components } from "@/shared/api";
 import { formatDateTime, shortenHash } from "@/shared/lib";
 import { Table } from "@/shared/ui";
-import type { LookupResultLabels } from "../model/labels";
+import { CONTRACT_RECORDS_LABELS } from "../model/labels";
 
 type ChainRecord =
   components["schemas"]["ContractDetailResponseChainRecordItem"];
 
-export interface ChainRecordsSectionProps {
-  records: ChainRecord[];
-  labels: LookupResultLabels;
-}
-
-/** 확정·종료 트랜잭션 표 */
-export function ChainRecordsSection({
-  records,
-  labels,
-}: ChainRecordsSectionProps) {
+/** 확정·종료 트랜잭션 표 (조회 L1 · 상세 M2 chainRecords) */
+export function ChainRecordsTable({ records }: { records: ChainRecord[] }) {
+  const labels = CONTRACT_RECORDS_LABELS;
   return (
     <>
       <Table caption={labels.chainCaption}>

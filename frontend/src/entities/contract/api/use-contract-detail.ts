@@ -8,9 +8,12 @@ type Detail = components["schemas"]["ContractDetailResponse"];
 const POLL_INTERVAL_MS = 2500;
 const FAILED_RECORD_POLL_INTERVAL_MS = 10000;
 
+export const contractDetailKey = (contractId: number) =>
+  ["contracts", contractId, "detail"] as const;
+
 export function useContractDetail(contractId: number) {
   return useQuery({
-    queryKey: ["contracts", contractId, "detail"],
+    queryKey: contractDetailKey(contractId),
     queryFn: async ({ signal }) => {
       const { data } = await api.get<Detail>(`/contracts/${contractId}`, {
         signal,

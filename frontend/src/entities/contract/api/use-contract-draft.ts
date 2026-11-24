@@ -7,6 +7,7 @@ import {
   useQueryClient,
 } from "@tanstack/react-query";
 import { api, type components } from "@/shared/api";
+import { contractDetailKey } from "./use-contract-detail";
 
 type Draft = components["schemas"]["ContractDraftResponse"];
 type StageResponse = components["schemas"]["ContractStageResponse"];
@@ -103,6 +104,10 @@ export function useStartContractRevision() {
         queryKey: draftKey(contractId),
         exact: true,
       });
+      void queryClient.invalidateQueries({
+        queryKey: contractDetailKey(contractId),
+      });
+      void queryClient.invalidateQueries({ queryKey: ["contracts", "list"] });
     },
     onError: () => {
       void queryClient.invalidateQueries({ queryKey: ["contracts", "list"] });
