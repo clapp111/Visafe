@@ -2,19 +2,70 @@
 
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-import { useLookup } from "@/entities/contract";
+import { useEffect, useRef, useState } from "react";
+import { useFileCheck, useLookup } from "@/entities/contract";
 import { LookupForm } from "@/features/lookup-contract";
 import { getApiErrorCode, getApiErrorFeedback } from "@/shared/api";
 import { routes } from "@/shared/config";
 import { ErrorState, LoadingState } from "@/shared/ui";
 import { formatDate } from "../lib/format";
+import { hashFile } from "../lib/hash-file";
 import { LOOKUP_RESULT_LABELS } from "../model/labels";
 import { ChainRecordsSection } from "./chain-records-section";
+import { FileCheckSection } from "./file-check-section";
 import { HistorySection } from "./history-section";
 import { KeyTermsSection } from "./key-terms-section";
 import { NotFoundGuide } from "./not-found-guide";
 import { ResultSection } from "./result-section";
 import { StatusCard } from "./status-card";
+
+function ContractFileCheck({ confirmationNo }: { confirmationNo: string }) {
+  const labels = LOOKUP_RESULT_LABELS;
+  const mutation = useFileCheck(confirmationNo);
+  const [hashStatus, setHashStatus] = useState<"idle" | "hashing" | "error">(
+    "idle",
+  );
+  const hashController = useRef<AbortController | null>(null);
+
+  useEffect(() => () => hashController.current?.abort(), []);
+
+  async function handleCheck(file: File) {
+    hashController.current?.abort();
+    const controller = new AbortController();
+    hashController.current = controller;
+    mutation.reset();
+    setHashStatus("hashing");
+
+    try {
+      const fileHash = await hashFile(file);
+      if (!controller.signal.aborted) {
+        mutation.mutate({ fileHash });
+        setHashStatus("idle");
+      }
+    } catch {
+      if (!controller.signal.aborted) {
+        setHashStatus("error");
+      }
+    }
+  }
+
+  const errorMessage =
+    hashStatus === "error"
+      ? labels.fileReadError
+      : mutation.isError
+        ? getApiErrorFeedback(getApiErrorCode(mutation.error), "ko").message
+        : undefined;
+
+  return (
+    <FileCheckSection
+      result={mutation.data}
+      isChecking={hashStatus === "hashing" || mutation.isPending}
+      errorMessage={errorMessage}
+      onCheck={handleCheck}
+      labels={labels}
+    />
+  );
+}
 
 export function LookupResultPage({
   confirmationNo,
@@ -121,6 +172,14 @@ export function LookupResultPage({
                 />
               </ResultSection>
             )}
+
+          {/* 메모: 종료된 계약도 파일 대조 가능 */}
+          <ResultSection id="lookup-file-check" title={labels.fileCheckTitle}>
+            <ContractFileCheck
+              key={confirmationNo}
+              confirmationNo={confirmationNo}
+            />
+          </ResultSection>
 
           {result.chainRecords && result.chainRecords.length > 0 && (
             <ResultSection id="lookup-chain" title={labels.chainTitle}>
