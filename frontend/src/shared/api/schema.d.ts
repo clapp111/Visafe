@@ -1070,7 +1070,7 @@ export interface components {
              * @description 현재 값 (날짜 2027-01-02, 시각 09:00, 정수)
              * @example 2000000
              */
-            value?: null;
+            value?: string | number | null;
             /**
              * @description AI가 읽은 값
              * @example 2000000
@@ -1715,7 +1715,7 @@ export interface components {
              * @description 값 (날짜 2027-01-02, 시각 09:00, 정수)
              * @example 60
              */
-            value?: unknown;
+            value?: string | number | null;
             /**
              * @description 값 출처 (형광펜 표시 여부)
              * @example EMPLOYER_INPUT
@@ -1957,7 +1957,7 @@ export interface components {
              * @description 한국어 원본 값 (날짜 2027-01-02, 시각 09:00, 정수)
              * @example 60
              */
-            value?: unknown;
+            value?: string | number | null;
             /**
              * @description 번역된 값
              * @example 60 phút
