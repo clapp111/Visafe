@@ -143,7 +143,9 @@ export function ContractListPage() {
         </Alert>
       )}
 
-      {items.length > 0 ? (
+      {listQuery.isPlaceholderData ? (
+        <LoadingState label={labels.loading} />
+      ) : items.length > 0 ? (
         <>
           <ContractTable
             items={items}
