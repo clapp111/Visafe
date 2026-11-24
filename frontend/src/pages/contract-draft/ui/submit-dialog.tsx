@@ -11,6 +11,7 @@ export interface SubmitDialogProps {
   onClose: () => void;
   /** [보내기] (R6 제출, confirmedOriginalMatch: true) */
   onConfirm: () => void;
+  isSaving?: boolean;
   isSubmitting?: boolean;
   /** 제출 실패 안내 (409 CONTRACT_STAGE_CONFLICT 등). 422는 창을 닫고 빈 항목에 표시한다 */
   errorMessage?: string;
@@ -22,6 +23,7 @@ export function SubmitDialog({
   draft,
   onClose,
   onConfirm,
+  isSaving,
   isSubmitting,
   errorMessage,
   labels,
@@ -48,7 +50,11 @@ export function SubmitDialog({
           <Button variant="secondary" size="md" onClick={onClose}>
             {labels.cancel}
           </Button>
-          <Button size="md" disabled={isSubmitting} onClick={onConfirm}>
+          <Button
+            size="md"
+            disabled={isSaving || isSubmitting}
+            onClick={onConfirm}
+          >
             {isSubmitting ? labels.sending : labels.send}
           </Button>
         </>
