@@ -101,6 +101,37 @@ export const CONTRACT_REVIEW_LABELS = {
   cannotRespondDescription:
     "이미 응답했거나 고용주가 내용을 고치고 있습니다. 진행 상황은 계약 상세에서 확인하세요.",
   contractDetail: "계약 상세 보기",
+
+  reportTitle: "원본과 다른 부분을 알려 주세요",
+  reportDescription:
+    "원본 계약서와 다른 항목을 골라 주세요. 고용주에게 전달되고, 계약은 고용주 검토 단계로 돌아갑니다.",
+  reportItemsLegend: "다른 항목 (여러 개 선택 가능)",
+  reportChoices: {
+    employer: "고용주(사업주)",
+    employerAddress: "사업장 주소",
+    worker: "근로자",
+    period: "계약기간",
+    workPlace: "근무 장소",
+    jobDescription: "업무 내용",
+    workHours: "근로시간",
+    breakMinutes: "휴게시간",
+    weeklyHoliday: "주휴일",
+    monthlyBaseWage: "월 기본급",
+    payment: "지급일 · 지급 방법",
+    accommodation: "숙식 제공",
+  },
+  reportItemsRequired: "원본과 다른 항목을 하나 이상 골라 주세요.",
+  reportReason: "무엇이 다른가요?",
+  reportReasonOptional: "(선택)",
+  reportReasonHint:
+    "베트남어로 써도 됩니다. 고용주에게는 한국어 번역과 함께 전달됩니다.",
+  cancel: "취소",
+  send: "보내기",
+
+  reportedTitle: "원본과 다른 부분을 고용주에게 보냈습니다",
+  reportedDescription:
+    "고용주가 원본과 비교해 고친 뒤 다시 확인을 요청하면 '내 계약'에 확인할 일로 나타납니다.",
+  toContracts: "내 계약으로",
 };
 
 export type ContractReviewLabels = typeof CONTRACT_REVIEW_LABELS;

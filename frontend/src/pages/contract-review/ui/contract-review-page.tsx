@@ -14,6 +14,7 @@ import { ContractFileViewer } from "@/widgets/contract-file-viewer";
 import { CONTRACT_REVIEW_LABELS } from "../model/labels";
 import { ClausesSection } from "./clauses-section";
 import { KeyTermsSection } from "./key-terms-section";
+import { ReportDialog } from "./report-dialog";
 import { ReviewConfirm } from "./review-confirm";
 import { ReviewItemsSection } from "./review-items-section";
 import { ReviewSummary } from "./review-summary";
@@ -24,6 +25,9 @@ export function ContractReviewPage({ contractId }: { contractId: number }) {
   const reviewQuery = useContractReview(contractId);
   const confirmation = useConfirmContractReview(contractId);
   const [page, setPage] = useState(1);
+  const [reportOpen, setReportOpen] = useState(false);
+  // 신고를 보낸 뒤에는 W1이 canRespond false가 되므로, 응답할 수 없다는 안내 대신 결과를 보인다
+  const [reported, setReported] = useState(false);
 
   if (reviewQuery.isPending) {
     return <LoadingState label={labels.loading} />;
@@ -135,7 +139,23 @@ export function ContractReviewPage({ contractId }: { contractId: number }) {
             />
           )}
 
-          {review.canRespond ? (
+          {reported ? (
+            <Alert
+              tone="success"
+              accent="left"
+              title={labels.reportedTitle}
+              action={
+                <Link
+                  href={routes.contracts}
+                  className={buttonClass({ variant: "secondary", size: "md" })}
+                >
+                  {labels.toContracts}
+                </Link>
+              }
+            >
+              {labels.reportedDescription}
+            </Alert>
+          ) : review.canRespond ? (
             <ReviewConfirm
               key={translationId}
               onConfirm={() =>
@@ -144,7 +164,7 @@ export function ContractReviewPage({ contractId }: { contractId: number }) {
                     router.push(routes.contractReviewDone(contractId)),
                 })
               }
-              onReport={() => {}}
+              onReport={() => setReportOpen(true)}
               isSubmitting={confirmation.isPending}
               error={
                 confirmation.isError
@@ -180,6 +200,19 @@ export function ContractReviewPage({ contractId }: { contractId: number }) {
           )}
         </div>
       </div>
+
+      {reportOpen && (
+        <ReportDialog
+          onClose={() => setReportOpen(false)}
+          items={items}
+          // 화면 확인용: 보낸 것처럼 결과를 보인다. API 연동 단계에서 W2 REPORTED로 바꾼다
+          onSubmit={() => {
+            setReportOpen(false);
+            setReported(true);
+          }}
+          labels={labels}
+        />
+      )}
     </div>
   );
 }
