@@ -1,19 +1,64 @@
 "use client";
 
 import Link from "next/link";
+import { useRouter } from "next/navigation";
 import { useState } from "react";
-import type { components } from "@/shared/api";
+import { useCreateContract, useWorkerSearch } from "@/entities/contract";
+import { getApiErrorCode, getApiErrorFeedback } from "@/shared/api";
 import { routes } from "@/shared/config";
-import { searchWorkerFixtures } from "../model/fixtures";
 import { CONTRACT_NEW_LABELS } from "../model/labels";
-import { RegisterForm } from "./register-form";
+import {
+  RegisterForm,
+  type RegisterIntent,
+  type RegisterValues,
+} from "./register-form";
 import { RegisterSteps } from "./register-steps";
 
 export function ContractNewPage() {
   const labels = CONTRACT_NEW_LABELS;
-  // A6 근로자 검색·R1 계약 생성을 연결하기 전까지 예시값으로 화면을 보인다
-  const [workers, setWorkers] =
-    useState<components["schemas"]["WorkerSearchResponse"][]>();
+  const router = useRouter();
+  const [workerName, setWorkerName] = useState("");
+  const workerSearch = useWorkerSearch(workerName);
+  const createContract = useCreateContract();
+  const submitErrorCode = getApiErrorCode(createContract.error);
+  const submitErrorMessage = createContract.isError
+    ? getApiErrorFeedback(submitErrorCode, "ko").message
+    : undefined;
+  const fileErrorMessage =
+    submitErrorCode === "FILE_TOO_LARGE" ||
+    submitErrorCode === "FILE_UNSUPPORTED_TYPE"
+      ? submitErrorMessage
+      : undefined;
+  const workerErrorMessage =
+    submitErrorCode === "WORKER_NOT_FOUND" ? submitErrorMessage : undefined;
+  const formErrorMessage =
+    submitErrorMessage && !fileErrorMessage && !workerErrorMessage
+      ? submitErrorMessage
+      : workerSearch.isError
+        ? getApiErrorFeedback(getApiErrorCode(workerSearch.error), "ko").message
+        : undefined;
+
+  function handleSearch(name: string) {
+    if (name === workerName) {
+      if (!workerSearch.isFetching) void workerSearch.refetch();
+      return;
+    }
+    setWorkerName(name);
+  }
+
+  function handleSubmit(values: RegisterValues, intent: RegisterIntent) {
+    if (createContract.isPending || createContract.isSuccess) return;
+
+    createContract.mutate(values, {
+      onSuccess: ({ contractId }) => {
+        router.push(
+          intent === "next"
+            ? routes.contractDraft(contractId)
+            : routes.contracts,
+        );
+      },
+    });
+  }
 
   return (
     <div className="mx-auto max-w-[1200px] px-6 pt-6 pb-20">
@@ -39,9 +84,14 @@ export function ContractNewPage() {
       <RegisterSteps current={1} labels={labels.steps} />
 
       <RegisterForm
-        workers={workers}
-        onSearchWorkers={(name) => setWorkers(searchWorkerFixtures(name))}
-        onSubmit={() => {}}
+        workers={workerSearch.data}
+        isSearchingWorkers={workerSearch.isFetching}
+        onSearchWorkers={handleSearch}
+        onSubmit={handleSubmit}
+        isSubmitting={createContract.isPending}
+        errorMessage={formErrorMessage}
+        fileErrorMessage={fileErrorMessage}
+        workerErrorMessage={workerErrorMessage}
         labels={labels}
       />
     </div>
