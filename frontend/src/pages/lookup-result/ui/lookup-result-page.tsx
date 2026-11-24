@@ -2,10 +2,12 @@
 
 import Link from "next/link";
 import { useRouter } from "next/navigation";
+import { useLookup } from "@/entities/contract";
 import { LookupForm } from "@/features/lookup-contract";
+import { getApiErrorCode, getApiErrorFeedback } from "@/shared/api";
 import { routes } from "@/shared/config";
+import { ErrorState, LoadingState } from "@/shared/ui";
 import { formatDate } from "../lib/format";
-import { getLookupFixture } from "../model/fixtures";
 import { LOOKUP_RESULT_LABELS } from "../model/labels";
 import { ChainRecordsSection } from "./chain-records-section";
 import { HistorySection } from "./history-section";
@@ -21,16 +23,29 @@ export function LookupResultPage({
 }) {
   const labels = LOOKUP_RESULT_LABELS;
   const router = useRouter();
-  // L1 조회를 연결하기 전까지 예시값으로 화면을 보인다
-  const lookup = getLookupFixture(confirmationNo);
-  const result = "result" in lookup ? lookup.result : undefined;
+  const {
+    data: result,
+    error,
+    isError,
+    isFetching,
+    refetch,
+  } = useLookup(confirmationNo);
+  const errorCode = isFetching ? undefined : getApiErrorCode(error);
   const errorMessage =
-    "errorCode" in lookup
-      ? lookup.errorCode === "LOOKUP_NOT_FOUND"
-        ? labels.notFound
-        : labels.invalidFormat
-      : undefined;
+    errorCode === "LOOKUP_NOT_FOUND"
+      ? labels.notFound
+      : errorCode === "LOOKUP_INVALID_FORMAT"
+        ? labels.invalidFormat
+        : undefined;
   const termination = result?.termination;
+
+  function handleSubmit(next: string) {
+    if (next === confirmationNo) {
+      void refetch();
+      return;
+    }
+    router.push(routes.lookup(next));
+  }
 
   return (
     <div className="mx-auto max-w-[1200px] px-6 pt-6 pb-20">
@@ -58,12 +73,21 @@ export function LookupResultPage({
         id="lookup-confirmation-no"
         defaultValue={confirmationNo}
         errorMessage={errorMessage}
-        onSubmit={(next) => router.push(routes.lookup(next))}
+        onSubmit={handleSubmit}
         labels={labels.lookupForm}
         className="mb-10 rounded-lg bg-surface-muted p-6"
       />
 
-      {result ? (
+      {isFetching ? (
+        <LoadingState />
+      ) : errorMessage ? (
+        <NotFoundGuide labels={labels} />
+      ) : isError ? (
+        <ErrorState
+          title={getApiErrorFeedback(undefined, "ko").message}
+          onRetry={refetch}
+        />
+      ) : result ? (
         <div className="flex flex-col gap-12">
           <StatusCard result={result} labels={labels} />
 
@@ -113,9 +137,7 @@ export function LookupResultPage({
             </ResultSection>
           )}
         </div>
-      ) : (
-        <NotFoundGuide labels={labels} />
-      )}
+      ) : null}
     </div>
   );
 }
