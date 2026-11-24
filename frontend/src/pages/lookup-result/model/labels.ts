@@ -73,6 +73,26 @@ export const LOOKUP_RESULT_LABELS = {
   aboutYears: (years: number) => `약 ${years}년`,
   aboutMonths: (months: number) => `약 ${months}개월`,
 
+  fileCheckTitle: "가지고 있는 계약서와 대조하기",
+  fileCheckHint:
+    "파일을 올리면 내용에서 해시(고유값)를 계산해 블록체인에 기록된 값과 비교합니다. 파일은 저장되지 않습니다.",
+  fileCheckInput: "대조할 계약서 파일",
+  noFile: "선택한 파일 없음",
+  selectFile: "파일 선택",
+  changeFile: "다른 파일 선택",
+  check: "대조하기",
+  checking: "대조하는 중",
+  matchTitle: "일치 — 등록된 원본과 같은 파일입니다",
+  matchDescription: "이 파일은 확정 이후 바뀌지 않았습니다.",
+  mismatchTitle: "불일치 — 등록된 원본과 다른 파일입니다",
+  mismatchDescription: "파일이 확정 이후 바뀌었거나, 다른 파일일 수 있습니다.",
+  uploadedFileHash: "올린 파일 해시",
+  recordedFileHash: "기록된 해시",
+  mismatchTips: [
+    "같은 계약서라도 다시 스캔하거나 사진을 찍은 파일은 값이 달라집니다. 등록할 때 올린 바로 그 파일이어야 합니다.",
+    "등록된 파일과 같아야 하는데 다르다면 계약서가 바뀌었을 수 있습니다. 고용노동부 상담센터(국번 없이 1350)에 문의하세요.",
+  ],
+
   chainTitle: "블록체인 기록",
   chainCaption: "블록체인 트랜잭션",
   chainRecord: "기록",

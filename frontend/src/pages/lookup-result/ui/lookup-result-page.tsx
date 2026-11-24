@@ -2,14 +2,21 @@
 
 import Link from "next/link";
 import { useRouter } from "next/navigation";
+import { useState } from "react";
 import { useLookup } from "@/entities/contract";
 import { LookupForm } from "@/features/lookup-contract";
-import { getApiErrorCode, getApiErrorFeedback } from "@/shared/api";
+import {
+  type components,
+  getApiErrorCode,
+  getApiErrorFeedback,
+} from "@/shared/api";
 import { routes } from "@/shared/config";
 import { ErrorState, LoadingState } from "@/shared/ui";
 import { formatDate } from "../lib/format";
+import { getFileCheckFixture } from "../model/fixtures";
 import { LOOKUP_RESULT_LABELS } from "../model/labels";
 import { ChainRecordsSection } from "./chain-records-section";
+import { FileCheckSection } from "./file-check-section";
 import { HistorySection } from "./history-section";
 import { KeyTermsSection } from "./key-terms-section";
 import { NotFoundGuide } from "./not-found-guide";
@@ -38,6 +45,9 @@ export function LookupResultPage({
         ? labels.invalidFormat
         : undefined;
   const termination = result?.termination;
+  // L2 파일 대조를 연결하기 전까지 예시값으로 결과를 보인다
+  const [fileCheck, setFileCheck] =
+    useState<components["schemas"]["FileCheckResponse"]>();
 
   function handleSubmit(next: string) {
     if (next === confirmationNo) {
@@ -121,6 +131,16 @@ export function LookupResultPage({
                 />
               </ResultSection>
             )}
+
+          {/* 메모: 종료된 계약도 파일 대조 가능 */}
+          <ResultSection id="lookup-file-check" title={labels.fileCheckTitle}>
+            <FileCheckSection
+              key={confirmationNo}
+              result={fileCheck}
+              onCheck={(file) => setFileCheck(getFileCheckFixture(file))}
+              labels={labels}
+            />
+          </ResultSection>
 
           {result.chainRecords && result.chainRecords.length > 0 && (
             <ResultSection id="lookup-chain" title={labels.chainTitle}>
