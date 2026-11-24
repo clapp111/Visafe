@@ -1,6 +1,7 @@
 "use client";
 
 import { type FormEvent, useState } from "react";
+import { CONTRACT_FILE_ACCEPT, checkContractFile } from "@/entities/contract";
 import type { components } from "@/shared/api";
 import { formatFileSize } from "@/shared/lib";
 import {
@@ -18,10 +19,6 @@ import { WorkerPicker } from "./worker-picker";
 type WorkerSearchResponse = components["schemas"]["WorkerSearchResponse"];
 
 const FILE_ID = "contract-new-file";
-// 서버(R1)가 받는 형식·크기와 같게 둔다
-const ACCEPT = "application/pdf,image/jpeg,image/png";
-const ACCEPTED_NAME = /\.(pdf|jpe?g|png)$/i;
-const MAX_FILE_BYTES = 10 * 1024 * 1024;
 
 export interface RegisterValues {
   file: File;
@@ -66,12 +63,11 @@ export function RegisterForm({
   const workerMessage = workerError ?? workerErrorMessage;
 
   function handleFiles([next]: File[]) {
-    if (!ACCEPTED_NAME.test(next.name)) {
-      setFileError(labels.fileTypeInvalid);
-      return;
-    }
-    if (next.size > MAX_FILE_BYTES) {
-      setFileError(labels.fileTooLarge);
+    const problem = checkContractFile(next);
+    if (problem) {
+      setFileError(
+        problem === "type" ? labels.fileTypeInvalid : labels.fileTooLarge,
+      );
       return;
     }
     setFileError(undefined);
@@ -131,7 +127,7 @@ export function RegisterForm({
           </p>
           <Dropzone
             id={FILE_ID}
-            accept={ACCEPT}
+            accept={CONTRACT_FILE_ACCEPT}
             disabled={isSubmitting}
             onFiles={handleFiles}
             labelledBy={`${FILE_ID}-label`}

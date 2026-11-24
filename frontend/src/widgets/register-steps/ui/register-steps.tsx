@@ -1,15 +1,15 @@
 import { cn } from "@/shared/lib";
-import type { ContractNewLabels } from "../model/labels";
+import { CheckIcon } from "@/shared/ui";
+import { REGISTER_STEPS_LABELS } from "../model/labels";
 
-/** 등록 단계 표시. #60에서 2단계 화면도 쓰게 되면 widgets로 옮긴다. */
+/** 계약 등록 1·2단계 표시 */
 export function RegisterSteps({
   current,
-  labels,
 }: {
   /** 1부터 센 현재 단계 */
   current: number;
-  labels: ContractNewLabels["steps"];
 }) {
+  const labels = REGISTER_STEPS_LABELS;
   return (
     <ol
       aria-label={labels.label}
@@ -18,12 +18,12 @@ export function RegisterSteps({
       {labels.items.map((item, index) => {
         const step = index + 1;
         const isCurrent = step === current;
-        const status =
-          step < current
-            ? labels.done
-            : isCurrent
-              ? labels.current
-              : labels.next;
+        const isDone = step < current;
+        const status = isDone
+          ? labels.done
+          : isCurrent
+            ? labels.current
+            : labels.next;
         return (
           <li
             key={item}
@@ -39,12 +39,14 @@ export function RegisterSteps({
             <span
               className={cn(
                 "flex size-8 shrink-0 items-center justify-center rounded-full font-bold",
-                isCurrent
-                  ? "bg-primary text-primary-foreground"
-                  : "border border-border-strong bg-surface text-muted",
+                isCurrent && "bg-primary text-primary-foreground",
+                isDone && "border border-primary bg-surface text-primary",
+                !isCurrent &&
+                  !isDone &&
+                  "border border-border-strong bg-surface text-muted",
               )}
             >
-              {step}
+              {isDone ? <CheckIcon size={18} /> : step}
             </span>
             <span className="flex flex-col leading-[1.3]">
               <span
