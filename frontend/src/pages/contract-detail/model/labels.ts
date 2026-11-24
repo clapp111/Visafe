@@ -142,6 +142,7 @@ export const CONTRACT_DETAIL_LABELS = {
     decline: "거절",
     cancel: "요청 취소",
     responding: "처리하는 중",
+    actionError: "종료 요청을 처리하지 못했습니다",
 
     dialogTitle: "계약 종료를 요청할까요?",
     dialogDescription:

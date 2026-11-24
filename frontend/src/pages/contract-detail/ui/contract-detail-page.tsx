@@ -1,11 +1,14 @@
 "use client";
 
 import Link from "next/link";
-import { useRouter, useSearchParams } from "next/navigation";
+import { useRouter } from "next/navigation";
 import { useState } from "react";
 import {
+  useCancelContractTermination,
   useContractDetail,
   useDownloadContractFile,
+  useRequestContractTermination,
+  useRespondContractTermination,
   useStartContractRevision,
 } from "@/entities/contract";
 import { useSession } from "@/entities/session";
@@ -14,7 +17,6 @@ import { routes } from "@/shared/config";
 import { Alert, ErrorState, LoadingState } from "@/shared/ui";
 import { ContractFileViewer } from "@/widgets/contract-file-viewer";
 import { ChainRecordsTable, HistoryList } from "@/widgets/contract-records";
-import { withTerminationFixture } from "../model/fixtures";
 import { CONTRACT_DETAIL_LABELS } from "../model/labels";
 import { StatusCard } from "./status-card";
 import { TermsSection } from "./terms-section";
@@ -24,6 +26,12 @@ import { TerminationRequestDialog } from "./termination-request-dialog";
 import { TerminationSection } from "./termination-section";
 
 const SEOUL_DATE = new Intl.DateTimeFormat("sv-SE", { timeZone: "Asia/Seoul" });
+
+function terminationErrorMessage(error: Error | null) {
+  return error
+    ? getApiErrorFeedback(getApiErrorCode(error), "ko").message
+    : undefined;
+}
 
 export function ContractDetailPage({ contractId }: { contractId: number }) {
   const labels = CONTRACT_DETAIL_LABELS;
@@ -37,10 +45,15 @@ export function ContractDetailPage({ contractId }: { contractId: number }) {
     contractId,
     detailQuery.data?.file?.fileId,
   );
+  const requestTermination = useRequestContractTermination(contractId);
+  const respondTermination = useRespondContractTermination(contractId);
+  const cancelTermination = useCancelContractTermination(contractId);
   const [page, setPage] = useState(1);
   const [requestOpen, setRequestOpen] = useState(false);
-  const [agreeOpen, setAgreeOpen] = useState(false);
-  const searchParams = useSearchParams();
+  const [agreement, setAgreement] = useState<{
+    terminationId: number;
+    endDate?: string;
+  }>();
 
   if (detailQuery.isPending) {
     return <LoadingState label={labels.loading} />;
@@ -57,23 +70,31 @@ export function ContractDetailPage({ contractId }: { contractId: number }) {
     );
   }
 
-  // 화면 확인용: ?termination=requested-by-me | requested-by-other | agreed
-  const detail = withTerminationFixture(
-    detailQuery.data,
-    searchParams?.get("termination"),
-  );
+  const detail = detailQuery.data;
   const termination =
     detail.stage === "DONE" &&
     (detail.termination?.status === "REQUESTED" ||
       detail.termination?.status === "AGREED")
       ? detail.termination
       : undefined;
+  const terminationId = termination?.terminationId;
   const contractEndDate = detail.terms?.find(
     (term) => term.key === "endDate",
   )?.value;
   const counterparty =
     role === "EMPLOYER" ? detail.worker?.name : detail.employer?.companyName;
-  const actionError = revision.error ?? download.error;
+  const agreeing = respondTermination.variables?.decision === "AGREE";
+  const terminationPending = respondTermination.isPending
+    ? agreeing
+      ? "agree"
+      : "decline"
+    : cancelTermination.isPending
+      ? "cancel"
+      : undefined;
+  const noticeError =
+    (agreeing ? null : respondTermination.error) ?? cancelTermination.error;
+  const actionError =
+    revision.error ?? download.error ?? (termination ? null : noticeError);
 
   return (
     <div className="mx-auto max-w-[1200px] px-6 pt-6 pb-20">
@@ -138,9 +159,21 @@ export function ContractDetailPage({ contractId }: { contractId: number }) {
           termination={termination}
           availableActions={detail.availableActions ?? []}
           counterparty={counterparty}
-          onAgree={() => setAgreeOpen(true)}
-          onDecline={() => {}}
-          onCancel={() => {}}
+          onAgree={() => {
+            if (terminationId === undefined) return;
+            respondTermination.reset();
+            setAgreement({ terminationId, endDate: termination.endDate });
+          }}
+          onDecline={() => {
+            if (terminationId === undefined) return;
+            respondTermination.mutate({ terminationId, decision: "DECLINE" });
+          }}
+          onCancel={() => {
+            if (terminationId === undefined) return;
+            cancelTermination.mutate(terminationId);
+          }}
+          pending={terminationPending}
+          errorMessage={terminationErrorMessage(noticeError)}
           labels={labels}
         />
       )}
@@ -148,7 +181,13 @@ export function ContractDetailPage({ contractId }: { contractId: number }) {
       {actionError && (
         <Alert
           tone="danger"
-          title={revision.isError ? labels.revisionError : labels.downloadError}
+          title={
+            revision.isError
+              ? labels.revisionError
+              : download.isError
+                ? labels.downloadError
+                : labels.termination.actionError
+          }
           className="mb-8"
         >
           {getApiErrorFeedback(getApiErrorCode(actionError), "ko").message}
@@ -207,7 +246,13 @@ export function ContractDetailPage({ contractId }: { contractId: number }) {
 
           {detail.availableActions?.includes("REQUEST_TERMINATION") && (
             <TerminationSection
-              onRequest={() => setRequestOpen(true)}
+              onRequest={() => {
+                if (requestTermination.isPending || terminationPending) return;
+                requestTermination.reset();
+                respondTermination.reset();
+                cancelTermination.reset();
+                setRequestOpen(true);
+              }}
               labels={labels}
             />
           )}
@@ -217,8 +262,13 @@ export function ContractDetailPage({ contractId }: { contractId: number }) {
       {requestOpen && (
         <TerminationRequestDialog
           onClose={() => setRequestOpen(false)}
-          // 화면 확인용: 창만 닫는다. API 연동 단계에서 M4로 바꾼다
-          onSubmit={() => setRequestOpen(false)}
+          onSubmit={(request) =>
+            requestTermination.mutate(request, {
+              onSuccess: () => setRequestOpen(false),
+            })
+          }
+          isSubmitting={requestTermination.isPending}
+          errorMessage={terminationErrorMessage(requestTermination.error)}
           minDate={SEOUL_DATE.format(new Date())}
           maxDate={
             typeof contractEndDate === "string" ? contractEndDate : undefined
@@ -226,12 +276,20 @@ export function ContractDetailPage({ contractId }: { contractId: number }) {
           labels={labels}
         />
       )}
-      {agreeOpen && termination && (
+      {agreement && (
         <TerminationAgreeDialog
-          endDate={termination.endDate}
-          onClose={() => setAgreeOpen(false)}
-          // 화면 확인용: 창만 닫는다. API 연동 단계에서 M5 AGREE로 바꾼다
-          onConfirm={() => setAgreeOpen(false)}
+          endDate={agreement.endDate}
+          onClose={() => setAgreement(undefined)}
+          onConfirm={() =>
+            respondTermination.mutate(
+              { terminationId: agreement.terminationId, decision: "AGREE" },
+              { onSuccess: () => setAgreement(undefined) },
+            )
+          }
+          isSubmitting={terminationPending === "agree"}
+          errorMessage={terminationErrorMessage(
+            agreeing ? respondTermination.error : null,
+          )}
           labels={labels}
         />
       )}
