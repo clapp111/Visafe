@@ -104,6 +104,9 @@ export function useStartContractRevision() {
         exact: true,
       });
     },
+    onError: () => {
+      void queryClient.invalidateQueries({ queryKey: ["contracts", "list"] });
+    },
   });
 }
 
