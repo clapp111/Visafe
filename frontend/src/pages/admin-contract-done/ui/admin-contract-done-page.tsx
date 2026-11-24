@@ -1,18 +1,25 @@
 "use client";
 
 import Link from "next/link";
-import { useSearchParams } from "next/navigation";
-import type { components } from "@/shared/api";
+import { useRouter } from "next/navigation";
+import { useEffect } from "react";
+import { useContractDetail } from "@/entities/contract";
+import {
+  type components,
+  getApiErrorCode,
+  getApiErrorFeedback,
+} from "@/shared/api";
 import { routes } from "@/shared/config";
 import { formatDateTime } from "@/shared/lib";
 import {
   CheckIcon,
   CopyButton,
+  ErrorState,
+  LoadingState,
   StepList,
   buttonClass,
   type StepListItem,
 } from "@/shared/ui";
-import { getAdminDoneFixture } from "../model/fixtures";
 import {
   ADMIN_CONTRACT_DONE_LABELS,
   type AdminContractDoneLabels,
@@ -58,10 +65,38 @@ function buildSteps(
 
 export function AdminContractDonePage({ contractId }: { contractId: number }) {
   const labels = ADMIN_CONTRACT_DONE_LABELS;
-  const searchParams = useSearchParams();
-  // 화면 확인용: ?state=recording 블록체인 기록 중 (기본 확정)
-  const detail = getAdminDoneFixture(contractId, searchParams?.get("state"));
-  const phase = detail.stage === "DONE" ? "done" : "recording";
+  const router = useRouter();
+  const detailQuery = useContractDetail(contractId);
+  const detail = detailQuery.data;
+  const phase =
+    detail?.stage === "DONE"
+      ? "done"
+      : detail?.stage === "RECORDING"
+        ? "recording"
+        : undefined;
+  const hasCurrentStage =
+    detailQuery.isSuccess && detailQuery.isFetchedAfterMount;
+
+  useEffect(() => {
+    if (hasCurrentStage && !phase)
+      router.replace(routes.adminContract(contractId));
+  }, [contractId, hasCurrentStage, phase, router]);
+
+  if (detailQuery.isError) {
+    return (
+      <ErrorState
+        title={labels.loadError}
+        message={
+          getApiErrorFeedback(getApiErrorCode(detailQuery.error), "ko").message
+        }
+        onRetry={() => void detailQuery.refetch()}
+      />
+    );
+  }
+  if (!detail || !phase) {
+    return <LoadingState label={labels.loading} />;
+  }
+
   const record = detail.chainRecords?.find(
     (item) => item.recordType === "CONFIRM",
   );
@@ -98,7 +133,7 @@ export function AdminContractDonePage({ contractId }: { contractId: number }) {
           <p className="text-lg text-muted">{labels.description[phase]}</p>
         </div>
 
-        {detail.confirmationNo && (
+        {phase === "done" && detail.confirmationNo && (
           <section
             aria-labelledby="admin-done-number"
             className="flex flex-col items-center gap-3 rounded-lg border-2 border-primary-hover p-8"

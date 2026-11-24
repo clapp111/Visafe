@@ -1,13 +1,18 @@
 "use client";
 
 import Link from "next/link";
-import { useRouter, useSearchParams } from "next/navigation";
+import { useRouter } from "next/navigation";
 import { useState } from "react";
+import {
+  useAdminContractDetail,
+  useApproveAdminContract,
+  useRejectAdminContract,
+} from "@/entities/contract";
+import { getApiErrorCode, getApiErrorFeedback } from "@/shared/api";
 import { routes } from "@/shared/config";
-import { Button } from "@/shared/ui";
+import { Button, ErrorState, LoadingState } from "@/shared/ui";
 import { ContractFileViewer } from "@/widgets/contract-file-viewer";
 import { HistoryList } from "@/widgets/contract-records";
-import { getAdminReviewFixture } from "../model/fixtures";
 import { ADMIN_CONTRACT_REVIEW_LABELS } from "../model/labels";
 import { ApproveDialog } from "./approve-dialog";
 import { AttentionAlert } from "./attention-alert";
@@ -22,14 +27,38 @@ export function AdminContractReviewPage({
 }) {
   const labels = ADMIN_CONTRACT_REVIEW_LABELS;
   const router = useRouter();
-  const searchParams = useSearchParams();
-  // 화면 확인용: ?state=reviewed 이미 확정한 계약
-  const detail = getAdminReviewFixture(contractId, searchParams?.get("state"));
+  const detailQuery = useAdminContractDetail(contractId);
+  const approve = useApproveAdminContract(contractId);
+  const reject = useRejectAdminContract(contractId);
   const [page, setPage] = useState(1);
   const [dialog, setDialog] = useState<"approve" | "reject">();
+
+  if (detailQuery.isPending) {
+    return <LoadingState label={labels.loading} />;
+  }
+  if (detailQuery.isError) {
+    return (
+      <ErrorState
+        title={labels.loadError}
+        message={
+          getApiErrorFeedback(getApiErrorCode(detailQuery.error), "ko").message
+        }
+        onRetry={() => void detailQuery.refetch()}
+      />
+    );
+  }
+
+  const detail = detailQuery.data;
   const fields = detail.fields ?? [];
   const fieldLabels = new Map(fields.map((field) => [field.key, field.label]));
   const canDecide = detail.stage === "AUTHORITY_REVIEW";
+
+  function openDecision(next: "approve" | "reject") {
+    if (approve.isPending || reject.isPending) return;
+    if (next === "approve") approve.reset();
+    else reject.reset();
+    setDialog(next);
+  }
 
   const summary = [
     { label: labels.summary.contractNo, value: detail.contractNo },
@@ -161,10 +190,10 @@ export function AdminContractReviewPage({
             </p>
             {canDecide && (
               <div className="flex flex-wrap justify-end gap-3">
-                <Button variant="danger" onClick={() => setDialog("reject")}>
+                <Button variant="danger" onClick={() => openDecision("reject")}>
                   {labels.reject}
                 </Button>
-                <Button onClick={() => setDialog("approve")}>
+                <Button onClick={() => openDecision("approve")}>
                   {labels.approve}
                 </Button>
               </div>
@@ -177,16 +206,36 @@ export function AdminContractReviewPage({
         <ApproveDialog
           detail={detail}
           onClose={() => setDialog(undefined)}
-          // 화면 확인용: 확정한 것처럼 완료 화면으로 간다. API 연동 단계에서 D3으로 바꾼다
-          onConfirm={() => router.push(routes.adminContractDone(contractId))}
+          onConfirm={() =>
+            approve.mutate(undefined, {
+              onSuccess: () =>
+                router.push(routes.adminContractDone(contractId)),
+            })
+          }
+          isSubmitting={approve.isPending}
+          errorMessage={
+            approve.isError
+              ? getApiErrorFeedback(getApiErrorCode(approve.error), "ko")
+                  .message
+              : undefined
+          }
           labels={labels}
         />
       )}
       {dialog === "reject" && (
         <RejectDialog
           onClose={() => setDialog(undefined)}
-          // 화면 확인용: 반려한 것처럼 목록으로 간다. API 연동 단계에서 D4로 바꾼다
-          onSubmit={() => router.push(routes.adminContracts)}
+          onSubmit={(reason) =>
+            reject.mutate(reason, {
+              onSuccess: () => router.push(routes.adminContracts),
+            })
+          }
+          isSubmitting={reject.isPending}
+          errorMessage={
+            reject.isError
+              ? getApiErrorFeedback(getApiErrorCode(reject.error), "ko").message
+              : undefined
+          }
           labels={labels}
         />
       )}
