@@ -10,6 +10,7 @@ import { api, type components } from "@/shared/api";
 
 type Draft = components["schemas"]["ContractDraftResponse"];
 type StageResponse = components["schemas"]["ContractStageResponse"];
+type SubmitRequest = components["schemas"]["ContractSubmitRequest"];
 type TermsUpdateRequest = components["schemas"]["TermsUpdateRequest"];
 type TermValue = Exclude<
   components["schemas"]["ContractDraftResponseField"]["value"],
@@ -71,6 +72,20 @@ export function useSaveDraftTerm(contractId: number) {
   const isSaving = useIsMutating({ mutationKey, exact: true }) > 0;
 
   return { ...mutation, isSaving };
+}
+
+export function useSubmitContract(contractId: number) {
+  return useMutation({
+    scope: draftWriteScope(contractId),
+    mutationFn: async () => {
+      const request: SubmitRequest = { confirmedOriginalMatch: true };
+      const { data } = await api.post<StageResponse>(
+        `/contracts/${contractId}/submit`,
+        request,
+      );
+      return data;
+    },
+  });
 }
 
 export function useRetryDraftExtraction(contractId: number) {
