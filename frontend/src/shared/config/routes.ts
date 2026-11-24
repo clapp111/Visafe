@@ -5,6 +5,9 @@ export const routes = {
     `/lookup/${encodeURIComponent(confirmationNo)}`,
   contracts: "/contracts",
   contractNew: "/contracts/new",
+  /** 계약 등록 2단계 (추출 항목 검토·수정) */
+  contractDraft: (contractId: number | string) =>
+    `/contracts/new/${encodeURIComponent(contractId)}`,
   contract: (contractId: number | string) =>
     `/contracts/${encodeURIComponent(contractId)}`,
   adminContracts: "/admin/contracts",
