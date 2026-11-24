@@ -1,7 +1,7 @@
 "use client";
 
 import Link from "next/link";
-import { useRouter } from "next/navigation";
+import { useRouter, useSearchParams } from "next/navigation";
 import { useState } from "react";
 import {
   useContractDetail,
@@ -14,9 +14,16 @@ import { routes } from "@/shared/config";
 import { Alert, ErrorState, LoadingState } from "@/shared/ui";
 import { ContractFileViewer } from "@/widgets/contract-file-viewer";
 import { ChainRecordsTable, HistoryList } from "@/widgets/contract-records";
+import { withTerminationFixture } from "../model/fixtures";
 import { CONTRACT_DETAIL_LABELS } from "../model/labels";
 import { StatusCard } from "./status-card";
 import { TermsSection } from "./terms-section";
+import { TerminationAgreeDialog } from "./termination-agree-dialog";
+import { TerminationNotice } from "./termination-notice";
+import { TerminationRequestDialog } from "./termination-request-dialog";
+import { TerminationSection } from "./termination-section";
+
+const SEOUL_DATE = new Intl.DateTimeFormat("sv-SE", { timeZone: "Asia/Seoul" });
 
 export function ContractDetailPage({ contractId }: { contractId: number }) {
   const labels = CONTRACT_DETAIL_LABELS;
@@ -31,6 +38,9 @@ export function ContractDetailPage({ contractId }: { contractId: number }) {
     detailQuery.data?.file?.fileId,
   );
   const [page, setPage] = useState(1);
+  const [requestOpen, setRequestOpen] = useState(false);
+  const [agreeOpen, setAgreeOpen] = useState(false);
+  const searchParams = useSearchParams();
 
   if (detailQuery.isPending) {
     return <LoadingState label={labels.loading} />;
@@ -47,7 +57,20 @@ export function ContractDetailPage({ contractId }: { contractId: number }) {
     );
   }
 
-  const detail = detailQuery.data;
+  // 화면 확인용: ?termination=requested-by-me | requested-by-other | agreed
+  const detail = withTerminationFixture(
+    detailQuery.data,
+    searchParams?.get("termination"),
+  );
+  const termination =
+    detail.stage === "DONE" &&
+    (detail.termination?.status === "REQUESTED" ||
+      detail.termination?.status === "AGREED")
+      ? detail.termination
+      : undefined;
+  const contractEndDate = detail.terms?.find(
+    (term) => term.key === "endDate",
+  )?.value;
   const counterparty =
     role === "EMPLOYER" ? detail.worker?.name : detail.employer?.companyName;
   const actionError = revision.error ?? download.error;
@@ -110,6 +133,18 @@ export function ContractDetailPage({ contractId }: { contractId: number }) {
         labels={labels}
       />
 
+      {termination && (
+        <TerminationNotice
+          termination={termination}
+          availableActions={detail.availableActions ?? []}
+          counterparty={counterparty}
+          onAgree={() => setAgreeOpen(true)}
+          onDecline={() => {}}
+          onCancel={() => {}}
+          labels={labels}
+        />
+      )}
+
       {actionError && (
         <Alert
           tone="danger"
@@ -169,8 +204,37 @@ export function ContractDetailPage({ contractId }: { contractId: number }) {
               <ChainRecordsTable records={detail.chainRecords ?? []} />
             </section>
           )}
+
+          {detail.availableActions?.includes("REQUEST_TERMINATION") && (
+            <TerminationSection
+              onRequest={() => setRequestOpen(true)}
+              labels={labels}
+            />
+          )}
         </div>
       </div>
+
+      {requestOpen && (
+        <TerminationRequestDialog
+          onClose={() => setRequestOpen(false)}
+          // 화면 확인용: 창만 닫는다. API 연동 단계에서 M4로 바꾼다
+          onSubmit={() => setRequestOpen(false)}
+          minDate={SEOUL_DATE.format(new Date())}
+          maxDate={
+            typeof contractEndDate === "string" ? contractEndDate : undefined
+          }
+          labels={labels}
+        />
+      )}
+      {agreeOpen && termination && (
+        <TerminationAgreeDialog
+          endDate={termination.endDate}
+          onClose={() => setAgreeOpen(false)}
+          // 화면 확인용: 창만 닫는다. API 연동 단계에서 M5 AGREE로 바꾼다
+          onConfirm={() => setAgreeOpen(false)}
+          labels={labels}
+        />
+      )}
     </div>
   );
 }

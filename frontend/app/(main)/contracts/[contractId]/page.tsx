@@ -1,5 +1,6 @@
 import type { Metadata } from "next";
 import { notFound } from "next/navigation";
+import { Suspense } from "react";
 import { ContractDetailPage } from "@/pages/contract-detail";
 
 export const metadata: Metadata = {
@@ -14,5 +15,10 @@ export default async function Page({
   const { contractId } = await params;
   const id = Number(contractId);
   if (!Number.isSafeInteger(id) || id <= 0) notFound();
-  return <ContractDetailPage contractId={id} />;
+  // 화면 확인용 ?termination=을 읽으므로 Suspense로 감싼다 (API 연동 단계에서 지운다)
+  return (
+    <Suspense>
+      <ContractDetailPage contractId={id} />
+    </Suspense>
+  );
 }
