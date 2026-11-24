@@ -88,6 +88,25 @@ export function useSubmitContract(contractId: number) {
   });
 }
 
+export function useStartContractRevision() {
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: async (contractId: number) => {
+      const { data } = await api.post<StageResponse>(
+        `/contracts/${contractId}/revisions`,
+      );
+      return data;
+    },
+    onSuccess: (_data, contractId) => {
+      queryClient.removeQueries({
+        queryKey: draftKey(contractId),
+        exact: true,
+      });
+    },
+  });
+}
+
 export function useRetryDraftExtraction(contractId: number) {
   const queryClient = useQueryClient();
   return useMutation({

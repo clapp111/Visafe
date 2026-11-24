@@ -3,8 +3,10 @@ export {
   useReplaceDraftFile,
   useRetryDraftExtraction,
   useSaveDraftTerm,
+  useStartContractRevision,
   useSubmitContract,
 } from "./api/use-contract-draft";
+export { useContractList } from "./api/use-contract-list";
 export { useContractProgress } from "./api/use-contract-progress";
 export { useCreateContract } from "./api/use-create-contract";
 export { useFileCheck } from "./api/use-file-check";
