@@ -94,7 +94,7 @@ export function ContractReviewPage({ contractId }: { contractId: number }) {
 
       <ReviewSummary review={review} labels={labels} />
 
-      <div className="flex flex-wrap items-start gap-10">
+      <div className="flex flex-wrap items-start gap-10 lg:flex-nowrap">
         {review.file?.fileId !== undefined && (
           <ContractFileViewer
             id="contract-review-original"

@@ -194,7 +194,7 @@ export function ContractDetailPage({ contractId }: { contractId: number }) {
         </Alert>
       )}
 
-      <div className="flex flex-wrap items-start gap-10">
+      <div className="flex flex-wrap items-start gap-10 lg:flex-nowrap">
         {detail.file?.fileId !== undefined && (
           <ContractFileViewer
             id="contract-detail-original"

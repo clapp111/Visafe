@@ -78,7 +78,7 @@ export function AdminContractReviewPage({
         )}
       </dl>
 
-      <div className="flex flex-wrap items-start gap-10">
+      <div className="flex flex-wrap items-start gap-10 lg:flex-nowrap">
         {detail.file?.fileId !== undefined && (
           <ContractFileViewer
             id="admin-contract-original"
@@ -91,7 +91,7 @@ export function AdminContractReviewPage({
               preview: labels.viewerPreview,
               download: labels.viewerDownload,
             }}
-            className="flex-[1_1_440px] min-[1088px]:sticky min-[1088px]:top-6"
+            className="flex-[1_1_440px] lg:sticky lg:top-6"
           />
         )}
 
