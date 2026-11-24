@@ -1,8 +1,14 @@
-import { Button } from "@/shared/ui";
-import type { ContractListLabels } from "../model/labels";
+import { Button } from "../button";
 
-/** 목록 쪽 이동. page는 0부터 센다 (M1 page.number) */
-export function ListPagination({
+export interface PaginationLabels {
+  pagination: string;
+  previousPage: string;
+  nextPage: string;
+  pageStatus: (page: number, total: number) => string;
+}
+
+/** 목록 쪽 이동. page는 0부터 센다 (page.number) */
+export function Pagination({
   page,
   totalPages,
   disabled,
@@ -13,7 +19,7 @@ export function ListPagination({
   totalPages: number;
   disabled: boolean;
   onChange: (page: number) => void;
-  labels: ContractListLabels;
+  labels: PaginationLabels;
 }) {
   return (
     <nav

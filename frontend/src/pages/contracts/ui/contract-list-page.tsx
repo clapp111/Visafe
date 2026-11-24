@@ -13,12 +13,12 @@ import {
   EmptyState,
   ErrorState,
   LoadingState,
+  Pagination,
   buttonClass,
 } from "@/shared/ui";
 import { CONTRACT_LIST_LABELS } from "../model/labels";
 import { todoTarget } from "../model/todo-target";
 import { ContractTable } from "./contract-table";
-import { ListPagination } from "./list-pagination";
 import { StatusFilter, type StatusFilterValue } from "./status-filter";
 
 const STATUSES = ["IN_PROGRESS", "CONFIRMED", "TERMINATED"] as const;
@@ -155,7 +155,7 @@ export function ContractListPage() {
             labels={labels}
           />
           {totalPages > 1 && (
-            <ListPagination
+            <Pagination
               page={list.page?.number ?? page}
               totalPages={totalPages}
               disabled={listQuery.isPlaceholderData}
