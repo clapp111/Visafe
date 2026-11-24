@@ -3,6 +3,7 @@ export * from "./badge";
 export * from "./button";
 export * from "./checkbox";
 export * from "./dialog";
+export * from "./document-viewer";
 export * from "./dropzone";
 export * from "./field";
 export * from "./file-list";
