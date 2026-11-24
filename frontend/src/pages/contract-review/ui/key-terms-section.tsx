@@ -1,9 +1,9 @@
 import type { ReactNode } from "react";
+import { formatTermValue } from "@/entities/contract";
 import type { components } from "@/shared/api";
 import { cn, countContractMonths, formatPeriod } from "@/shared/lib";
-import { formatTermValue } from "../model/format-value";
+import { Highlight } from "@/shared/ui";
 import type { ContractReviewLabels } from "../model/labels";
-import { Highlight } from "./highlight";
 
 type KeyTerms = components["schemas"]["ContractReviewResponseKeyTerms"];
 

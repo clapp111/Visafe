@@ -1,12 +1,11 @@
 "use client";
 
 import { useState } from "react";
+import { formatTermValue } from "@/entities/contract";
 import type { components } from "@/shared/api";
 import { cn } from "@/shared/lib";
-import { Badge, ChevronDownIcon, WarningIcon } from "@/shared/ui";
-import { formatTermValue } from "../model/format-value";
+import { Badge, ChevronDownIcon, Highlight, WarningIcon } from "@/shared/ui";
 import type { ContractReviewLabels } from "../model/labels";
-import { Highlight } from "./highlight";
 
 type Item = components["schemas"]["ContractReviewResponseItem"];
 type Warning = components["schemas"]["ContractReviewResponseWarning"];
