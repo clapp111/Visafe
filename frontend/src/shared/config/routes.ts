@@ -8,6 +8,9 @@ export const routes = {
   /** 계약 등록 2단계 (추출 항목 검토·수정) */
   contractDraft: (contractId: number | string) =>
     `/contracts/new/${encodeURIComponent(contractId)}`,
+  /** 계약 등록 제출 완료 (번역 진행 상황) */
+  contractSubmitted: (contractId: number | string) =>
+    `/contracts/new/${encodeURIComponent(contractId)}/done`,
   contract: (contractId: number | string) =>
     `/contracts/${encodeURIComponent(contractId)}`,
   adminContracts: "/admin/contracts",

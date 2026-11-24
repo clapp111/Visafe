@@ -3,12 +3,13 @@
 import { isAxiosError } from "axios";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import {
   useContractDraft,
   useReplaceDraftFile,
   useRetryDraftExtraction,
   useSaveDraftTerm,
+  useSubmitContract,
 } from "@/entities/contract";
 import {
   getApiErrorCode,
@@ -20,12 +21,14 @@ import { ErrorState, FieldMessage, LoadingState } from "@/shared/ui";
 import { ContractFileViewer } from "@/widgets/contract-file-viewer";
 import { RegisterSteps } from "@/widgets/register-steps";
 import { CONTRACT_DRAFT_LABELS } from "../model/labels";
+import { missingRequiredKeys } from "../model/missing-required";
 import { AttentionSummary } from "./attention-summary";
 import { ExtractionState } from "./extraction-state";
 import { ReturnedNotice } from "./returned-notice";
 import { ReuploadDialog } from "./reupload-dialog";
+import { SubmitDialog } from "./submit-dialog";
+import { fieldInputId, type TermValue } from "./term-field-input";
 import { TermFieldsForm } from "./term-fields-form";
-import type { TermValue } from "./term-field-input";
 
 function getDraftErrorMessage(error: unknown) {
   const code = getApiErrorCode(error);
@@ -49,21 +52,34 @@ export function ContractDraftPage({ contractId }: { contractId: number }) {
   const saveTerm = useSaveDraftTerm(contractId);
   const retryExtraction = useRetryDraftExtraction(contractId);
   const replaceFile = useReplaceDraftFile(contractId);
+  const submit = useSubmitContract(contractId);
   const [page, setPage] = useState(1);
   const [reuploadOpen, setReuploadOpen] = useState(false);
+  const [submitOpen, setSubmitOpen] = useState(false);
   const [fieldErrors, setFieldErrors] = useState<Record<string, string>>({});
+  const fieldToFocus = useRef<string | null>(null);
   const draft = draftQuery.data;
   const shouldRedirect =
-    (draft !== undefined &&
+    !submit.isPending &&
+    !submit.isSuccess &&
+    ((draft !== undefined &&
       draft.stage !== "UPLOADED" &&
       draft.stage !== "REVIEWING") ||
-    getApiErrorCode(draftQuery.error) === "CONTRACT_STAGE_CONFLICT";
+      getApiErrorCode(draftQuery.error) === "CONTRACT_STAGE_CONFLICT");
+  const submitErrorCode = getApiErrorCode(submit.error);
 
   useEffect(() => {
     if (shouldRedirect) {
       router.replace(routes.contract(contractId));
     }
   }, [contractId, router, shouldRedirect]);
+
+  useEffect(() => {
+    if (fieldToFocus.current !== null) {
+      document.getElementById(fieldInputId(fieldToFocus.current))?.focus();
+      fieldToFocus.current = null;
+    }
+  }, [fieldErrors]);
 
   async function handleCommitField(key: string, value: TermValue) {
     if (draft?.stage !== "REVIEWING" || value === undefined) {
@@ -98,6 +114,49 @@ export function ContractDraftPage({ contractId }: { contractId: number }) {
     setReuploadOpen(false);
   }
 
+  /** 빈 필수 항목이 있으면 그 칸에 안내하고 첫 칸으로 옮긴다. 없으면 제출 확인 창을 연다. */
+  function requestSubmit() {
+    if (saveTerm.isSaving || submit.isPending || submit.isSuccess) return;
+    const missing = missingRequiredKeys(draft?.fields ?? []);
+    if (missing.length === 0) {
+      submit.reset();
+      setSubmitOpen(true);
+      return;
+    }
+    markMissingFields(missing);
+  }
+
+  function markMissingFields(missing: string[]) {
+    if (missing.length === 0) return;
+    fieldToFocus.current = missing[0];
+    setFieldErrors((current) => ({
+      ...current,
+      ...Object.fromEntries(
+        missing.map((key) => [key, labels.requiredMissing]),
+      ),
+    }));
+  }
+
+  async function handleSubmit() {
+    if (saveTerm.isSaving || submit.isPending || submit.isSuccess) return;
+
+    try {
+      await submit.mutateAsync();
+      router.push(routes.contractSubmitted(contractId));
+    } catch (error) {
+      const code = getApiErrorCode(error);
+      if (code === "TERMS_REQUIRED_MISSING") {
+        setSubmitOpen(false);
+        const refreshed = await draftQuery.refetch();
+        if (refreshed.isSuccess) {
+          markMissingFields(missingRequiredKeys(refreshed.data.fields ?? []));
+        }
+      } else if (code === "CONTRACT_STAGE_CONFLICT") {
+        void draftQuery.refetch();
+      }
+    }
+  }
+
   function handleReupload(file: File) {
     replaceFile.mutate(file, {
       onSuccess: () => {
@@ -109,7 +168,7 @@ export function ContractDraftPage({ contractId }: { contractId: number }) {
     });
   }
 
-  if (shouldRedirect || draftQuery.isPending) {
+  if (shouldRedirect || submit.isSuccess || draftQuery.isPending) {
     return <LoadingState label={labels.loading} />;
   }
   if (draftQuery.isError || !draft) {
@@ -198,7 +257,7 @@ export function ContractDraftPage({ contractId }: { contractId: number }) {
               fieldErrors={fieldErrors}
               onCommitField={handleCommitField}
               onShowSource={setPage}
-              onSubmit={() => {}}
+              onSubmit={requestSubmit}
               onReupload={openReupload}
               isSaving={saveTerm.isSaving}
               labels={labels}
@@ -221,6 +280,21 @@ export function ContractDraftPage({ contractId }: { contractId: number }) {
           errorMessage={
             replaceFile.isError
               ? getDraftErrorMessage(replaceFile.error)
+              : undefined
+          }
+          labels={labels}
+        />
+      )}
+      {submitOpen && (
+        <SubmitDialog
+          draft={draft}
+          onClose={() => setSubmitOpen(false)}
+          onConfirm={() => void handleSubmit()}
+          isSaving={saveTerm.isSaving}
+          isSubmitting={submit.isPending}
+          errorMessage={
+            submit.isError && submitErrorCode !== "TERMS_REQUIRED_MISSING"
+              ? getApiErrorFeedback(submitErrorCode, "ko").message
               : undefined
           }
           labels={labels}
