@@ -88,14 +88,14 @@ export function ContractDraftPage({ contractId }: { contractId: number }) {
   }
 
   function openReupload() {
-    replaceFile.reset();
+    // 올리는 중에 다시 열면 진행 상태를 그대로 보여 준다
+    if (!replaceFile.isPending) replaceFile.reset();
     setReuploadOpen(true);
   }
 
+  // Esc로도 창이 닫히므로 올리는 중이어도 상태를 맞춘다. 업로드는 계속되고, 끝나면 R4를 다시 불러온다
   function closeReupload() {
-    if (!replaceFile.isPending) {
-      setReuploadOpen(false);
-    }
+    setReuploadOpen(false);
   }
 
   function handleReupload(file: File) {
