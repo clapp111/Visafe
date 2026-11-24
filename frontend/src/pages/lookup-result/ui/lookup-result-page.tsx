@@ -2,18 +2,14 @@
 
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-import { useState } from "react";
-import { useLookup } from "@/entities/contract";
+import { useEffect, useRef, useState } from "react";
+import { useFileCheck, useLookup } from "@/entities/contract";
 import { LookupForm } from "@/features/lookup-contract";
-import {
-  type components,
-  getApiErrorCode,
-  getApiErrorFeedback,
-} from "@/shared/api";
+import { getApiErrorCode, getApiErrorFeedback } from "@/shared/api";
 import { routes } from "@/shared/config";
 import { ErrorState, LoadingState } from "@/shared/ui";
 import { formatDate } from "../lib/format";
-import { getFileCheckFixture } from "../model/fixtures";
+import { hashFile } from "../lib/hash-file";
 import { LOOKUP_RESULT_LABELS } from "../model/labels";
 import { ChainRecordsSection } from "./chain-records-section";
 import { FileCheckSection } from "./file-check-section";
@@ -22,6 +18,54 @@ import { KeyTermsSection } from "./key-terms-section";
 import { NotFoundGuide } from "./not-found-guide";
 import { ResultSection } from "./result-section";
 import { StatusCard } from "./status-card";
+
+function ContractFileCheck({ confirmationNo }: { confirmationNo: string }) {
+  const labels = LOOKUP_RESULT_LABELS;
+  const mutation = useFileCheck(confirmationNo);
+  const [hashStatus, setHashStatus] = useState<"idle" | "hashing" | "error">(
+    "idle",
+  );
+  const hashController = useRef<AbortController | null>(null);
+
+  useEffect(() => () => hashController.current?.abort(), []);
+
+  async function handleCheck(file: File) {
+    hashController.current?.abort();
+    const controller = new AbortController();
+    hashController.current = controller;
+    mutation.reset();
+    setHashStatus("hashing");
+
+    try {
+      const fileHash = await hashFile(file);
+      if (!controller.signal.aborted) {
+        mutation.mutate({ fileHash });
+        setHashStatus("idle");
+      }
+    } catch {
+      if (!controller.signal.aborted) {
+        setHashStatus("error");
+      }
+    }
+  }
+
+  const errorMessage =
+    hashStatus === "error"
+      ? labels.fileReadError
+      : mutation.isError
+        ? getApiErrorFeedback(getApiErrorCode(mutation.error), "ko").message
+        : undefined;
+
+  return (
+    <FileCheckSection
+      result={mutation.data}
+      isChecking={hashStatus === "hashing" || mutation.isPending}
+      errorMessage={errorMessage}
+      onCheck={handleCheck}
+      labels={labels}
+    />
+  );
+}
 
 export function LookupResultPage({
   confirmationNo,
@@ -45,9 +89,6 @@ export function LookupResultPage({
         ? labels.invalidFormat
         : undefined;
   const termination = result?.termination;
-  // L2 파일 대조를 연결하기 전까지 예시값으로 결과를 보인다
-  const [fileCheck, setFileCheck] =
-    useState<components["schemas"]["FileCheckResponse"]>();
 
   function handleSubmit(next: string) {
     if (next === confirmationNo) {
@@ -134,11 +175,9 @@ export function LookupResultPage({
 
           {/* 메모: 종료된 계약도 파일 대조 가능 */}
           <ResultSection id="lookup-file-check" title={labels.fileCheckTitle}>
-            <FileCheckSection
+            <ContractFileCheck
               key={confirmationNo}
-              result={fileCheck}
-              onCheck={(file) => setFileCheck(getFileCheckFixture(file))}
-              labels={labels}
+              confirmationNo={confirmationNo}
             />
           </ResultSection>
 

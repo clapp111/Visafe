@@ -82,6 +82,7 @@ export const LOOKUP_RESULT_LABELS = {
   changeFile: "다른 파일 선택",
   check: "대조하기",
   checking: "대조하는 중",
+  fileReadError: "파일을 읽지 못했습니다. 파일을 다시 선택해 주세요.",
   matchTitle: "일치 — 등록된 원본과 같은 파일입니다",
   matchDescription: "이 파일은 확정 이후 바뀌지 않았습니다.",
   mismatchTitle: "불일치 — 등록된 원본과 다른 파일입니다",
