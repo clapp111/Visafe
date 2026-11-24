@@ -5,6 +5,7 @@ import static org.springframework.test.web.servlet.request.MockMvcRequestBuilder
 
 import com.jayway.jsonpath.JsonPath;
 import com.visafe.support.PostgresIntegrationTest;
+import java.util.List;
 import java.util.Locale;
 import java.util.Map;
 import java.util.Set;
@@ -16,7 +17,7 @@ import org.springframework.test.web.servlet.MockMvc;
 
 /**
  * Swagger 문서(/v3/api-docs)의 성공 응답 코드가 실제 응답 코드와 같고, 로그인이 필요한 API에 401이 문서화됐는지,
- * 같은 이름의 중첩 record가 바깥 클래스 이름이 붙은 별도 스키마로 나오는지 확인한다.
+ * 같은 이름의 중첩 record가 바깥 클래스 이름이 붙은 별도 스키마로 나오는지, 계약 항목 값의 타입이 문서화됐는지 확인한다.
  */
 @PostgresIntegrationTest
 @AutoConfigureMockMvc
@@ -106,6 +107,19 @@ class ApiDocsPostgresTest {
         assertThat(JsonPath.<Map<String, Object>>read(
                         docs, "$.components.schemas.ContractDetailResponseTermination.properties"))
                 .containsKey("requestedByMe");
+    }
+
+    @Test
+    void termValuesAreDocumentedAsStringIntegerOrNull() throws Exception {
+        String docs =
+                mockMvc.perform(get("/v3/api-docs")).andReturn().getResponse().getContentAsString();
+
+        for (String schema :
+                List.of("ContractDraftResponseField", "ContractDetailResponseTerm", "ContractReviewResponseItem")) {
+            assertThat(JsonPath.<List<String>>read(docs, "$.components.schemas." + schema + ".properties.value.type"))
+                    .as(schema)
+                    .containsExactlyInAnyOrder("string", "integer", "null");
+        }
     }
 
     @SuppressWarnings("unchecked")

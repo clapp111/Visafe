@@ -119,7 +119,10 @@ public record ContractReviewResponse(
             @Schema(description = "표시 이름", example = "휴게시간(분)")
             String label,
 
-            @Schema(description = "한국어 원본 값 (날짜 2027-01-02, 시각 09:00, 정수)", example = "60")
+            @Schema(
+                    description = "한국어 원본 값 (날짜 2027-01-02, 시각 09:00, 정수)",
+                    example = "60",
+                    types = {"string", "integer", "null"})
             Object value,
 
             @Schema(description = "번역된 값", example = "60 phút", nullable = true)
