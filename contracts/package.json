@@ -1,0 +1,25 @@
+{
+  "name": "visafe-contracts",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "engines": {
+    "node": ">=22.18.0"
+  },
+  "scripts": {
+    "build": "hardhat build --build-profile production",
+    "typecheck": "tsc --noEmit",
+    "test": "hardhat test --build-profile production",
+    "deploy:sepolia": "hardhat ignition deploy ignition/modules/ContractAnchorRegistry.ts --network sepolia"
+  },
+  "devDependencies": {
+    "@nomicfoundation/hardhat-ignition": "3.1.2",
+    "@nomicfoundation/hardhat-ignition-viem": "3.1.6",
+    "@nomicfoundation/hardhat-node-test-runner": "3.1.2",
+    "@nomicfoundation/hardhat-viem": "3.1.0",
+    "@types/node": "22.15.3",
+    "hardhat": "3.22.0",
+    "typescript": "5.9.3",
+    "viem": "2.58.6"
+  }
+}
