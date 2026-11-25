@@ -1,5 +1,6 @@
-/** 감독 기관 확정 완료 문구. 화면 언어(#77)가 붙으면 언어별 값으로 바꾼다. */
-export const ADMIN_CONTRACT_DONE_LABELS = {
+import type { UiLanguage } from "@/shared/i18n";
+
+const ko = {
   breadcrumb: "현재 위치",
   home: "홈",
   list: "확인 대기 목록",
@@ -56,4 +57,65 @@ export const ADMIN_CONTRACT_DONE_LABELS = {
   toList: "확인 대기 목록으로",
 };
 
-export type AdminContractDoneLabels = typeof ADMIN_CONTRACT_DONE_LABELS;
+export type AdminContractDoneLabels = typeof ko;
+
+/** 감독 기관 확정 완료 문구 */
+export const ADMIN_CONTRACT_DONE_LABELS = {
+  ko,
+  vi: {
+    breadcrumb: "Vị trí hiện tại",
+    home: "Trang chủ",
+    list: "Danh sách chờ xác nhận",
+    current: "Đã xác nhận xong",
+    loading: "Đang tải tiến trình xác nhận",
+    loadError: "Không thể tải tiến trình xác nhận",
+
+    title: {
+      recording: "Đã xác nhận",
+      done: "Hợp đồng đã được xác nhận",
+    },
+    description: {
+      recording:
+        "Đang ghi lên blockchain. Khi ghi xong, mã xác nhận sẽ được cấp và người sử dụng lao động, người lao động sẽ nhận được thông báo.",
+      done: "Đã ghi lên blockchain và cấp mã xác nhận. Đã gửi thông báo cho người sử dụng lao động và người lao động.",
+    },
+
+    confirmationNo: "Mã xác nhận",
+    copy: "Sao chép mã",
+    copied: "Đã sao chép",
+    lookup: "Xem trên màn hình tra cứu",
+
+    chainTitle: "Bản ghi blockchain",
+    chainStatus: "Trạng thái",
+    chainStatuses: {
+      PENDING: "Chờ ghi",
+      SENT: "Đang ghi",
+      MINED: "Đã ghi xong",
+      FAILED: "Ghi thất bại",
+    },
+    confirmedAt: "Thời điểm xác nhận",
+    network: "Mạng",
+    networkNames: { sepolia: "Sepolia testnet" } as Record<string, string>,
+    txHash: "Mã băm giao dịch",
+    explorer: "Xem trên trình khám phá (cửa sổ mới)",
+    chainHint:
+      "Nếu việc ghi bị chậm, trạng thái sẽ hiện Đang ghi; ngay khi ghi xong, mã xác nhận sẽ được cấp.",
+
+    progressTitle: "Tiến trình",
+    steps: {
+      submitted: "Người sử dụng lao động gửi",
+      translation: "Dịch",
+      worker: "Người lao động xác nhận",
+      authority: "Cơ quan giám sát xác nhận",
+      confirm: "Xác nhận · Cấp mã xác nhận",
+    },
+    stepStatuses: {
+      done: "Hoàn tất",
+      current: "Đang xử lý",
+      failed: "Thất bại",
+      waiting: "Chờ",
+    },
+
+    toList: "Về danh sách chờ xác nhận",
+  },
+} satisfies Record<UiLanguage, AdminContractDoneLabels>;

@@ -1,7 +1,8 @@
+import type { UiLanguage } from "@/shared/i18n";
+
 export type AdminView = "PENDING" | "APPROVED" | "REJECTED" | "TERMINATED";
 
-/** 감독 기관 목록 문구. 화면 언어(#77)가 붙으면 언어별 값으로 바꾼다. */
-export const ADMIN_CONTRACTS_LABELS = {
+const ko = {
   breadcrumb: "현재 위치",
   home: "홈",
   loading: "계약 목록을 불러오는 중",
@@ -68,4 +69,76 @@ export const ADMIN_CONTRACTS_LABELS = {
   pageStatus: (page: number, total: number) => `${page} / ${total}쪽`,
 };
 
-export type AdminContractsLabels = typeof ADMIN_CONTRACTS_LABELS;
+export type AdminContractsLabels = typeof ko;
+
+/** 감독 기관 목록 문구 */
+export const ADMIN_CONTRACTS_LABELS = {
+  ko,
+  vi: {
+    breadcrumb: "Vị trí hiện tại",
+    home: "Trang chủ",
+    loading: "Đang tải danh sách hợp đồng",
+    loadError: "Không thể tải danh sách hợp đồng",
+
+    titles: {
+      PENDING: "Danh sách chờ xác nhận",
+      APPROVED: "Hợp đồng đã xác nhận",
+      REJECTED: "Hợp đồng đã trả lại",
+      TERMINATED: "Hợp đồng đã chấm dứt",
+    },
+    descriptions: {
+      PENDING:
+        "Các hợp đồng người lao động đã xác nhận xong. Hãy kiểm tra nội dung rồi xác nhận hoặc trả lại.",
+      APPROVED: "Các hợp đồng cơ quan đã xác nhận.",
+      REJECTED: "Các hợp đồng cơ quan đã trả lại cho người sử dụng lao động.",
+      TERMINATED: "Các hợp đồng đã chấm dứt sau khi cơ quan xác nhận.",
+    },
+
+    searchLabel:
+      "Tìm theo số hợp đồng · người sử dụng lao động · người lao động",
+    searchPlaceholder: "Ví dụ: C-2026-04817",
+    search: "Tìm",
+    total: (count: number) => `Tổng ${count} hợp đồng`,
+    sortOrder: "Xác nhận của người lao động cũ nhất trước",
+    legendWarning: "Cần kiểm tra",
+    legendWarningHint: "Mục còn cảnh báo như tiêu chuẩn pháp luật",
+    legendEmployer: "Người sử dụng lao động nhập",
+    legendEmployerHint: "Mục do người sử dụng lao động tự nhập hoặc sửa",
+
+    caption: (title: string) => `Danh sách hợp đồng: ${title}`,
+    columns: {
+      contractNo: "Số hợp đồng",
+      employer: "Người sử dụng lao động",
+      worker: "Người lao động",
+      language: "Ngôn ngữ",
+      workerConfirmedAt: "Thời điểm người lao động xác nhận",
+      warningCount: "Cần kiểm tra",
+      employerInputCount: "Người sử dụng lao động nhập",
+      action: "Kiểm tra",
+    },
+    count: (count: number) => `${count} mục`,
+    review: "Kiểm tra",
+    view: "Xem",
+    languageNames: { vi: "Tiếng Việt" } as Record<string, string>,
+
+    empty: {
+      PENDING: "Không có hợp đồng nào đang chờ xác nhận",
+      APPROVED: "Không có hợp đồng đã xác nhận",
+      REJECTED: "Không có hợp đồng đã trả lại",
+      TERMINATED: "Không có hợp đồng đã chấm dứt",
+    },
+    emptySearch: "Không có kết quả tìm kiếm",
+    emptySearchHint: "Hãy kiểm tra lại số hợp đồng hoặc tên.",
+
+    infoTitle: "Cơ quan giám sát xác nhận là gì?",
+    info: [
+      "Khi xác nhận, mã băm của nội dung hợp đồng được ghi lên blockchain (Sepolia testnet) và mã xác nhận được cấp.",
+      "Bước này không kiểm tra nội dung bản dịch. Bản dịch được kiểm chứng qua xác nhận của người lao động và báo Khác với bản gốc.",
+    ],
+
+    pagination: "Chuyển trang danh sách",
+    previousPage: "Trước",
+    nextPage: "Sau",
+    pageStatus: (page: number, total: number) => `Trang ${page} / ${total}`,
+  },
+} satisfies Record<UiLanguage, AdminContractsLabels>;

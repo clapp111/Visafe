@@ -1,6 +1,7 @@
 import { formatTermValue } from "@/entities/contract";
 import type { components } from "@/shared/api";
 import { Badge, Highlight, Table } from "@/shared/ui";
+import { useCurrentLanguage } from "@/shared/i18n";
 import type { AdminContractReviewLabels } from "../model/labels";
 
 type Field = components["schemas"]["ContractDraftResponseField"];
@@ -21,6 +22,7 @@ export function FieldsTable({
   onShowSource: (pageNo: number) => void;
   labels: AdminContractReviewLabels;
 }) {
+  const language = useCurrentLanguage();
   return (
     <Table caption={labels.fieldsCaption}>
       <thead>
@@ -34,11 +36,16 @@ export function FieldsTable({
         {fields.map((field) => {
           const byEmployer =
             field.valueSource !== undefined && field.valueSource !== "AI";
-          const value = formatTermValue(field.key, field.value, labels);
+          const value = formatTermValue(
+            field.key,
+            field.value,
+            labels,
+            language,
+          );
           const aiValue =
             field.extractionStatus === "UNREAD" || field.aiValue == null
               ? labels.aiUnread
-              : formatTermValue(field.key, field.aiValue, labels);
+              : formatTermValue(field.key, field.aiValue, labels, language);
           const pageNo = field.sourceClause?.pageNo;
           return (
             <tr

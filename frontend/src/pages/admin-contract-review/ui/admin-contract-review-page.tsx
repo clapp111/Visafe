@@ -7,12 +7,14 @@ import {
   useAdminContractDetail,
   useApproveAdminContract,
   useRejectAdminContract,
+  termLabel,
 } from "@/entities/contract";
 import { getApiErrorCode, getApiErrorFeedback } from "@/shared/api";
 import { routes } from "@/shared/config";
 import { Button, ErrorState, LoadingState } from "@/shared/ui";
 import { ContractFileViewer } from "@/widgets/contract-file-viewer";
 import { HistoryList } from "@/widgets/contract-records";
+import { useCurrentLanguage } from "@/shared/i18n";
 import { ADMIN_CONTRACT_REVIEW_LABELS } from "../model/labels";
 import { ApproveDialog } from "./approve-dialog";
 import { AttentionAlert } from "./attention-alert";
@@ -25,7 +27,8 @@ export function AdminContractReviewPage({
 }: {
   contractId: number;
 }) {
-  const labels = ADMIN_CONTRACT_REVIEW_LABELS;
+  const language = useCurrentLanguage();
+  const labels = ADMIN_CONTRACT_REVIEW_LABELS[language];
   const router = useRouter();
   const detailQuery = useAdminContractDetail(contractId);
   const approve = useApproveAdminContract(contractId);
@@ -41,7 +44,8 @@ export function AdminContractReviewPage({
       <ErrorState
         title={labels.loadError}
         message={
-          getApiErrorFeedback(getApiErrorCode(detailQuery.error), "ko").message
+          getApiErrorFeedback(getApiErrorCode(detailQuery.error), language)
+            .message
         }
         onRetry={() => void detailQuery.refetch()}
       />
@@ -49,7 +53,11 @@ export function AdminContractReviewPage({
   }
 
   const detail = detailQuery.data;
-  const fields = detail.fields ?? [];
+  // 서버 항목 이름은 한국어뿐이라 화면 언어에 맞게 바꿔 둔다
+  const fields = (detail.fields ?? []).map((field) => ({
+    ...field,
+    label: termLabel(field.key, field.label, language),
+  }));
   const fieldLabels = new Map(fields.map((field) => [field.key, field.label]));
   const canDecide = detail.stage === "AUTHORITY_REVIEW";
 
@@ -215,7 +223,7 @@ export function AdminContractReviewPage({
           isSubmitting={approve.isPending}
           errorMessage={
             approve.isError
-              ? getApiErrorFeedback(getApiErrorCode(approve.error), "ko")
+              ? getApiErrorFeedback(getApiErrorCode(approve.error), language)
                   .message
               : undefined
           }
@@ -233,7 +241,8 @@ export function AdminContractReviewPage({
           isSubmitting={reject.isPending}
           errorMessage={
             reject.isError
-              ? getApiErrorFeedback(getApiErrorCode(reject.error), "ko").message
+              ? getApiErrorFeedback(getApiErrorCode(reject.error), language)
+                  .message
               : undefined
           }
           labels={labels}

@@ -9,5 +9,5 @@ export function parseAdminView(value: string | null | undefined): AdminView {
 
 /** 보기별 제목 (화면 제목과 브라우저 탭 제목) */
 export function adminViewTitle(value: string | null | undefined) {
-  return ADMIN_CONTRACTS_LABELS.titles[parseAdminView(value)];
+  return ADMIN_CONTRACTS_LABELS.ko.titles[parseAdminView(value)];
 }
