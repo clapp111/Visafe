@@ -5,13 +5,14 @@ import { useRouter } from "next/navigation";
 import { getPostLoginPath, useSession } from "@/entities/session";
 import { getApiErrorCode } from "@/shared/api";
 import { routes } from "@/shared/config";
+import { useCurrentLanguage } from "@/shared/i18n";
 import { InfoIcon } from "@/shared/ui";
 import { LOGIN_LABELS } from "../model/labels";
 import type { LoginValues } from "../model/schema";
 import { LoginForm } from "./login-form";
 
 export function LoginPage() {
-  const labels = LOGIN_LABELS;
+  const labels = LOGIN_LABELS[useCurrentLanguage()];
   const router = useRouter();
   const { session, login, isLoggingIn, loginError } = useSession();
   const isSubmitting = session.status === "restoring" || isLoggingIn;

@@ -4,6 +4,7 @@ import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { LookupForm } from "@/features/lookup-contract";
 import { routes } from "@/shared/config";
+import { useCurrentLanguage } from "@/shared/i18n";
 import {
   ArrowRightIcon,
   Badge,
@@ -15,7 +16,7 @@ import {
 import { HOME_LABELS } from "../model/labels";
 
 export function HomePage() {
-  const labels = HOME_LABELS;
+  const labels = HOME_LABELS[useCurrentLanguage()];
   const router = useRouter();
   const quickLinks = [
     { href: routes.contractNew, ...labels.quickLinks.employer },
