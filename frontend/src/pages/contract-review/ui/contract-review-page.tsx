@@ -12,9 +12,11 @@ import { getApiErrorCode, getApiErrorFeedback } from "@/shared/api";
 import { routes } from "@/shared/config";
 import { Alert, buttonClass, ErrorState, LoadingState } from "@/shared/ui";
 import { ContractFileViewer } from "@/widgets/contract-file-viewer";
+import { QUESTIONS_FIXTURE } from "../model/fixtures";
 import { CONTRACT_REVIEW_LABELS } from "../model/labels";
 import { ClausesSection } from "./clauses-section";
 import { KeyTermsSection } from "./key-terms-section";
+import { QuestionsSection } from "./questions-section";
 import { ReportDialog } from "./report-dialog";
 import { ReviewConfirm } from "./review-confirm";
 import { ReviewItemsSection } from "./review-items-section";
@@ -28,6 +30,8 @@ export function ContractReviewPage({ contractId }: { contractId: number }) {
   const report = useReportContractReview(contractId);
   const [page, setPage] = useState(1);
   const [reportOpen, setReportOpen] = useState(false);
+  // 화면 확인용: API 연동(W3·W4) 전까지 보낸 질문은 답변 없이 목록에 붙인다
+  const [questions, setQuestions] = useState(QUESTIONS_FIXTURE);
   // 신고를 보낸 뒤에는 W1이 canRespond false가 되므로, 응답할 수 없다는 안내 대신 결과를 보인다
   const [reported, setReported] = useState(false);
 
@@ -144,6 +148,24 @@ export function ContractReviewPage({ contractId }: { contractId: number }) {
               labels={labels}
             />
           )}
+
+          <QuestionsSection
+            questions={questions}
+            onAsk={(question) =>
+              setQuestions((list) => [
+                ...list,
+                {
+                  questionId: list.length + 1000,
+                  question,
+                  answer: null,
+                  citations: [],
+                },
+              ])
+            }
+            isAsking={false}
+            onShowSource={setPage}
+            labels={labels}
+          />
 
           {reported ? (
             <Alert
