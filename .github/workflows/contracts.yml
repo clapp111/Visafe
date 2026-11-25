@@ -1,0 +1,90 @@
+name: Contracts
+
+on:
+  pull_request:
+    branches:
+      - dev
+      - main
+    paths:
+      - "contracts/**"
+      - ".github/workflows/contracts.yml"
+  workflow_dispatch:
+    inputs:
+      resume_run_id:
+        description: "복원할 Sepolia 배포의 Actions 실행 ID (첫 배포에는 비워 둠)"
+        required: false
+        type: string
+
+permissions:
+  contents: read
+
+defaults:
+  run:
+    working-directory: contracts
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@v7
+
+      - uses: actions/setup-node@v7
+        with:
+          node-version: "22"
+          cache: npm
+          cache-dependency-path: contracts/package-lock.json
+
+      - run: npm ci
+      - run: npm run build
+      - run: npm run typecheck
+      - run: npm test
+
+  deploy-sepolia:
+    if: github.event_name == 'workflow_dispatch' && github.ref == 'refs/heads/dev'
+    needs: test
+    runs-on: ubuntu-latest
+    environment: sepolia
+    concurrency:
+      group: contracts-sepolia
+      cancel-in-progress: false
+    permissions:
+      actions: read
+      contents: read
+
+    steps:
+      - uses: actions/checkout@v7
+
+      - uses: actions/setup-node@v7
+        with:
+          node-version: "22"
+          cache: npm
+          cache-dependency-path: contracts/package-lock.json
+
+      - run: npm ci
+
+      - name: Restore Sepolia deployment
+        if: inputs.resume_run_id != '' || github.run_attempt > 1
+        uses: actions/download-artifact@v8
+        with:
+          name: sepolia-deployment
+          path: contracts/ignition/deployments/chain-11155111
+          run-id: ${{ inputs.resume_run_id || github.run_id }}
+          github-token: ${{ github.token }}
+
+      - name: Deploy to Sepolia
+        id: deploy
+        env:
+          SEPOLIA_RPC_URL: ${{ secrets.SEPOLIA_RPC_URL }}
+          SEPOLIA_DEPLOYER_PRIVATE_KEY: ${{ secrets.SEPOLIA_DEPLOYER_PRIVATE_KEY }}
+          HARDHAT_IGNITION_CONFIRM_DEPLOYMENT: "false"
+        run: npm run deploy:sepolia
+
+      - name: Save Sepolia deployment
+        if: always() && steps.deploy.outcome != '' && steps.deploy.outcome != 'skipped'
+        uses: actions/upload-artifact@v7
+        with:
+          name: sepolia-deployment
+          path: contracts/ignition/deployments/chain-11155111/
+          if-no-files-found: error
+          overwrite: true
