@@ -1,3 +1,4 @@
+import { useCurrentLanguage } from "@/shared/i18n";
 import { formatDate } from "@/shared/lib";
 import { Button, Dialog, FieldMessage } from "@/shared/ui";
 import type { ContractDetailLabels } from "../model/labels";
@@ -20,13 +21,14 @@ export function TerminationAgreeDialog({
   errorMessage?: string;
   labels: ContractDetailLabels;
 }) {
+  const language = useCurrentLanguage();
   const t = labels.termination;
   return (
     <Dialog
       open
       onClose={onClose}
       title={t.agreeTitle}
-      description={endDate && t.agreeDescription(formatDate(endDate))}
+      description={endDate && t.agreeDescription(formatDate(endDate, language))}
       actions={
         <>
           <Button variant="secondary" size="md" onClick={onClose}>

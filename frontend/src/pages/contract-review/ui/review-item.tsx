@@ -1,8 +1,9 @@
 "use client";
 
 import { useState } from "react";
-import { formatTermValue } from "@/entities/contract";
+import { formatTermValue, termLabel } from "@/entities/contract";
 import type { components } from "@/shared/api";
+import { useCurrentLanguage } from "@/shared/i18n";
 import { cn } from "@/shared/lib";
 import { Badge, ChevronDownIcon, Highlight, WarningIcon } from "@/shared/ui";
 import type { ContractReviewLabels } from "../model/labels";
@@ -29,12 +30,13 @@ export function ReviewItem({
   onShowSource,
   labels,
 }: ReviewItemProps) {
+  const uiLanguage = useCurrentLanguage();
   const [open, setOpen] = useState(false);
   const key = item.key ?? "";
   const panelId = `contract-review-input-${key}`;
   const byEmployer =
     item.valueSource !== undefined && item.valueSource !== "AI";
-  const value = formatTermValue(key, item.value, labels);
+  const value = formatTermValue(key, item.value, labels, uiLanguage);
   const pageNo = item.sourceClause?.pageNo;
   const checkMessages = warnings.filter(
     (warning) => warning.code === "NEEDS_CHECK" && warning.message,
@@ -43,7 +45,7 @@ export function ReviewItem({
     item.employerInput?.extractionStatus === "UNREAD" ||
     item.employerInput?.aiValue == null
       ? labels.aiUnread
-      : formatTermValue(key, item.employerInput.aiValue, labels);
+      : formatTermValue(key, item.employerInput.aiValue, labels, uiLanguage);
 
   return (
     <div
@@ -53,7 +55,9 @@ export function ReviewItem({
       )}
     >
       <div className="flex flex-wrap items-center gap-2">
-        <span className="text-sm font-bold text-muted">{item.label}</span>
+        <span className="text-sm font-bold text-muted">
+          {termLabel(key, item.label, uiLanguage)}
+        </span>
         {byEmployer && <Badge tone="highlight">{labels.employerInput}</Badge>}
         {warnings.length > 0 && (
           <Badge tone="warning">{labels.needsCheck}</Badge>

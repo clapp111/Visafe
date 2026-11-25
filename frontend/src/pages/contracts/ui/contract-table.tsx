@@ -1,6 +1,7 @@
 import Link from "next/link";
 import type { components } from "@/shared/api";
-import { cn } from "@/shared/lib";
+import { useCurrentLanguage } from "@/shared/i18n";
+import { cn, formatPeriod } from "@/shared/lib";
 import {
   Badge,
   Button,
@@ -21,14 +22,6 @@ const STATUS_TONE = {
   TERMINATED: "neutral",
 } as const;
 
-function formatPeriod(item: Item) {
-  const date = (value: string) => `${value.replaceAll("-", ".")}.`;
-  if (!item.startDate) return undefined;
-  return item.endDate
-    ? `${date(item.startDate)} ~ ${date(item.endDate)}`
-    : `${date(item.startDate)} ~`;
-}
-
 export interface ContractTableProps {
   items: Item[];
   role: Role;
@@ -47,6 +40,7 @@ export function ContractTable({
   revisingId,
   labels,
 }: ContractTableProps) {
+  const language = useCurrentLanguage();
   return (
     <Table caption={labels.caption[role]}>
       <thead>
@@ -65,7 +59,9 @@ export function ContractTable({
         {items.map((item) => {
           const target = todoTarget(item);
           const todo = item.todo ? labels.todos[item.todo] : undefined;
-          const period = formatPeriod(item);
+          const period =
+            item.startDate &&
+            formatPeriod(item.startDate, item.endDate, language);
           const id = item.contractId ?? 0;
           const status = item.status ?? "IN_PROGRESS";
           const actionLabel = todo?.action ?? labels.detail;

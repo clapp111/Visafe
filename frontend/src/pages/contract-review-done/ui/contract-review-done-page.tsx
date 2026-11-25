@@ -7,6 +7,7 @@ import { useEffect } from "react";
 import { useContractDetail } from "@/entities/contract";
 import { getApiErrorCode, getApiErrorFeedback } from "@/shared/api";
 import { routes } from "@/shared/config";
+import { useCurrentLanguage } from "@/shared/i18n";
 import { cn, formatDateTime, shortenHash } from "@/shared/lib";
 import {
   Badge,
@@ -21,7 +22,8 @@ import { CONTRACT_REVIEW_DONE_LABELS } from "../model/labels";
 import { buildReviewDoneSteps, getReviewDonePhase } from "../model/steps";
 
 export function ContractReviewDonePage({ contractId }: { contractId: number }) {
-  const labels = CONTRACT_REVIEW_DONE_LABELS;
+  const language = useCurrentLanguage();
+  const labels = CONTRACT_REVIEW_DONE_LABELS[language];
   const router = useRouter();
   const queryClient = useQueryClient();
   const detailQuery = useContractDetail(contractId);
@@ -49,7 +51,8 @@ export function ContractReviewDonePage({ contractId }: { contractId: number }) {
       <ErrorState
         title={labels.loadError}
         message={
-          getApiErrorFeedback(getApiErrorCode(detailQuery.error), "ko").message
+          getApiErrorFeedback(getApiErrorCode(detailQuery.error), language)
+            .message
         }
         onRetry={() => void detailQuery.refetch()}
       />
@@ -127,7 +130,7 @@ export function ContractReviewDonePage({ contractId }: { contractId: number }) {
               <>
                 <dt className="text-muted">{labels.confirmedAt}</dt>
                 <dd className="font-bold">
-                  {formatDateTime(detail.confirmedAt)}
+                  {formatDateTime(detail.confirmedAt, language)}
                 </dd>
               </>
             )}
@@ -171,7 +174,9 @@ export function ContractReviewDonePage({ contractId }: { contractId: number }) {
           <h2 id="contract-review-done-progress" className="text-2xl font-bold">
             {labels.progressTitle}
           </h2>
-          <StepList steps={buildReviewDoneSteps(detail, phase, labels)} />
+          <StepList
+            steps={buildReviewDoneSteps(detail, phase, labels, language)}
+          />
           {!done && (
             <p className="text-sm text-muted">{labels.progressHint[phase]}</p>
           )}

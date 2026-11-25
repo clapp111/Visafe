@@ -14,6 +14,7 @@ import {
 import { useSession } from "@/entities/session";
 import { getApiErrorCode, getApiErrorFeedback } from "@/shared/api";
 import { routes } from "@/shared/config";
+import { type UiLanguage, useCurrentLanguage } from "@/shared/i18n";
 import { Alert, ErrorState, LoadingState } from "@/shared/ui";
 import { ContractFileViewer } from "@/widgets/contract-file-viewer";
 import { ChainRecordsTable, HistoryList } from "@/widgets/contract-records";
@@ -27,14 +28,15 @@ import { TerminationSection } from "./termination-section";
 
 const SEOUL_DATE = new Intl.DateTimeFormat("sv-SE", { timeZone: "Asia/Seoul" });
 
-function terminationErrorMessage(error: Error | null) {
+function terminationErrorMessage(error: Error | null, language: UiLanguage) {
   return error
-    ? getApiErrorFeedback(getApiErrorCode(error), "ko").message
+    ? getApiErrorFeedback(getApiErrorCode(error), language).message
     : undefined;
 }
 
 export function ContractDetailPage({ contractId }: { contractId: number }) {
-  const labels = CONTRACT_DETAIL_LABELS;
+  const language = useCurrentLanguage();
+  const labels = CONTRACT_DETAIL_LABELS[language];
   const router = useRouter();
   const { session } = useSession();
   // AuthGuard가 ADMIN을 막으므로 여기에는 고용주·근로자만 온다
@@ -63,7 +65,8 @@ export function ContractDetailPage({ contractId }: { contractId: number }) {
       <ErrorState
         title={labels.loadError}
         message={
-          getApiErrorFeedback(getApiErrorCode(detailQuery.error), "ko").message
+          getApiErrorFeedback(getApiErrorCode(detailQuery.error), language)
+            .message
         }
         onRetry={() => void detailQuery.refetch()}
       />
@@ -173,7 +176,7 @@ export function ContractDetailPage({ contractId }: { contractId: number }) {
             cancelTermination.mutate(terminationId);
           }}
           pending={terminationPending}
-          errorMessage={terminationErrorMessage(noticeError)}
+          errorMessage={terminationErrorMessage(noticeError, language)}
           labels={labels}
         />
       )}
@@ -190,7 +193,7 @@ export function ContractDetailPage({ contractId }: { contractId: number }) {
           }
           className="mb-8"
         >
-          {getApiErrorFeedback(getApiErrorCode(actionError), "ko").message}
+          {getApiErrorFeedback(getApiErrorCode(actionError), language).message}
         </Alert>
       )}
 
@@ -268,7 +271,10 @@ export function ContractDetailPage({ contractId }: { contractId: number }) {
             })
           }
           isSubmitting={requestTermination.isPending}
-          errorMessage={terminationErrorMessage(requestTermination.error)}
+          errorMessage={terminationErrorMessage(
+            requestTermination.error,
+            language,
+          )}
           minDate={SEOUL_DATE.format(new Date())}
           maxDate={
             typeof contractEndDate === "string" ? contractEndDate : undefined
@@ -289,6 +295,7 @@ export function ContractDetailPage({ contractId }: { contractId: number }) {
           isSubmitting={terminationPending === "agree"}
           errorMessage={terminationErrorMessage(
             agreeing ? respondTermination.error : null,
+            language,
           )}
           labels={labels}
         />

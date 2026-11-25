@@ -1,4 +1,5 @@
 import type { components } from "@/shared/api";
+import { useCurrentLanguage } from "@/shared/i18n";
 import { formatDateTime } from "@/shared/lib";
 import { Badge } from "@/shared/ui";
 import type { ContractReviewLabels } from "../model/labels";
@@ -13,6 +14,7 @@ export function ReviewSummary({
   review: Review;
   labels: ContractReviewLabels;
 }) {
+  const language = useCurrentLanguage();
   const employer = [review.employer?.companyName, review.employer?.memberName]
     .filter(Boolean)
     .join(" · ");
@@ -20,7 +22,7 @@ export function ReviewSummary({
     { label: labels.summary.employer, value: employer },
     {
       label: labels.summary.requestedAt,
-      value: review.requestedAt && formatDateTime(review.requestedAt),
+      value: review.requestedAt && formatDateTime(review.requestedAt, language),
     },
     { label: labels.summary.contractNo, value: review.contractNo },
   ];

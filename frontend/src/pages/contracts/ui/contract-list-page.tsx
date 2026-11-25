@@ -7,6 +7,7 @@ import { useContractList, useStartContractRevision } from "@/entities/contract";
 import { useSession } from "@/entities/session";
 import { getApiErrorCode, getApiErrorFeedback } from "@/shared/api";
 import { routes } from "@/shared/config";
+import { useCurrentLanguage } from "@/shared/i18n";
 import {
   Alert,
   Button,
@@ -24,7 +25,8 @@ import { StatusFilter, type StatusFilterValue } from "./status-filter";
 const STATUSES = ["IN_PROGRESS", "CONFIRMED", "TERMINATED"] as const;
 
 export function ContractListPage() {
-  const labels = CONTRACT_LIST_LABELS;
+  const language = useCurrentLanguage();
+  const labels = CONTRACT_LIST_LABELS[language];
   const router = useRouter();
   const pathname = usePathname() ?? routes.contracts;
   const searchParams = useSearchParams();
@@ -48,7 +50,8 @@ export function ContractListPage() {
       <ErrorState
         title={labels.loadError}
         message={
-          getApiErrorFeedback(getApiErrorCode(listQuery.error), "ko").message
+          getApiErrorFeedback(getApiErrorCode(listQuery.error), language)
+            .message
         }
         onRetry={() => void listQuery.refetch()}
       />
@@ -139,7 +142,10 @@ export function ContractListPage() {
 
       {revision.isError && (
         <Alert tone="danger" title={labels.revisionError} className="mb-4">
-          {getApiErrorFeedback(getApiErrorCode(revision.error), "ko").message}
+          {
+            getApiErrorFeedback(getApiErrorCode(revision.error), language)
+              .message
+          }
         </Alert>
       )}
 

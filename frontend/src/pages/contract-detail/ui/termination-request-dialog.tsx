@@ -1,6 +1,7 @@
 "use client";
 
 import { useState } from "react";
+import { useCurrentLanguage } from "@/shared/i18n";
 import { formatDate } from "@/shared/lib";
 import { Button, Dialog, FieldMessage, TextField, Textarea } from "@/shared/ui";
 import type { ContractDetailLabels } from "../model/labels";
@@ -31,13 +32,14 @@ export function TerminationRequestDialog({
   maxDate,
   labels,
 }: TerminationRequestDialogProps) {
+  const language = useCurrentLanguage();
   const t = labels.termination;
   const [endDate, setEndDate] = useState("");
   const [reason, setReason] = useState("");
   const [dateError, setDateError] = useState<string>();
   const range = maxDate
-    ? `${formatDate(minDate)} ~ ${formatDate(maxDate)}`
-    : `${formatDate(minDate)} ~`;
+    ? `${formatDate(minDate, language)} ~ ${formatDate(maxDate, language)}`
+    : `${formatDate(minDate, language)} ~`;
 
   function handleSubmit() {
     if (!endDate) {
