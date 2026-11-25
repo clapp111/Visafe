@@ -4,7 +4,9 @@ import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useState } from "react";
 import {
+  useAskContractQuestion,
   useConfirmContractReview,
+  useContractQuestions,
   useContractReview,
   useReportContractReview,
 } from "@/entities/contract";
@@ -15,6 +17,7 @@ import { ContractFileViewer } from "@/widgets/contract-file-viewer";
 import { CONTRACT_REVIEW_LABELS } from "../model/labels";
 import { ClausesSection } from "./clauses-section";
 import { KeyTermsSection } from "./key-terms-section";
+import { QuestionsSection } from "./questions-section";
 import { ReportDialog } from "./report-dialog";
 import { ReviewConfirm } from "./review-confirm";
 import { ReviewItemsSection } from "./review-items-section";
@@ -24,6 +27,8 @@ export function ContractReviewPage({ contractId }: { contractId: number }) {
   const labels = CONTRACT_REVIEW_LABELS;
   const router = useRouter();
   const reviewQuery = useContractReview(contractId);
+  const questionsQuery = useContractQuestions(contractId);
+  const ask = useAskContractQuestion(contractId);
   const confirmation = useConfirmContractReview(contractId);
   const report = useReportContractReview(contractId);
   const [page, setPage] = useState(1);
@@ -144,6 +149,25 @@ export function ContractReviewPage({ contractId }: { contractId: number }) {
               labels={labels}
             />
           )}
+
+          <QuestionsSection
+            questions={
+              questionsQuery.isError ? [] : (questionsQuery.data ?? [])
+            }
+            onAsk={(question) => {
+              ask.reset();
+              ask.mutate(question);
+            }}
+            isAsking={ask.isPending}
+            pendingQuestion={ask.isPending ? ask.variables : undefined}
+            errorMessage={
+              ask.isError
+                ? getApiErrorFeedback(getApiErrorCode(ask.error), "ko").message
+                : undefined
+            }
+            onShowSource={setPage}
+            labels={labels}
+          />
 
           {reported ? (
             <Alert

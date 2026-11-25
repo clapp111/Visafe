@@ -83,6 +83,24 @@ export const CONTRACT_REVIEW_LABELS = {
   translation: "번역",
   noTranslation: "번역이 없습니다.",
 
+  questionsTitle: "계약에 대해 질문하기",
+  questionsHint:
+    "답변은 이 계약서 내용을 근거로 하며, 근거가 된 원문 문장을 함께 보여 줍니다. 법률 판단이 필요한 내용은 상담센터에 문의하세요.",
+  questionSuggestions: [
+    "야근하면 돈을 더 받나요?",
+    "휴가는 며칠인가요?",
+    "계약을 중간에 해지할 수 있나요?",
+  ],
+  questionsList: "질문과 답변",
+  questionInput: "질문 입력",
+  questionPlaceholder: "궁금한 점을 입력하세요",
+  ask: "질문",
+  answering: "답변을 만드는 중입니다 (최대 20초)",
+  answerFailed:
+    "답변을 만들지 못했습니다. 잠시 후 다시 질문하거나 고용노동부 상담센터(국번 없이 1350)에 문의하세요.",
+  centerNotice:
+    "더 자세한 내용은 고용노동부 상담센터(국번 없이 1350)에 문의하세요.",
+
   confirmTitle: "내용을 이해했나요?",
   confirmDescription: [
     "'이해했습니다'를 누르면 ",
