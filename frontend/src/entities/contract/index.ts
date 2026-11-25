@@ -16,7 +16,9 @@ export {
 export { useContractList } from "./api/use-contract-list";
 export { useContractProgress } from "./api/use-contract-progress";
 export {
+  useAskContractQuestion,
   useConfirmContractReview,
+  useContractQuestions,
   useContractReview,
   useReportContractReview,
 } from "./api/use-contract-review";
