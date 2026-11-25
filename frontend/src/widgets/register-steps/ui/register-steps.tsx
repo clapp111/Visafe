@@ -1,5 +1,6 @@
 import { cn } from "@/shared/lib";
 import { CheckIcon } from "@/shared/ui";
+import { useCurrentLanguage } from "@/shared/i18n";
 import { REGISTER_STEPS_LABELS } from "../model/labels";
 
 /** 계약 등록 1·2단계 표시 */
@@ -9,7 +10,7 @@ export function RegisterSteps({
   /** 1부터 센 현재 단계 */
   current: number;
 }) {
-  const labels = REGISTER_STEPS_LABELS;
+  const labels = REGISTER_STEPS_LABELS[useCurrentLanguage()];
   return (
     <ol
       aria-label={labels.label}

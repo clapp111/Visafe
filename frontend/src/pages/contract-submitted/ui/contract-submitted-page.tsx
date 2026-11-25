@@ -20,11 +20,13 @@ import {
   LoadingState,
   buttonClass,
 } from "@/shared/ui";
+import { useCurrentLanguage } from "@/shared/i18n";
 import { CONTRACT_SUBMITTED_LABELS } from "../model/labels";
 import { ProgressSteps } from "./progress-steps";
 
 export function ContractSubmittedPage({ contractId }: { contractId: number }) {
-  const labels = CONTRACT_SUBMITTED_LABELS;
+  const language = useCurrentLanguage();
+  const labels = CONTRACT_SUBMITTED_LABELS[language];
   const router = useRouter();
   const [openedAt] = useState(Date.now);
   const retryTranslation = useRetryContractTranslation(contractId);
@@ -50,7 +52,7 @@ export function ContractSubmittedPage({ contractId }: { contractId: number }) {
       <ErrorState
         title={labels.loadError}
         message={
-          getApiErrorFeedback(getApiErrorCode(progress.error), "ko").message
+          getApiErrorFeedback(getApiErrorCode(progress.error), language).message
         }
         onRetry={progress.refetch}
       />
@@ -139,7 +141,7 @@ export function ContractSubmittedPage({ contractId }: { contractId: number }) {
                   {
                     getApiErrorFeedback(
                       getApiErrorCode(retryTranslation.error),
-                      "ko",
+                      language,
                     ).message
                   }
                 </FieldMessage>

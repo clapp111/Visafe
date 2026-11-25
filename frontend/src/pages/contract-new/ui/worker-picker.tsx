@@ -10,18 +10,19 @@ import {
   fieldControlClass,
   fieldDescribedBy,
 } from "@/shared/ui";
+import { type UiLanguage, useCurrentLanguage } from "@/shared/i18n";
 import type { ContractNewLabels } from "../model/labels";
 
 type WorkerSearchResponse = components["schemas"]["WorkerSearchResponse"];
 
 const INPUT_ID = "contract-new-worker";
-const REGION_NAMES = new Intl.DisplayNames(["ko"], { type: "region" });
-
 /** 국적 코드(VN)를 이름(베트남)으로 바꾼다. 모르는 코드는 그대로 둔다. */
-function nationalityName(code?: string) {
+function nationalityName(code: string | undefined, language: UiLanguage) {
   if (!code) return undefined;
   try {
-    return REGION_NAMES.of(code) ?? code;
+    return (
+      new Intl.DisplayNames([language], { type: "region" }).of(code) ?? code
+    );
   } catch {
     return code;
   }
@@ -50,6 +51,7 @@ export function WorkerPicker({
   errorMessage,
   labels,
 }: WorkerPickerProps) {
+  const language = useCurrentLanguage();
   const [name, setName] = useState("");
   const [tooShort, setTooShort] = useState(false);
   const searchMessage = tooShort ? labels.searchTooShort : undefined;
@@ -159,7 +161,7 @@ export function WorkerPicker({
                           <span className="flex flex-wrap gap-x-4 text-sm text-muted">
                             <span>
                               {labels.nationality}{" "}
-                              {nationalityName(worker.nationality)}
+                              {nationalityName(worker.nationality, language)}
                             </span>
                             <span>
                               {labels.birthDate}{" "}

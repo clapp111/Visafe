@@ -10,6 +10,7 @@ import {
   useRetryDraftExtraction,
   useSaveDraftTerm,
   useSubmitContract,
+  termLabel,
 } from "@/entities/contract";
 import {
   getApiErrorCode,
@@ -20,6 +21,7 @@ import { routes } from "@/shared/config";
 import { ErrorState, FieldMessage, LoadingState } from "@/shared/ui";
 import { ContractFileViewer } from "@/widgets/contract-file-viewer";
 import { RegisterSteps } from "@/widgets/register-steps";
+import { type UiLanguage, useCurrentLanguage } from "@/shared/i18n";
 import { CONTRACT_DRAFT_LABELS } from "../model/labels";
 import { missingRequiredKeys } from "../model/missing-required";
 import { AttentionSummary } from "./attention-summary";
@@ -30,7 +32,7 @@ import { SubmitDialog } from "./submit-dialog";
 import { fieldInputId, type TermValue } from "./term-field-input";
 import { TermFieldsForm } from "./term-fields-form";
 
-function getDraftErrorMessage(error: unknown) {
+function getDraftErrorMessage(error: unknown, language: UiLanguage) {
   const code = getApiErrorCode(error);
   if (
     code === "TERM_VALUE_INVALID" &&
@@ -42,11 +44,12 @@ function getDraftErrorMessage(error: unknown) {
       return reason;
     }
   }
-  return getApiErrorFeedback(code, "ko").message;
+  return getApiErrorFeedback(code, language).message;
 }
 
 export function ContractDraftPage({ contractId }: { contractId: number }) {
-  const labels = CONTRACT_DRAFT_LABELS;
+  const language = useCurrentLanguage();
+  const labels = CONTRACT_DRAFT_LABELS[language];
   const router = useRouter();
   const draftQuery = useContractDraft(contractId);
   const saveTerm = useSaveDraftTerm(contractId);
@@ -95,7 +98,7 @@ export function ContractDraftPage({ contractId }: { contractId: number }) {
     } catch (error) {
       setFieldErrors((current) => ({
         ...current,
-        [key]: getDraftErrorMessage(error),
+        [key]: getDraftErrorMessage(error, language),
       }));
       if (getApiErrorCode(error) === "CONTRACT_STAGE_CONFLICT") {
         void draftQuery.refetch();
@@ -175,13 +178,17 @@ export function ContractDraftPage({ contractId }: { contractId: number }) {
     return (
       <ErrorState
         title={labels.loadError}
-        message={getDraftErrorMessage(draftQuery.error)}
+        message={getDraftErrorMessage(draftQuery.error, language)}
         onRetry={() => void draftQuery.refetch()}
       />
     );
   }
 
-  const fields = draft.fields ?? [];
+  // 서버 항목 이름은 한국어뿐이라 화면 언어에 맞게 바꿔 둔다
+  const fields = (draft.fields ?? []).map((field) => ({
+    ...field,
+    label: termLabel(field.key, field.label, language),
+  }));
   const attention = draft.attention ?? [];
   const extraction =
     draft.processing?.task === "EXTRACTION" ? draft.processing : undefined;
@@ -265,7 +272,7 @@ export function ContractDraftPage({ contractId }: { contractId: number }) {
           )}
           {extraction?.status === "FAILED" && retryExtraction.isError && (
             <FieldMessage status="error">
-              {getDraftErrorMessage(retryExtraction.error)}
+              {getDraftErrorMessage(retryExtraction.error, language)}
             </FieldMessage>
           )}
         </div>
@@ -279,7 +286,7 @@ export function ContractDraftPage({ contractId }: { contractId: number }) {
           isUploading={replaceFile.isPending}
           errorMessage={
             replaceFile.isError
-              ? getDraftErrorMessage(replaceFile.error)
+              ? getDraftErrorMessage(replaceFile.error, language)
               : undefined
           }
           labels={labels}
@@ -294,7 +301,7 @@ export function ContractDraftPage({ contractId }: { contractId: number }) {
           isSubmitting={submit.isPending}
           errorMessage={
             submit.isError && submitErrorCode !== "TERMS_REQUIRED_MISSING"
-              ? getApiErrorFeedback(submitErrorCode, "ko").message
+              ? getApiErrorFeedback(submitErrorCode, language).message
               : undefined
           }
           labels={labels}

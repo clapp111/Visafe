@@ -7,6 +7,7 @@ import { useCreateContract, useWorkerSearch } from "@/entities/contract";
 import { getApiErrorCode, getApiErrorFeedback } from "@/shared/api";
 import { routes } from "@/shared/config";
 import { RegisterSteps } from "@/widgets/register-steps";
+import { useCurrentLanguage } from "@/shared/i18n";
 import { CONTRACT_NEW_LABELS } from "../model/labels";
 import {
   RegisterForm,
@@ -15,14 +16,15 @@ import {
 } from "./register-form";
 
 export function ContractNewPage() {
-  const labels = CONTRACT_NEW_LABELS;
+  const language = useCurrentLanguage();
+  const labels = CONTRACT_NEW_LABELS[language];
   const router = useRouter();
   const [workerName, setWorkerName] = useState("");
   const workerSearch = useWorkerSearch(workerName);
   const createContract = useCreateContract();
   const submitErrorCode = getApiErrorCode(createContract.error);
   const submitErrorMessage = createContract.isError
-    ? getApiErrorFeedback(submitErrorCode, "ko").message
+    ? getApiErrorFeedback(submitErrorCode, language).message
     : undefined;
   const fileErrorMessage =
     submitErrorCode === "FILE_TOO_LARGE" ||
@@ -35,7 +37,8 @@ export function ContractNewPage() {
     submitErrorMessage && !fileErrorMessage && !workerErrorMessage
       ? submitErrorMessage
       : workerSearch.isError
-        ? getApiErrorFeedback(getApiErrorCode(workerSearch.error), "ko").message
+        ? getApiErrorFeedback(getApiErrorCode(workerSearch.error), language)
+            .message
         : undefined;
 
   function handleSearch(name: string) {

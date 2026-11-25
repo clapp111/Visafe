@@ -1,6 +1,7 @@
 import type { components } from "@/shared/api";
 import { formatDateTime } from "@/shared/lib";
 import { Alert } from "@/shared/ui";
+import { useCurrentLanguage } from "@/shared/i18n";
 import type { ContractDraftLabels } from "../model/labels";
 
 type Schemas = components["schemas"];
@@ -15,6 +16,7 @@ export function ReturnedNotice({
   fields: Schemas["ContractDraftResponseField"][];
   labels: ContractDraftLabels;
 }) {
+  const language = useCurrentLanguage();
   const by = returned.by ?? "WORKER";
   const reportedLabels = (returned.reportedFields ?? []).map(
     (key) => fields.find((field) => field.key === key)?.label ?? key,
@@ -36,7 +38,7 @@ export function ReturnedNotice({
           {returned.at && (
             <>
               <dt className="text-muted">{labels.returnedAt}</dt>
-              <dd>{formatDateTime(returned.at)}</dd>
+              <dd>{formatDateTime(returned.at, language)}</dd>
             </>
           )}
           {reportedLabels.length > 0 && (

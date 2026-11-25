@@ -1,5 +1,6 @@
-/** 계약 등록 1단계 문구. 화면 언어(#54)가 붙으면 언어별 값으로 바꾼다. */
-export const CONTRACT_NEW_LABELS = {
+import type { UiLanguage } from "@/shared/i18n";
+
+const ko = {
   breadcrumb: "현재 위치",
   home: "홈",
   title: "근로계약서 등록",
@@ -55,4 +56,64 @@ export const CONTRACT_NEW_LABELS = {
   submitting: "올리는 중",
 };
 
-export type ContractNewLabels = typeof CONTRACT_NEW_LABELS;
+export type ContractNewLabels = typeof ko;
+
+/** 계약 등록 1단계 문구 */
+export const CONTRACT_NEW_LABELS = {
+  ko,
+  vi: {
+    breadcrumb: "Vị trí hiện tại",
+    home: "Trang chủ",
+    title: "Đăng ký hợp đồng lao động",
+    description: [
+      "Khi bạn tải lên bản gốc hợp đồng lao động đã ký, AI sẽ đọc các mục chính như tiền lương, giờ làm việc và thời hạn hợp đồng.",
+      "Sau khi kiểm tra nội dung đã đọc và gửi, bản dịch tiếng Việt sẽ được tạo và yêu cầu xác nhận được gửi cho người lao động.",
+    ],
+    requiredNotice: "Dấu này là mục bắt buộc.",
+    required: "Bắt buộc",
+
+    fileTitle: "1. Bản gốc hợp đồng lao động",
+    fileLabel: "Tệp gốc",
+    fileHint:
+      "Hãy tải lên 1 bản hợp đồng đã ký với người lao động. PDF, JPG, PNG · tối đa 10MB",
+    dropLabel: "Kéo tệp thả vào đây hoặc",
+    selectFile: "Chọn tệp",
+    fileListLabel: "Tệp đã tải lên",
+    removeFile: "Xóa",
+    fileRequired: "Vui lòng tải lên tệp gốc.",
+    fileTypeInvalid: "Chỉ có thể tải lên tệp PDF, JPG, PNG.",
+    fileTooLarge: "Chỉ có thể tải lên tệp tối đa 10MB.",
+    photoTipsTitle: "Lưu ý khi tải lên bằng ảnh chụp",
+    photoTips: [
+      "Hãy chụp từng trang đầy đủ, không bị cắt. Bao gồm cả trang có chữ ký và con dấu.",
+      "Đừng để bóng hoặc ánh sáng phản chiếu che mất chữ.",
+      "Mục nào AI không đọc được sẽ để trống chứ không đoán; ở bước tiếp theo bạn sẽ được hướng dẫn nhập trực tiếp hoặc tải lên lại.",
+    ],
+
+    workerTitle: "2. Người lao động",
+    workerLabel: "Tên người lao động",
+    workerHint:
+      "Tìm người lao động đã đăng ký Visafe theo tên để gửi yêu cầu xác nhận. Hãy nhập ít nhất 2 ký tự đầu của tên.",
+    workerPlaceholder: "Ví dụ: Nguyen Van An",
+    search: "Tìm",
+    searching: "Đang tìm",
+    searchTooShort: "Hãy nhập ít nhất 2 ký tự của tên.",
+    workerResults: "Kết quả tìm kiếm",
+    workerResultsHint:
+      "Nếu có nhiều người lao động trùng tên, hãy phân biệt bằng quốc tịch, ngày sinh và 4 số cuối của số đăng ký người nước ngoài.",
+    noWorkers:
+      "Không tìm thấy người lao động có tên này. Hãy kiểm tra người lao động đã đăng ký Visafe chưa.",
+    workerRequired: "Hãy chọn người lao động sẽ nhận yêu cầu xác nhận.",
+    nationality: "Quốc tịch",
+    birthDate: "Ngày sinh",
+    alienRegNoLast4: "4 số cuối số đăng ký người nước ngoài",
+
+    noticeTitle: "Tệp gốc được dùng để phát hiện thay đổi",
+    notice:
+      "Khi hợp đồng được xác nhận, mã băm gộp tệp gốc, các mục đã xác nhận và bản dịch sẽ được ghi lại và sau đó không thể thay đổi. Nếu trên hợp đồng có số đăng ký người nước ngoài hoặc số hộ chiếu, hãy che đi trước khi tải lên.",
+
+    saveDraft: "Lưu tạm",
+    next: "Tiếp: AI trích xuất các mục",
+    submitting: "Đang tải lên",
+  },
+} satisfies Record<UiLanguage, ContractNewLabels>;
