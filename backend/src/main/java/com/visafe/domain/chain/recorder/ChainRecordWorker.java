@@ -28,7 +28,7 @@ import org.springframework.transaction.support.TransactionTemplate;
  * 종료 기록(TERMINATE)은 계약을 이미 끝낸 뒤 올리므로 블록에 포함되면 기록만 바꾼다.
  * <p>
  * 블록체인 호출은 오래 걸리므로 트랜잭션 밖에서 하고, 결과 저장만 짧은 트랜잭션으로 한다.
- * 실패하면 기록을 FAILED로 두고 재시도 횟수를 올린다. 자동 재시도는 실제 네트워크 연동(#21)에서 넣는다.
+ * 실제 Sepolia 기록은 스케줄러가 전송하고 이 워커의 결과 저장을 공유한다.
  */
 @Slf4j
 @Component
@@ -59,11 +59,21 @@ public class ChainRecordWorker {
         }
         try {
             ChainReceipt receipt = chainRecorder.record(target.anchorKey(), target.recordType(), target.recordHash());
-            transactionTemplate.executeWithoutResult(status -> saveReceipt(event, receipt));
+            complete(event, receipt);
         } catch (RuntimeException e) {
             log.warn("[블록체인 기록] 실패 - contractId={}, chainRecordId={}", event.contractId(), event.chainRecordId(), e);
-            transactionTemplate.executeWithoutResult(status -> recordFailure(event));
+            fail(event);
         }
+    }
+
+    /** 같은 기록의 확정과 알림은 한 트랜잭션으로 한 번만 반영한다. */
+    public void complete(ChainRecordRequestedEvent event, ChainReceipt receipt) {
+        transactionTemplate.executeWithoutResult(status -> saveReceipt(event, receipt));
+    }
+
+    /** 처리할 수 없는 기록의 실패를 계약 이력에 남긴다. */
+    public void fail(ChainRecordRequestedEvent event) {
+        transactionTemplate.executeWithoutResult(status -> recordFailure(event));
     }
 
     /** 보낼 조회 키와 묶음 해시를 읽는다. 지금 보낼 전송 대기 기록이 아니면 null. */
@@ -71,17 +81,17 @@ public class ChainRecordWorker {
         Contract contract = contractRepository.findById(event.contractId()).orElseThrow();
         ChainRecord record =
                 chainRecordRepository.findById(event.chainRecordId()).orElseThrow();
-        if (!isPending(contract, record)) {
+        if (record.target() != null || !isActive(contract, record) || record.getStatus() != ChainRecordStatus.PENDING) {
             return null;
         }
         return new Target(record.getAnchorKey(), record.getRecordType(), record.getRecordHash());
     }
 
     private void saveReceipt(ChainRecordRequestedEvent event, ChainReceipt receipt) {
-        Contract contract = contractRepository.findById(event.contractId()).orElseThrow();
         ChainRecord record =
-                chainRecordRepository.findById(event.chainRecordId()).orElseThrow();
-        if (!isPending(contract, record)) {
+                chainRecordRepository.findByIdForUpdate(event.chainRecordId()).orElseThrow();
+        Contract contract = contractRepository.findById(event.contractId()).orElseThrow();
+        if (!isActive(contract, record)) {
             log.info(
                     "[블록체인 기록] 지난 요청의 결과를 버림 - contractId={}, chainRecordId={}",
                     event.contractId(),
@@ -89,7 +99,11 @@ public class ChainRecordWorker {
             return;
         }
         Instant now = Instant.now();
-        record.markSent(receipt.txHash(), now);
+        if (record.getStatus() == ChainRecordStatus.PENDING) {
+            record.markSent(receipt.txHash(), now);
+        } else if (!record.getTxHash().equals(receipt.txHash())) {
+            record.useOriginalTransaction(receipt.txHash());
+        }
         record.markMined(receipt.blockNumber(), now);
         if (record.getRecordType() == RecordType.TERMINATE) {
             return;
@@ -111,10 +125,10 @@ public class ChainRecordWorker {
     }
 
     private void recordFailure(ChainRecordRequestedEvent event) {
-        Contract contract = contractRepository.findById(event.contractId()).orElseThrow();
         ChainRecord record =
-                chainRecordRepository.findById(event.chainRecordId()).orElseThrow();
-        if (!isPending(contract, record)) {
+                chainRecordRepository.findByIdForUpdate(event.chainRecordId()).orElseThrow();
+        Contract contract = contractRepository.findById(event.contractId()).orElseThrow();
+        if (!isActive(contract, record)) {
             return;
         }
         record.markFailed();
@@ -124,12 +138,12 @@ public class ChainRecordWorker {
                 Map.of("chainRecordId", record.getId(), "retryCount", record.getRetryCount()));
     }
 
-    /** 이 기록이 현재 회차의 전송 대기 기록이고 계약이 그 기록을 기다리는 stage인지. (확정 기록은 RECORDING, 종료 기록은 ENDED) */
-    private static boolean isPending(Contract contract, ChainRecord record) {
+    /** 이 기록이 현재 회차의 전송·채굴 대기 상태이고 계약이 그 결과를 기다리는지 확인한다. */
+    private static boolean isActive(Contract contract, ChainRecord record) {
         ContractStage waitingStage =
                 record.getRecordType() == RecordType.CONFIRM ? ContractStage.RECORDING : ContractStage.ENDED;
         return contract.getStage() == waitingStage
-                && record.getStatus() == ChainRecordStatus.PENDING
+                && (record.getStatus() == ChainRecordStatus.PENDING || record.getStatus() == ChainRecordStatus.SENT)
                 && record.getContractVersion()
                         .getId()
                         .equals(contract.getCurrentVersion().getId());

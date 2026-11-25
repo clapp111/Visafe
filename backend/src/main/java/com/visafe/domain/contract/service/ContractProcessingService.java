@@ -126,7 +126,7 @@ public class ContractProcessingService {
     /**
      * 회차의 확정 기록으로 블록체인 기록 상태를 계산한다.
      *
-     * <p>FAILED여도 서버가 retry_count를 올리며 다시 시도한다. 기록 행에는 오류 내용을 저장하지 않으므로 lastError는 비어 있다.</p>
+     * <p>전송과 영수증 확인을 기다리는 동안은 RUNNING이다. 처리할 수 없는 결과가 확정되면 FAILED다.</p>
      *
      * @param versionId 현재 회차 ID
      * @return 블록체인 기록 진행 상태

@@ -10,7 +10,7 @@ import java.util.concurrent.atomic.AtomicLong;
 import org.springframework.stereotype.Component;
 
 /**
- * 실제 블록체인 연동 전까지 쓰는 기록기. 네트워크에 보내지 않고 바로 블록에 포함된 것으로 돌려준다.
+ * 로컬과 테스트용 기록기. 기록을 메모리에 추가하고 바로 영수증을 돌려준다.
  * 트랜잭션 해시는 묶음 해시로 만든 가짜 값이라 기록마다 다르다. (chain_records.tx_hash 유일)
  * <p>
  * 기록한 값은 메모리에만 두므로, 서버를 다시 시작한 뒤 읽으면 기록이 바뀌었다고 오해하지 않도록 체인을 읽지 못한 것(예외)으로 본다.

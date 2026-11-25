@@ -4,6 +4,7 @@ import com.visafe.domain.chain.ChainRecordHash;
 import com.visafe.domain.chain.ConfirmationNumber;
 import com.visafe.domain.chain.entity.ChainRecord;
 import com.visafe.domain.chain.recorder.ChainRecordRequestedEvent;
+import com.visafe.domain.chain.recorder.ChainTransactionRecorder;
 import com.visafe.domain.chain.repository.ChainRecordRepository;
 import com.visafe.domain.contract.entity.Contract;
 import com.visafe.domain.contract.entity.ContractVersion;
@@ -14,6 +15,7 @@ import com.visafe.domain.contract.service.ContractEventRecorder;
 import com.visafe.domain.review.entity.ReviewResponse;
 import com.visafe.domain.translation.entity.Translation;
 import java.util.Map;
+import java.util.Optional;
 import lombok.RequiredArgsConstructor;
 import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.stereotype.Service;
@@ -29,6 +31,7 @@ public class ContractConfirmationService {
     private final ChainRecordRepository chainRecordRepository;
     private final ContractEventRecorder contractEventRecorder;
     private final ApplicationEventPublisher eventPublisher;
+    private final Optional<ChainTransactionRecorder> chainTransactionRecorder;
 
     // =========================================================================
     // ============================= 주요 서비스 기능 =============================
@@ -75,6 +78,9 @@ public class ContractConfirmationService {
                 .translationHash(translation.getTranslationHash())
                 .eventsHash(eventsHash)
                 .reviewResponse(understood)
+                .target(chainTransactionRecorder
+                        .map(ChainTransactionRecorder::configuredTarget)
+                        .orElse(null))
                 .build());
         contractEventRecorder.recordBySystem(
                 contract,
