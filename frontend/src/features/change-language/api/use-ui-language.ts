@@ -33,9 +33,10 @@ export function useUiLanguage(context: LanguageContext) {
   const guest = useGuestLanguage();
   const mutation = useMutation({ mutationFn: updateUiLanguage });
 
+  // 세션을 복원하는 동안(회원 정보 전)에는 이 브라우저에 저장한 언어를 먼저 보인다
   const language =
-    context.mode === "member"
-      ? resolveUiLanguage(context.member?.uiLanguage)
+    context.mode === "member" && context.member
+      ? resolveUiLanguage(context.member.uiLanguage)
       : guest.language;
   const memberId = context.mode === "member" ? context.member?.id : undefined;
   const isCurrentMember =

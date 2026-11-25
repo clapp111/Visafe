@@ -1,9 +1,10 @@
 "use client";
 
-import type { ReactNode } from "react";
+import { type ReactNode, useEffect } from "react";
 import { useSession } from "@/entities/session";
 import { useUiLanguage } from "@/features/change-language";
 import { getApiErrorCode, getApiErrorFeedback } from "@/shared/api";
+import { UiLanguageProvider } from "@/shared/i18n";
 import { Toast } from "@/shared/ui";
 import { AppFooter } from "@/widgets/app-footer";
 import { AppHeader, HEADER_LABELS } from "@/widgets/app-header";
@@ -34,8 +35,12 @@ export function AppShell({ children }: { children: ReactNode }) {
     });
   }
 
+  useEffect(() => {
+    document.documentElement.lang = language;
+  }, [language]);
+
   return (
-    <>
+    <UiLanguageProvider language={language}>
       <AppHeader
         user={session.member}
         onLogout={handleLogout}
@@ -66,6 +71,6 @@ export function AppShell({ children }: { children: ReactNode }) {
         {children}
       </main>
       <AppFooter />
-    </>
+    </UiLanguageProvider>
   );
 }

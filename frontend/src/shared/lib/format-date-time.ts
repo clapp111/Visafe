@@ -1,3 +1,5 @@
+import type { UiLanguage } from "@/shared/i18n";
+
 // 계약 관련 시각은 한국 시간으로 보인다 (계약이 한국에서 맺어지므로 보는 사람의 시간대와 관계없이 같게)
 const DATE_TIME = new Intl.DateTimeFormat("ko-KR", {
   timeZone: "Asia/Seoul",
@@ -9,13 +11,15 @@ const DATE_TIME = new Intl.DateTimeFormat("ko-KR", {
   hourCycle: "h23",
 });
 
-/** `2026-11-13T05:06:00Z` → `2026.11.13. 14:06` */
-export function formatDateTime(dateTime: string) {
+/** `2026-11-13T05:06:00Z` → ko `2026.11.13. 14:06`, vi `13/11/2026 14:06` */
+export function formatDateTime(dateTime: string, language: UiLanguage = "ko") {
   const parts = Object.fromEntries(
     DATE_TIME.formatToParts(new Date(dateTime)).map((part) => [
       part.type,
       part.value,
     ]),
   );
-  return `${parts.year}.${parts.month}.${parts.day}. ${parts.hour}:${parts.minute}`;
+  return language === "vi"
+    ? `${parts.day}/${parts.month}/${parts.year} ${parts.hour}:${parts.minute}`
+    : `${parts.year}.${parts.month}.${parts.day}. ${parts.hour}:${parts.minute}`;
 }

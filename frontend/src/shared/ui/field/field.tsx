@@ -1,4 +1,7 @@
+"use client";
+
 import type { ReactNode } from "react";
+import { messages, useCurrentLanguage } from "@/shared/i18n";
 import { cn } from "@/shared/lib";
 import { ErrorIcon, WarningIcon } from "../icons";
 
@@ -45,9 +48,10 @@ export function Field({
   message,
   status,
   required,
-  requiredLabel = "필수",
+  requiredLabel,
   children,
 }: FieldProps) {
+  const text = messages[useCurrentLanguage()];
   return (
     <div className="flex min-w-0 flex-col gap-2">
       <label htmlFor={id} className="font-bold">
@@ -57,7 +61,7 @@ export function Field({
             <span aria-hidden="true" className="ml-0.5 text-danger">
               *
             </span>
-            <span className="sr-only">{requiredLabel}</span>
+            <span className="sr-only">{requiredLabel ?? text.required}</span>
           </>
         )}
       </label>

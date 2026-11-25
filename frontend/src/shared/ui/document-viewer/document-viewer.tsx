@@ -1,4 +1,7 @@
+"use client";
+
 import type { ReactNode } from "react";
+import { messages, useCurrentLanguage } from "@/shared/i18n";
 import { cn } from "@/shared/lib";
 import { ChevronLeftIcon, ChevronRightIcon } from "../icons";
 
@@ -11,14 +14,6 @@ export interface DocumentViewerLabels {
   preview: (page: number) => string;
   download: string;
 }
-
-const DEFAULT_LABELS: DocumentViewerLabels = {
-  previousPage: "이전 쪽",
-  nextPage: "다음 쪽",
-  pageStatus: (page, pageCount) => `${page} / ${pageCount}쪽`,
-  preview: (page) => `${page}쪽 미리보기`,
-  download: "내려받기",
-};
 
 const PAGE_BUTTON =
   "flex size-10 cursor-pointer items-center justify-center rounded-md border border-border-strong bg-surface text-foreground hover:bg-surface-muted disabled:cursor-not-allowed disabled:opacity-50";
@@ -61,7 +56,15 @@ export function DocumentViewer({
   labels: labelOverrides,
   className,
 }: DocumentViewerProps) {
-  const labels = { ...DEFAULT_LABELS, ...labelOverrides };
+  const text = messages[useCurrentLanguage()];
+  const labels: DocumentViewerLabels = {
+    previousPage: text.previousPage,
+    nextPage: text.nextPage,
+    pageStatus: text.pageStatus,
+    preview: text.pagePreview,
+    download: text.download,
+    ...labelOverrides,
+  };
 
   return (
     <section
