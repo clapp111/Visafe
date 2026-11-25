@@ -134,7 +134,8 @@ class LookupApiPostgresTest {
         assertThat(body.<String>read("$.integrity.checkedAt")).isNotNull();
         assertThat(body.<Object>read("$.termination")).isNull();
         assertThat(body.<String>read("$.chainRecords[0].status")).isEqualTo("MINED");
-        assertThat(body.<String>read("$.chainRecords[0].explorerUrl")).startsWith("https://sepolia.etherscan.io/tx/");
+        assertThat(body.<String>read("$.chainRecords[0].network")).isEqualTo("stub");
+        assertThat(body.<String>read("$.chainRecords[0].explorerUrl")).isNull();
         // 항목 수정 같은 내부 이벤트는 넣지 않고, 근로자 이름은 이력에도 드러내지 않는다.
         assertThat(body.<List<String>>read("$.history[*].type"))
                 .containsExactly("SUBMITTED", "WORKER_UNDERSTOOD", "CONFIRMED");
