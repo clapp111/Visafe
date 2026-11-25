@@ -1,0 +1,1 @@
+DROP INDEX uq_contracts_one_confirmed;

@@ -1,5 +1,6 @@
 package com.visafe.domain.chain.entity;
 
+import com.visafe.domain.chain.ChainTarget;
 import com.visafe.domain.chain.enums.ChainRecordStatus;
 import com.visafe.domain.chain.enums.RecordType;
 import com.visafe.domain.contract.entity.ContractTermination;
@@ -53,7 +54,8 @@ import org.hibernate.type.SqlTypes;
 public class ChainRecord extends BaseTimeEntity {
 
     public static final int CURRENT_HASH_RULE_VERSION = 1;
-    public static final String DEFAULT_NETWORK = "sepolia";
+    public static final String DEFAULT_NETWORK = "stub";
+    public static final String SEPOLIA_NETWORK = "sepolia";
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
@@ -132,6 +134,19 @@ public class ChainRecord extends BaseTimeEntity {
     @Column(name = "network", nullable = false, length = 20)
     private String network = DEFAULT_NETWORK;
 
+    @Column(name = "chain_id")
+    private Long chainId;
+
+    @Column(name = "contract_address", length = 42)
+    private String contractAddress;
+
+    /** 전송 전에 저장한 서명 트랜잭션. 영수증 확인까지 같은 바이트를 다시 사용할 수 있다. */
+    @Column(name = "signed_transaction", columnDefinition = "text")
+    private String signedTransaction;
+
+    @Column(name = "next_attempt_at")
+    private Instant nextAttemptAt;
+
     /** 트랜잭션 해시 */
     @JdbcTypeCode(SqlTypes.CHAR)
     @Column(name = "tx_hash", length = 66)
@@ -164,15 +179,17 @@ public class ChainRecord extends BaseTimeEntity {
             String anchorKey,
             String nonce,
             String eventsHash,
-            String network) {
+            ChainTarget target) {
         this.contractVersion = Objects.requireNonNull(contractVersion, "contractVersion");
         this.recordType = recordType;
         this.recordHash = Objects.requireNonNull(recordHash, "recordHash");
         this.anchorKey = Objects.requireNonNull(anchorKey, "anchorKey");
         this.nonce = Objects.requireNonNull(nonce, "nonce");
         this.eventsHash = Objects.requireNonNull(eventsHash, "eventsHash");
-        if (network != null) {
-            this.network = network;
+        if (target != null) {
+            this.network = SEPOLIA_NETWORK;
+            this.chainId = target.chainId();
+            this.contractAddress = target.contractAddress();
         }
     }
 
@@ -189,12 +206,12 @@ public class ChainRecord extends BaseTimeEntity {
             String translationHash,
             String eventsHash,
             ReviewResponse reviewResponse,
-            String network) {
+            ChainTarget target) {
         if (reviewResponse == null || !reviewResponse.isUnderstood()) {
             throw new IllegalArgumentException("확정 기록에는 '이해했습니다' 응답이 필요합니다.");
         }
         ChainRecord record =
-                new ChainRecord(contractVersion, RecordType.CONFIRM, recordHash, anchorKey, nonce, eventsHash, network);
+                new ChainRecord(contractVersion, RecordType.CONFIRM, recordHash, anchorKey, nonce, eventsHash, target);
         record.fileHash = Objects.requireNonNull(fileHash, "fileHash");
         record.itemsHash = Objects.requireNonNull(itemsHash, "itemsHash");
         record.translation = Objects.requireNonNull(translation, "translation");
@@ -212,13 +229,18 @@ public class ChainRecord extends BaseTimeEntity {
             String nonce,
             String eventsHash,
             ContractTermination contractTermination,
-            ChainRecord previousChainRecord,
-            String network) {
+            ChainRecord previousChainRecord) {
         if (previousChainRecord == null || previousChainRecord.getRecordType() != RecordType.CONFIRM) {
             throw new IllegalArgumentException("종료 기록은 이전 확정 기록이 필요합니다.");
         }
         ChainRecord record = new ChainRecord(
-                contractVersion, RecordType.TERMINATE, recordHash, anchorKey, nonce, eventsHash, network);
+                contractVersion,
+                RecordType.TERMINATE,
+                recordHash,
+                anchorKey,
+                nonce,
+                eventsHash,
+                previousChainRecord.target());
         record.contractTermination = Objects.requireNonNull(contractTermination, "contractTermination");
         record.previousChainRecord = previousChainRecord;
         return record;
@@ -242,6 +264,16 @@ public class ChainRecord extends BaseTimeEntity {
         this.blockNumber = blockNumber;
         this.minedAt = Objects.requireNonNull(minedAt, "minedAt");
         this.status = ChainRecordStatus.MINED;
+        this.signedTransaction = null;
+        this.nextAttemptAt = null;
+    }
+
+    /** 동일 해시 재요청을 처리한 뒤 처음 기록한 트랜잭션의 영수증을 연결한다. */
+    public void useOriginalTransaction(String originalTxHash) {
+        if (status != ChainRecordStatus.SENT) {
+            throw new IllegalStateException("전송된 기록만 원래 트랜잭션을 연결할 수 있습니다.");
+        }
+        txHash = Objects.requireNonNull(originalTxHash, "originalTxHash");
     }
 
     /** 전송·채굴에 실패했다. tx 정보는 지우고 재시도 횟수를 늘린다. */
@@ -251,6 +283,8 @@ public class ChainRecord extends BaseTimeEntity {
         }
         this.txHash = null;
         this.sentAt = null;
+        this.signedTransaction = null;
+        this.nextAttemptAt = null;
         this.retryCount++;
         this.status = ChainRecordStatus.FAILED;
     }
@@ -265,5 +299,48 @@ public class ChainRecord extends BaseTimeEntity {
 
     public boolean isMined() {
         return status == ChainRecordStatus.MINED;
+    }
+
+    public ChainTarget target() {
+        return chainId == null ? null : new ChainTarget(chainId, contractAddress);
+    }
+
+    public void prepareTransaction(String transaction) {
+        if (chainId == null || status != ChainRecordStatus.PENDING || signedTransaction != null) {
+            throw new IllegalStateException("새 Sepolia 전송 대기 기록만 서명 정보를 저장할 수 있습니다.");
+        }
+        signedTransaction = Objects.requireNonNull(transaction, "transaction");
+        nextAttemptAt = null;
+    }
+
+    /** 블록에 포함되지 않은 서명본을 같은 nonce의 새 서명본으로 바꾼다. */
+    public void replaceTransaction(String transaction, String replacementTxHash, Instant replacedAt) {
+        if (status != ChainRecordStatus.SENT || signedTransaction == null) {
+            throw new IllegalStateException("전송된 서명본만 교체할 수 있습니다.");
+        }
+        signedTransaction = Objects.requireNonNull(transaction, "transaction");
+        txHash = Objects.requireNonNull(replacementTxHash, "replacementTxHash");
+        sentAt = Objects.requireNonNull(replacedAt, "replacedAt");
+        nextAttemptAt = null;
+    }
+
+    /** 더는 기록할 수 없는 서명본을 버리고 새로 서명하도록 전송 대기로 돌린다. */
+    public void discardTransaction(Instant nextAttempt) {
+        if ((status != ChainRecordStatus.PENDING && status != ChainRecordStatus.SENT) || signedTransaction == null) {
+            throw new IllegalStateException("서명본이 있는 전송 대기·전송 기록만 되돌릴 수 있습니다.");
+        }
+        signedTransaction = null;
+        txHash = null;
+        sentAt = null;
+        status = ChainRecordStatus.PENDING;
+        nextAttemptAt = Objects.requireNonNull(nextAttempt, "nextAttempt");
+        retryCount++;
+    }
+
+    public void defer(Instant nextAttempt, boolean failedAttempt) {
+        nextAttemptAt = Objects.requireNonNull(nextAttempt, "nextAttempt");
+        if (failedAttempt) {
+            retryCount++;
+        }
     }
 }

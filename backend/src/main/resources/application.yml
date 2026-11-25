@@ -95,6 +95,13 @@ cors:
   allowed-origins: ${CORS_ALLOWED_ORIGINS:}
 
 visafe:
+  chain:
+    sepolia-enabled: ${SEPOLIA_RECORDING_ENABLED:false}
+    rpc-url: ${SEPOLIA_RPC_URL:}
+    contract-address: ${SEPOLIA_CONTRACT_ADDRESS:}
+    writer-private-key: ${SEPOLIA_WRITER_PRIVATE_KEY:}
+    deployment-block: ${SEPOLIA_DEPLOYMENT_BLOCK:12209375}
+
   # 계약서 원본 저장소 (S3). 버킷 하나를 환경별 key-prefix(local·dev·prod)로 나눠 쓴다.
   # 서버에서는 접근 키를 비워 두고 IAM Role(기본 자격 증명 체인)로 접근한다.
   storage:

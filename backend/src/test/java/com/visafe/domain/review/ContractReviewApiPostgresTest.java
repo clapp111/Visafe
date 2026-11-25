@@ -7,6 +7,8 @@ import static org.hamcrest.Matchers.startsWith;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.Mockito.doThrow;
+import static org.mockito.Mockito.times;
+import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.multipart;
@@ -17,13 +19,18 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 
 import com.jayway.jsonpath.JsonPath;
 import com.visafe.domain.chain.ChainRecordHash;
+import com.visafe.domain.chain.ChainTarget;
 import com.visafe.domain.chain.ConfirmationNumber;
 import com.visafe.domain.chain.EventSnapshot;
 import com.visafe.domain.chain.entity.ChainRecord;
 import com.visafe.domain.chain.enums.ChainRecordStatus;
+import com.visafe.domain.chain.recorder.ChainReceipt;
 import com.visafe.domain.chain.recorder.ChainRecordRequestedEvent;
+import com.visafe.domain.chain.recorder.ChainRecordScheduler;
 import com.visafe.domain.chain.recorder.ChainRecordWorker;
 import com.visafe.domain.chain.recorder.ChainRecorder;
+import com.visafe.domain.chain.recorder.ChainTransactionRecorder;
+import com.visafe.domain.chain.repository.ChainRecordRepository;
 import com.visafe.domain.contract.entity.Contract;
 import com.visafe.domain.contract.entity.ContractEvent;
 import com.visafe.domain.contract.entity.ContractVersion;
@@ -42,16 +49,20 @@ import com.visafe.domain.term.enums.TermField;
 import com.visafe.domain.translation.entity.Translation;
 import com.visafe.domain.translation.translator.ContractTranslationWorker;
 import com.visafe.domain.translation.translator.TranslationRequestedEvent;
+import com.visafe.global.crypto.Keccak256;
 import com.visafe.global.storage.FileStorage;
 import com.visafe.support.PostgresIntegrationTest;
 import jakarta.persistence.EntityManager;
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.nio.charset.StandardCharsets;
+import java.time.Instant;
 import java.util.Arrays;
 import java.util.HashMap;
+import java.util.HexFormat;
 import java.util.List;
 import java.util.Map;
+import java.util.Optional;
 import org.apache.pdfbox.pdmodel.PDDocument;
 import org.apache.pdfbox.pdmodel.PDPage;
 import org.junit.jupiter.api.BeforeEach;
@@ -65,6 +76,7 @@ import org.springframework.test.context.bean.override.mockito.MockitoBean;
 import org.springframework.test.context.bean.override.mockito.MockitoSpyBean;
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.ResultActions;
+import org.springframework.transaction.support.TransactionTemplate;
 
 /**
  * 확인할 계약 내용(W1), 근로자 응답(W2), 확정 기록을 실제 PostgreSQL로 확인한다.
@@ -99,8 +111,17 @@ class ContractReviewApiPostgresTest {
     @Autowired
     private ChainRecordWorker chainRecordWorker;
 
+    @Autowired
+    private ChainRecordRepository chainRecordRepository;
+
+    @Autowired
+    private TransactionTemplate transactions;
+
     @MockitoSpyBean
     private ChainRecorder chainRecorder;
+
+    @MockitoBean
+    private ChainTransactionRecorder chainTransactionRecorder;
 
     @MockitoBean
     private FileStorage fileStorage;
@@ -268,6 +289,84 @@ class ContractReviewApiPostgresTest {
         assertThat(failed.getRetryCount()).isEqualTo(1);
         assertThat(em.find(Contract.class, contract.getId()).getStage()).isEqualTo(ContractStage.RECORDING);
         assertThat(events(contract, ContractEventType.CHAIN_RECORD_FAILED)).hasSize(1);
+    }
+
+    @Test
+    void sepoliaResumesSavedTransactionAndConfirmsOnlyOnce() throws Exception {
+        String address = "0x" + "a".repeat(40);
+        String signed = "0x1234";
+        String txHash = Keccak256.hash(HexFormat.of().parseHex(signed.substring(2)));
+        Contract contract = translatedContract();
+        when(chainTransactionRecorder.configuredTarget()).thenReturn(new ChainTarget(11155111L, address));
+        respond(contract, understoodBody(contract))
+                .andExpect(status().isAccepted())
+                .andExpect(jsonPath("$.stage").value("RECORDING"));
+        em.flush();
+        em.clear();
+
+        ChainRecord pending = chainRecord(contract);
+        var write = new ChainTransactionRecorder.Write(
+                pending.target(), pending.getAnchorKey(), pending.getRecordType(), pending.getRecordHash());
+        assertThat(pending.getContractAddress()).isEqualTo(address);
+        assertThat(pending.getChainId()).isEqualTo(11155111L);
+        when(chainTransactionRecorder.findExisting(write)).thenReturn(Optional.empty());
+        when(chainTransactionRecorder.prepare(write)).thenReturn(signed);
+        when(chainTransactionRecorder.transactionHash(signed)).thenReturn(txHash);
+        when(chainTransactionRecorder.receipt(write, txHash)).thenReturn(Optional.empty());
+        doThrow(new IllegalStateException("RPC 응답 손실"))
+                .doNothing()
+                .when(chainTransactionRecorder)
+                .broadcast(write.target(), signed);
+
+        new ChainRecordScheduler(chainRecordRepository, chainTransactionRecorder, chainRecordWorker, transactions)
+                .poll();
+        em.flush();
+        em.clear();
+        ChainRecord prepared = chainRecord(contract);
+        assertThat(prepared.getStatus()).isEqualTo(ChainRecordStatus.PENDING);
+        assertThat(prepared.getSignedTransaction()).isEqualTo(signed);
+        assertThat(prepared.getRetryCount()).isEqualTo(1);
+        prepared.defer(Instant.EPOCH, false);
+
+        new ChainRecordScheduler(chainRecordRepository, chainTransactionRecorder, chainRecordWorker, transactions)
+                .poll();
+        em.flush();
+        em.clear();
+        ChainRecord sent = chainRecord(contract);
+        assertThat(sent.getStatus()).isEqualTo(ChainRecordStatus.SENT);
+        assertThat(sent.getTxHash()).isEqualTo(txHash);
+        assertThat(em.find(Contract.class, contract.getId()).getStage()).isEqualTo(ContractStage.RECORDING);
+        sent.defer(Instant.EPOCH, false);
+
+        when(chainTransactionRecorder.receipt(write, txHash)).thenReturn(Optional.of(new ChainReceipt(txHash, 42)));
+        var resumed = new ChainRecordScheduler(
+                chainRecordRepository, chainTransactionRecorder, chainRecordWorker, transactions);
+        resumed.poll();
+        resumed.poll();
+        em.flush();
+        em.clear();
+
+        ChainRecord mined = chainRecord(contract);
+        assertThat(mined.getStatus()).isEqualTo(ChainRecordStatus.MINED);
+        assertThat(mined.getBlockNumber()).isEqualTo(42L);
+        assertThat(mined.getSignedTransaction()).isNull();
+        assertThat(em.find(Contract.class, contract.getId()).getStage()).isEqualTo(ContractStage.DONE);
+        assertThat(events(contract, ContractEventType.CONFIRMED)).hasSize(1);
+        assertThat(notifications(contract, NotificationType.CONTRACT_CONFIRMED)).hasSize(2);
+        verify(chainTransactionRecorder).prepare(write);
+        verify(chainTransactionRecorder, times(2)).broadcast(write.target(), signed);
+
+        String confirmationNo = em.find(Contract.class, contract.getId()).getConfirmationNo();
+        when(chainTransactionRecorder.readRecordHash(write.target(), write.anchorKey(), write.recordType()))
+                .thenReturn(Optional.of(write.recordHash()), Optional.of("0x" + "f".repeat(64)))
+                .thenThrow(new IllegalStateException("RPC 장애"));
+        for (String expected : List.of("VERIFIED", "MISMATCH", "UNAVAILABLE")) {
+            mockMvc.perform(get("/api/v1/lookup/{confirmationNo}", confirmationNo))
+                    .andExpect(status().isOk())
+                    .andExpect(jsonPath("$.integrity.status").value(expected))
+                    .andExpect(jsonPath("$.chainRecords[0].explorerUrl")
+                            .value("https://sepolia.etherscan.io/tx/" + txHash));
+        }
     }
 
     @Test

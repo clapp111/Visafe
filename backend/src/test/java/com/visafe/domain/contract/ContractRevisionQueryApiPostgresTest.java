@@ -272,8 +272,8 @@ class ContractRevisionQueryApiPostgresTest {
 
         assertThat(worker.<String>read("$.chainRecords[0].recordType")).isEqualTo("CONFIRM");
         assertThat(worker.<String>read("$.chainRecords[0].status")).isEqualTo("MINED");
-        assertThat(worker.<String>read("$.chainRecords[0].explorerUrl"))
-                .isEqualTo("https://sepolia.etherscan.io/tx/" + worker.read("$.chainRecords[0].txHash"));
+        assertThat(worker.<String>read("$.chainRecords[0].network")).isEqualTo("stub");
+        assertThat(worker.<String>read("$.chainRecords[0].explorerUrl")).isNull();
         assertThat(worker.<Object>read("$.termination")).isNull();
         assertThat(worker.<List<String>>read("$.availableActions"))
                 .containsExactly("REQUEST_TERMINATION", "DOWNLOAD_FILE");

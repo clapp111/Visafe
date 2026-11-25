@@ -10,6 +10,6 @@ public enum ChainRecordStatus {
     SENT,
     /** 블록에 포함됨 (block_number, mined_at 있음) */
     MINED,
-    /** 실패 (재시도 대상) */
+    /** 실패 (온체인에서 거절되어 다시 보내지 않음) */
     FAILED
 }

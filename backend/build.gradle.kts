@@ -56,6 +56,7 @@ dependencies {
 
     // keccak256 (파일 해시, 블록체인 기록)
     implementation("org.bouncycastle:bcprov-jdk18on:1.86")
+    implementation("org.web3j:core:5.0.3")
 
     // 계약서 원본 PDF 쪽 수
     implementation("org.apache.pdfbox:pdfbox:3.0.8")

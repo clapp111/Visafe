@@ -5,6 +5,7 @@ import com.visafe.domain.chain.ConfirmationNumber;
 import com.visafe.domain.chain.entity.ChainRecord;
 import com.visafe.domain.chain.enums.RecordType;
 import com.visafe.domain.chain.recorder.ChainRecorder;
+import com.visafe.domain.chain.recorder.ChainTransactionRecorder;
 import com.visafe.domain.chain.repository.ChainRecordRepository;
 import com.visafe.domain.contract.dto.response.ContractDetailResponse.ChainRecordItem;
 import com.visafe.domain.contract.entity.Contract;
@@ -74,6 +75,7 @@ public class LookupService {
     private final TranslationClauseRepository translationClauseRepository;
     private final TranslationItemRepository translationItemRepository;
     private final ChainRecorder chainRecorder;
+    private final Optional<ChainTransactionRecorder> chainTransactionRecorder;
 
     // =========================================================================
     // ============================= 주요 서비스 기능 =============================
@@ -210,8 +212,7 @@ public class LookupService {
         ChainRecord record = confirmRecord.get();
         String expected = recomputeRecordHash(contract, version, terms, record);
         try {
-            IntegrityStatus status = chainRecorder
-                    .readRecordHash(record.getAnchorKey(), RecordType.CONFIRM)
+            IntegrityStatus status = readRecordHash(record)
                     .filter(expected::equals)
                     .map(onChain -> IntegrityStatus.VERIFIED)
                     .orElse(IntegrityStatus.MISMATCH);
@@ -220,6 +221,24 @@ public class LookupService {
             log.warn("[공개 조회] 온체인 기록을 읽지 못함 - contractId={}", contract.getId(), e);
             return new Integrity(IntegrityStatus.UNAVAILABLE, checkedAt);
         }
+    }
+
+    /**
+     * 확정 기록이 저장된 레지스트리에서 묶음 해시를 읽는다.
+     *
+     * @param record 확정 기록
+     * @return 읽은 해시 또는 기록 없음
+     */
+    private Optional<String> readRecordHash(ChainRecord record) {
+        if (record.target() != null && chainTransactionRecorder.isPresent()) {
+            return chainTransactionRecorder
+                    .get()
+                    .readRecordHash(record.target(), record.getAnchorKey(), RecordType.CONFIRM);
+        }
+        if (record.target() == null && chainTransactionRecorder.isEmpty()) {
+            return chainRecorder.readRecordHash(record.getAnchorKey(), RecordType.CONFIRM);
+        }
+        throw new IllegalStateException("이 확정 기록에 대한 체인 조회를 사용할 수 없습니다.");
     }
 
     /**

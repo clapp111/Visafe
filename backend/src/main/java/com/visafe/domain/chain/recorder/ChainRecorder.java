@@ -4,7 +4,7 @@ import com.visafe.domain.chain.enums.RecordType;
 import java.util.Optional;
 
 /**
- * 묶음 해시를 블록체인에 기록한다. 실제 Sepolia 연동 전까지는 {@link StubChainRecorder}를 쓴다.
+ * 로컬 스텁 기록을 저장하고 조회한다. 실제 Sepolia 기록은 {@link ChainTransactionRecorder}와 {@link ChainRecordScheduler}가 처리한다.
  */
 public interface ChainRecorder {
 
