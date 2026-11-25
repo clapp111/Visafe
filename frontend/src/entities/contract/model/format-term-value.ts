@@ -1,3 +1,4 @@
+import type { UiLanguage } from "@/shared/i18n";
 import { formatDate } from "@/shared/lib";
 
 /** 항목 값 글자 (화면 언어별 문구를 넘긴다) */
@@ -19,6 +20,7 @@ export function formatTermValue(
   key: string | undefined,
   value: string | number | null | undefined,
   labels: TermValueLabels,
+  language: UiLanguage = "ko",
 ) {
   if (value === null || value === undefined || value === "") {
     return labels.noValue;
@@ -29,7 +31,7 @@ export function formatTermValue(
   switch (key) {
     case "startDate":
     case "endDate":
-      return formatDate(String(value));
+      return formatDate(String(value), language);
     case "monthlyBaseWage":
       return isNumber
         ? labels.units.won(number.toLocaleString("ko-KR"))
