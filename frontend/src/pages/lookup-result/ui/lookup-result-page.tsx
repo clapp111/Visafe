@@ -7,6 +7,7 @@ import { useFileCheck, useLookup } from "@/entities/contract";
 import { LookupForm } from "@/features/lookup-contract";
 import { getApiErrorCode, getApiErrorFeedback } from "@/shared/api";
 import { routes } from "@/shared/config";
+import { useCurrentLanguage } from "@/shared/i18n";
 import { formatDate } from "@/shared/lib";
 import { ErrorState, LoadingState } from "@/shared/ui";
 import { ChainRecordsTable, HistoryList } from "@/widgets/contract-records";
@@ -19,7 +20,8 @@ import { ResultSection } from "./result-section";
 import { StatusCard } from "./status-card";
 
 function ContractFileCheck({ confirmationNo }: { confirmationNo: string }) {
-  const labels = LOOKUP_RESULT_LABELS;
+  const language = useCurrentLanguage();
+  const labels = LOOKUP_RESULT_LABELS[language];
   const mutation = useFileCheck(confirmationNo);
   const [hashStatus, setHashStatus] = useState<"idle" | "hashing" | "error">(
     "idle",
@@ -52,7 +54,7 @@ function ContractFileCheck({ confirmationNo }: { confirmationNo: string }) {
     hashStatus === "error"
       ? labels.fileReadError
       : mutation.isError
-        ? getApiErrorFeedback(getApiErrorCode(mutation.error), "ko").message
+        ? getApiErrorFeedback(getApiErrorCode(mutation.error), language).message
         : undefined;
 
   return (
@@ -71,7 +73,8 @@ export function LookupResultPage({
 }: {
   confirmationNo: string;
 }) {
-  const labels = LOOKUP_RESULT_LABELS;
+  const language = useCurrentLanguage();
+  const labels = LOOKUP_RESULT_LABELS[language];
   const router = useRouter();
   const {
     data: result,
@@ -134,7 +137,7 @@ export function LookupResultPage({
         <NotFoundGuide labels={labels} />
       ) : isError ? (
         <ErrorState
-          title={getApiErrorFeedback(undefined, "ko").message}
+          title={getApiErrorFeedback(undefined, language).message}
           onRetry={refetch}
         />
       ) : result ? (
@@ -149,7 +152,9 @@ export function LookupResultPage({
               </strong>
               {termination.endDate && (
                 <span className="text-sm text-muted">
-                  {labels.terminationEndDate(formatDate(termination.endDate))}
+                  {labels.terminationEndDate(
+                    formatDate(termination.endDate, language),
+                  )}
                 </span>
               )}
               <span className="text-sm text-muted">

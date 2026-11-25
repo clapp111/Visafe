@@ -12,6 +12,7 @@ import {
 } from "@/entities/contract";
 import { getApiErrorCode, getApiErrorFeedback } from "@/shared/api";
 import { routes } from "@/shared/config";
+import { useCurrentLanguage } from "@/shared/i18n";
 import { Alert, buttonClass, ErrorState, LoadingState } from "@/shared/ui";
 import { ContractFileViewer } from "@/widgets/contract-file-viewer";
 import { CONTRACT_REVIEW_LABELS } from "../model/labels";
@@ -24,7 +25,8 @@ import { ReviewItemsSection } from "./review-items-section";
 import { ReviewSummary } from "./review-summary";
 
 export function ContractReviewPage({ contractId }: { contractId: number }) {
-  const labels = CONTRACT_REVIEW_LABELS;
+  const language = useCurrentLanguage();
+  const labels = CONTRACT_REVIEW_LABELS[language];
   const router = useRouter();
   const reviewQuery = useContractReview(contractId);
   const questionsQuery = useContractQuestions(contractId);
@@ -51,7 +53,8 @@ export function ContractReviewPage({ contractId }: { contractId: number }) {
       <ErrorState
         title={labels.loadError}
         message={
-          getApiErrorFeedback(getApiErrorCode(reviewQuery.error), "ko").message
+          getApiErrorFeedback(getApiErrorCode(reviewQuery.error), language)
+            .message
         }
         onRetry={() => void reviewQuery.refetch()}
       />
@@ -162,7 +165,8 @@ export function ContractReviewPage({ contractId }: { contractId: number }) {
             pendingQuestion={ask.isPending ? ask.variables : undefined}
             errorMessage={
               ask.isError
-                ? getApiErrorFeedback(getApiErrorCode(ask.error), "ko").message
+                ? getApiErrorFeedback(getApiErrorCode(ask.error), language)
+                    .message
                 : undefined
             }
             onShowSource={setPage}
@@ -203,7 +207,7 @@ export function ContractReviewPage({ contractId }: { contractId: number }) {
               error={
                 confirmation.isError
                   ? {
-                      message: getApiErrorFeedback(responseErrorCode, "ko")
+                      message: getApiErrorFeedback(responseErrorCode, language)
                         .message,
                       onReload: canReload
                         ? () => {
@@ -253,7 +257,8 @@ export function ContractReviewPage({ contractId }: { contractId: number }) {
           isSubmitting={report.isPending}
           errorMessage={
             report.isError
-              ? getApiErrorFeedback(getApiErrorCode(report.error), "ko").message
+              ? getApiErrorFeedback(getApiErrorCode(report.error), language)
+                  .message
               : undefined
           }
           labels={labels}

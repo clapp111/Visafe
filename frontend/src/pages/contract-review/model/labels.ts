@@ -1,10 +1,10 @@
 import type { FieldGroupId } from "@/entities/contract";
 import type { components } from "@/shared/api";
+import type { UiLanguage } from "@/shared/i18n";
 
 type Review = components["schemas"]["ContractReviewResponse"];
 
-/** 근로자 계약 내용 확인 문구. 화면 언어(#77)가 붙으면 언어별 값으로 바꾼다. */
-export const CONTRACT_REVIEW_LABELS = {
+const ko = {
   breadcrumb: "현재 위치",
   home: "홈",
   contracts: "내 계약",
@@ -152,4 +152,157 @@ export const CONTRACT_REVIEW_LABELS = {
   toContracts: "내 계약으로",
 };
 
-export type ContractReviewLabels = typeof CONTRACT_REVIEW_LABELS;
+export type ContractReviewLabels = typeof ko;
+
+/** 근로자 계약 내용 확인 문구 */
+export const CONTRACT_REVIEW_LABELS = {
+  ko,
+  vi: {
+    breadcrumb: "Vị trí hiện tại",
+    home: "Trang chủ",
+    contracts: "Hợp đồng của tôi",
+    title: "Xác nhận nội dung hợp đồng lao động",
+    description:
+      "Người sử dụng lao động đã yêu cầu bạn xác nhận hợp đồng lao động. Hãy đọc kỹ nội dung và cho biết bạn đã hiểu hay chưa.",
+    loading: "Đang tải nội dung hợp đồng",
+    loadError: "Không thể tải nội dung hợp đồng",
+
+    summary: {
+      employer: "Người sử dụng lao động",
+      requestedAt: "Thời điểm yêu cầu",
+      contractNo: "Số hợp đồng",
+      status: "Trạng thái",
+    },
+    statuses: {
+      IN_PROGRESS: "Đang xử lý",
+      CONFIRMED: "Đã xác nhận",
+      TERMINATED: "Đã chấm dứt",
+    },
+
+    viewerHint: "Hãy so sánh phần giải thích các mục với bản gốc.",
+    viewerPreview: (page: number) => `Xem trước trang ${page} của hợp đồng gốc`,
+    viewerDownload: "Tải xuống bản gốc",
+
+    keyTermsTitle: "3 điều cần kiểm tra",
+    keyTerms: {
+      wage: "Lương cơ bản hằng tháng",
+      hours: "Giờ làm việc",
+      period: "Thời hạn hợp đồng",
+    },
+    needsCheck: "Cần kiểm tra",
+    weeklyHours: (hours: number) => `${hours} giờ/tuần`,
+    breakTime: "Nghỉ giải lao",
+    aboutYears: (years: number) => `khoảng ${years} năm`,
+    aboutMonths: (months: number) => `khoảng ${months} tháng`,
+    noEndDate: "Không xác định thời hạn",
+
+    minWageTitle: "Lương cơ bản hằng tháng có thể thấp hơn mức lương tối thiểu",
+    minWageHelp:
+      "Kết quả có thể khác tùy việc có tính tiền ăn ở hay không. Nếu có thắc mắc, hãy liên hệ Trung tâm tư vấn của Bộ Việc làm và Lao động Hàn Quốc (gọi 1350, không cần mã vùng).",
+
+    groups: {
+      parties: "Các bên trong hợp đồng",
+      period: "Thời hạn hợp đồng · Nơi làm việc",
+      hours: "Giờ làm việc · Ngày nghỉ",
+      wage: "Tiền lương · Ăn ở",
+    },
+    employerInput: "Người sử dụng lao động nhập",
+    employerInputOpen: "Xem chi tiết phần người sử dụng lao động nhập",
+    employerInputClose: "Thu gọn phần người sử dụng lao động nhập",
+    aiValue: "Giá trị AI đọc từ bản gốc:",
+    aiUnread: "Không đọc được",
+    employerValue: "Giá trị người sử dụng lao động nhập:",
+    showSource: (pageNo: number) => `Xem trang ${pageNo} bản gốc`,
+    noValue: "Không có trong hợp đồng",
+    units: {
+      won: (amount: string) => `${amount} won`,
+      minutes: (minutes: number) => `${minutes} phút`,
+      daysPerWeek: (days: number) => `${days} ngày/tuần`,
+      payDay: (day: number) => `ngày ${day} hằng tháng`,
+    },
+
+    clausesTitle: (count: number) =>
+      `Nguyên văn và bản dịch theo điều khoản (${count})`,
+    clausesOpen: "Mở các điều khoản",
+    clausesClose: "Thu gọn các điều khoản",
+    clausesHint:
+      "Đây là nguyên văn câu chữ trong hợp đồng và bản dịch. Nếu phần giải thích các mục ở trên khác với nguyên văn, hãy báo bằng nút Khác với bản gốc.",
+    clauseTitle: (seq: number, clauseNo?: string | null) =>
+      clauseNo
+        ? /^\d+$/.test(clauseNo)
+          ? `Điều ${clauseNo}`
+          : clauseNo
+        : `Câu thứ ${seq}`,
+    original: "Nguyên văn",
+    translation: "Bản dịch",
+    noTranslation: "Chưa có bản dịch.",
+
+    questionsTitle: "Hỏi về hợp đồng",
+    questionsHint:
+      "Câu trả lời dựa trên nội dung của hợp đồng này và hiển thị kèm câu nguyên văn làm căn cứ. Với nội dung cần đánh giá pháp lý, hãy liên hệ trung tâm tư vấn.",
+    questionSuggestions: [
+      "Làm thêm giờ có được trả thêm tiền không?",
+      "Tôi được nghỉ phép bao nhiêu ngày?",
+      "Tôi có thể chấm dứt hợp đồng giữa chừng không?",
+    ],
+    questionsList: "Câu hỏi và câu trả lời",
+    questionInput: "Nhập câu hỏi",
+    questionPlaceholder: "Nhập điều bạn muốn hỏi",
+    ask: "Hỏi",
+    answering: "Đang tạo câu trả lời (tối đa 20 giây)",
+    answerFailed:
+      "Không thể tạo câu trả lời. Hãy hỏi lại sau ít phút hoặc liên hệ Trung tâm tư vấn của Bộ Việc làm và Lao động Hàn Quốc (gọi 1350, không cần mã vùng).",
+    centerNotice:
+      "Để biết thêm chi tiết, hãy liên hệ Trung tâm tư vấn của Bộ Việc làm và Lao động Hàn Quốc (gọi 1350, không cần mã vùng).",
+
+    confirmTitle: "Bạn đã hiểu nội dung chưa?",
+    confirmDescription: [
+      "Khi bấm Tôi đã hiểu, ",
+      "hợp đồng sẽ được xác nhận theo nội dung bạn vừa xem và ghi lên blockchain; sau đó không thể thay đổi nội dung.",
+      " Nếu điều kiện lao động thay đổi, bạn sẽ xác nhận lại bằng hợp đồng mới. Nếu có phần khác với hợp đồng gốc, hãy bấm Khác với bản gốc để báo.",
+    ],
+    confirmCheck: "Tôi đã đọc toàn bộ nội dung hợp đồng và đã hiểu.",
+    confirmRequired: "Hãy đánh dấu sau khi đã đọc toàn bộ nội dung hợp đồng.",
+    report: "Khác với bản gốc",
+    understood: "Tôi đã hiểu",
+    submitting: "Đang gửi",
+    responseError: "Không thể gửi câu trả lời",
+    reload: "Tải nội dung mới nhất",
+
+    cannotRespondTitle: "Hiện không thể trả lời hợp đồng này",
+    cannotRespondDescription:
+      "Bạn đã trả lời rồi hoặc người sử dụng lao động đang sửa nội dung. Hãy xem tiến trình tại Chi tiết hợp đồng.",
+    contractDetail: "Xem chi tiết hợp đồng",
+
+    reportTitle: "Hãy cho biết phần khác với bản gốc",
+    reportDescription:
+      "Hãy chọn các mục khác với hợp đồng gốc. Thông tin sẽ được gửi cho người sử dụng lao động và hợp đồng sẽ quay lại bước người sử dụng lao động kiểm tra.",
+    reportItemsLegend: "Các mục khác (có thể chọn nhiều)",
+    reportChoices: {
+      employer: "Người sử dụng lao động (chủ doanh nghiệp)",
+      employerAddress: "Địa chỉ nơi làm việc của doanh nghiệp",
+      worker: "Người lao động",
+      period: "Thời hạn hợp đồng",
+      workPlace: "Nơi làm việc",
+      jobDescription: "Nội dung công việc",
+      workHours: "Giờ làm việc",
+      breakMinutes: "Thời gian nghỉ giải lao",
+      weeklyHoliday: "Ngày nghỉ hằng tuần",
+      monthlyBaseWage: "Lương cơ bản hằng tháng",
+      payment: "Ngày trả lương · Cách trả lương",
+      accommodation: "Cung cấp chỗ ăn ở",
+    },
+    reportItemsRequired: "Hãy chọn ít nhất một mục khác với bản gốc.",
+    reportReason: "Khác ở điểm nào?",
+    reportReasonOptional: "(không bắt buộc)",
+    reportReasonHint:
+      "Bạn có thể viết bằng tiếng Việt. Người sử dụng lao động sẽ nhận được kèm bản dịch tiếng Hàn.",
+    cancel: "Hủy",
+    send: "Gửi",
+
+    reportedTitle: "Đã gửi phần khác với bản gốc cho người sử dụng lao động",
+    reportedDescription:
+      "Khi người sử dụng lao động so sánh với bản gốc, sửa lại và yêu cầu xác nhận lại, việc cần xác nhận sẽ hiện tại Hợp đồng của tôi.",
+    toContracts: "Đến Hợp đồng của tôi",
+  },
+} satisfies Record<UiLanguage, ContractReviewLabels>;

@@ -1,21 +1,21 @@
+"use client";
+
 import type { ReactNode } from "react";
+import { messages, useCurrentLanguage } from "@/shared/i18n";
 import { Button } from "../button";
 import { ErrorIcon, InfoIcon } from "../icons";
 
 const BOX = "flex flex-col items-center gap-3 px-6 py-16 text-center";
 
-export function LoadingState({
-  label = "불러오는 중입니다",
-}: {
-  label?: string;
-}) {
+export function LoadingState({ label }: { label?: string }) {
+  const text = messages[useCurrentLanguage()];
   return (
     <div role="status" className={BOX}>
       <span
         aria-hidden="true"
         className="size-10 animate-spin rounded-full border-4 border-divider border-t-primary"
       />
-      <span className="text-muted">{label}</span>
+      <span className="text-muted">{label ?? text.loading}</span>
     </div>
   );
 }
@@ -43,13 +43,14 @@ export function ErrorState({
   title,
   message,
   onRetry,
-  retryLabel = "다시 시도",
+  retryLabel,
 }: {
   title: ReactNode;
   message?: ReactNode;
   onRetry?: () => void;
   retryLabel?: string;
 }) {
+  const text = messages[useCurrentLanguage()];
   return (
     <div role="alert" className={BOX}>
       <ErrorIcon size={40} className="text-danger" />
@@ -57,7 +58,7 @@ export function ErrorState({
       {message && <p className="text-muted">{message}</p>}
       {onRetry && (
         <Button variant="secondary" size="md" onClick={onRetry}>
-          {retryLabel}
+          {retryLabel ?? text.retry}
         </Button>
       )}
     </div>

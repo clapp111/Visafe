@@ -1,9 +1,9 @@
 import type { components } from "@/shared/api";
+import type { UiLanguage } from "@/shared/i18n";
 
 type Item = components["schemas"]["ContractListResponseItem"];
 
-/** 내 계약 목록 문구. 화면 언어(#54)가 붙으면 언어별 값으로 바꾼다. */
-export const CONTRACT_LIST_LABELS = {
+const ko = {
   breadcrumb: "현재 위치",
   home: "홈",
   title: "내 계약",
@@ -77,4 +77,87 @@ export const CONTRACT_LIST_LABELS = {
   pageStatus: (page: number, total: number) => `${page} / ${total}쪽`,
 };
 
-export type ContractListLabels = typeof CONTRACT_LIST_LABELS;
+export type ContractListLabels = typeof ko;
+
+/** 내 계약 목록 문구 */
+export const CONTRACT_LIST_LABELS = {
+  ko,
+  vi: {
+    breadcrumb: "Vị trí hiện tại",
+    home: "Trang chủ",
+    title: "Hợp đồng của tôi",
+    description: {
+      EMPLOYER: "Các hợp đồng lao động do doanh nghiệp của chúng tôi đăng ký.",
+      WORKER:
+        "Các hợp đồng lao động bạn đã ký. Bấm vào hợp đồng để xem nội dung và lịch sử xác nhận.",
+    },
+    newContract: "Đăng ký hợp đồng mới",
+    loading: "Đang tải danh sách hợp đồng",
+    loadError: "Không thể tải danh sách hợp đồng",
+    revisionError: "Không thể bắt đầu sửa hợp đồng",
+    todoBanner: (count: number) => `Có ${count} hợp đồng cần bạn xử lý`,
+    todoBannerAction: "Xử lý ngay",
+
+    filterLabel: "Lọc theo trạng thái",
+    filters: {
+      all: "Tất cả",
+      IN_PROGRESS: "Đang xử lý",
+      CONFIRMED: "Đã xác nhận",
+      TERMINATED: "Đã chấm dứt",
+    },
+
+    caption: {
+      EMPLOYER: "Danh sách hợp đồng đã đăng ký",
+      WORKER: "Danh sách hợp đồng của tôi",
+    },
+    columns: {
+      contractNo: "Số hợp đồng",
+      counterparty: {
+        EMPLOYER: "Người lao động",
+        WORKER: "Người sử dụng lao động",
+      },
+      period: "Thời hạn hợp đồng",
+      status: "Trạng thái",
+      todo: "Việc cần làm",
+      action: "Xem",
+    },
+    statuses: {
+      IN_PROGRESS: "Đang xử lý",
+      CONFIRMED: "Đã xác nhận",
+      TERMINATED: "Đã chấm dứt",
+    },
+    noPeriod: "Chưa trích xuất",
+    noTodo: "Không có",
+    todos: {
+      FIX_REQUIRED: { tag: "Cần sửa", action: "Sửa" },
+      REVIEW_INCOMPLETE: { tag: "Đang kiểm tra", action: "Kiểm tra tiếp" },
+      EXTRACTION_FAILED: { tag: "Trích xuất thất bại", action: "Xem" },
+      TRANSLATION_FAILED: { tag: "Dịch thất bại", action: "Xem" },
+      CONFIRM_REQUIRED: { tag: "Cần xác nhận", action: "Xác nhận" },
+      TERMINATION_RESPONSE: {
+        tag: "Cần trả lời yêu cầu chấm dứt",
+        action: "Xem",
+      },
+    },
+    detail: "Chi tiết",
+    workerHint:
+      "Khi điều kiện lao động thay đổi, hợp đồng cũ được giữ nguyên và ký hợp đồng mới. Khi hợp đồng mới được xác nhận, hợp đồng cũ sẽ chấm dứt.",
+
+    empty: {
+      EMPLOYER: "Chưa có hợp đồng nào được đăng ký",
+      WORKER: "Bạn chưa có hợp đồng nào",
+    },
+    emptyHint: {
+      EMPLOYER:
+        "Hãy tải lên hợp đồng lao động gốc để đăng ký hợp đồng đầu tiên.",
+      WORKER:
+        "Khi người sử dụng lao động đăng ký hợp đồng và yêu cầu xác nhận, hợp đồng sẽ hiện ở đây.",
+    },
+    emptyFiltered: "Không có hợp đồng ở trạng thái này",
+
+    pagination: "Chuyển trang danh sách",
+    previousPage: "Trước",
+    nextPage: "Sau",
+    pageStatus: (page: number, total: number) => `Trang ${page} / ${total}`,
+  },
+} satisfies Record<UiLanguage, ContractListLabels>;

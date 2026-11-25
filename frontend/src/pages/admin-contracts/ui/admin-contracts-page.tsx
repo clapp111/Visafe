@@ -15,6 +15,7 @@ import {
   Pagination,
   TextField,
 } from "@/shared/ui";
+import { useCurrentLanguage } from "@/shared/i18n";
 import {
   ADMIN_CONTRACTS_LABELS,
   type AdminContractsLabels,
@@ -31,7 +32,8 @@ export function AdminContractsPage() {
 }
 
 function AdminContractsList({ view, q }: { view: AdminView; q: string }) {
-  const labels = ADMIN_CONTRACTS_LABELS;
+  const language = useCurrentLanguage();
+  const labels = ADMIN_CONTRACTS_LABELS[language];
   const router = useRouter();
   const pathname = usePathname() ?? routes.adminContracts;
   const [page, setPage] = useState(0);
@@ -45,7 +47,8 @@ function AdminContractsList({ view, q }: { view: AdminView; q: string }) {
       <ErrorState
         title={labels.loadError}
         message={
-          getApiErrorFeedback(getApiErrorCode(listQuery.error), "ko").message
+          getApiErrorFeedback(getApiErrorCode(listQuery.error), language)
+            .message
         }
         onRetry={() => void listQuery.refetch()}
       />

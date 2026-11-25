@@ -1,4 +1,7 @@
+"use client";
+
 import type { ReactNode } from "react";
+import { messages, useCurrentLanguage } from "@/shared/i18n";
 import { cn } from "@/shared/lib";
 import { CircleCheckIcon, CloseIcon, ErrorIcon, InfoIcon } from "../icons";
 
@@ -22,10 +25,11 @@ export interface ToastProps {
 export function Toast({
   tone = "info",
   onClose,
-  closeLabel = "닫기",
+  closeLabel,
   className,
   children,
 }: ToastProps) {
+  const text = messages[useCurrentLanguage()];
   const { Icon, icon } = TONE[tone];
   return (
     <div
@@ -40,7 +44,7 @@ export function Toast({
       {onClose && (
         <button
           type="button"
-          aria-label={closeLabel}
+          aria-label={closeLabel ?? text.close}
           onClick={onClose}
           className="flex size-11 shrink-0 cursor-pointer items-center justify-center"
         >

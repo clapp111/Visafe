@@ -1,4 +1,5 @@
 import type { components } from "@/shared/api";
+import type { UiLanguage } from "@/shared/i18n";
 import { formatDateTime } from "@/shared/lib";
 import type { StepListItem } from "@/shared/ui";
 import type { ContractReviewDoneLabels, ReviewDonePhase } from "./labels";
@@ -25,11 +26,12 @@ export function buildReviewDoneSteps(
   detail: Detail,
   phase: ReviewDonePhase,
   labels: ContractReviewDoneLabels,
+  language: UiLanguage,
 ): StepListItem[] {
   const { steps, stepStatuses } = labels;
   const at = (type: EventType) => {
     const occurredAt = lastEvent(detail, type)?.occurredAt;
-    return occurredAt && formatDateTime(occurredAt);
+    return occurredAt && formatDateTime(occurredAt, language);
   };
   const filled = (detail.terms ?? []).filter(
     (term) => term.value !== null && term.value !== undefined,

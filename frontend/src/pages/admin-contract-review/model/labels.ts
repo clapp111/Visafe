@@ -1,12 +1,12 @@
 import type { TermValueLabels } from "@/entities/contract";
 import type { components } from "@/shared/api";
+import type { UiLanguage } from "@/shared/i18n";
 
 type Stage = NonNullable<
   components["schemas"]["AdminContractDetailResponse"]["stage"]
 >;
 
-/** 감독 기관 계약 검토 문구. 화면 언어(#77)가 붙으면 언어별 값으로 바꾼다. */
-export const ADMIN_CONTRACT_REVIEW_LABELS = {
+const ko = {
   breadcrumb: "현재 위치",
   home: "홈",
   list: "확인 대기 목록",
@@ -94,4 +94,98 @@ export const ADMIN_CONTRACT_REVIEW_LABELS = {
   rejecting: "반려하는 중",
 } satisfies TermValueLabels & Record<string, unknown>;
 
-export type AdminContractReviewLabels = typeof ADMIN_CONTRACT_REVIEW_LABELS;
+export type AdminContractReviewLabels = typeof ko;
+
+/** 감독 기관 계약 검토 문구 */
+export const ADMIN_CONTRACT_REVIEW_LABELS = {
+  ko,
+  vi: {
+    breadcrumb: "Vị trí hiện tại",
+    home: "Trang chủ",
+    list: "Danh sách chờ xác nhận",
+    title: "Kiểm tra hợp đồng",
+    description:
+      "Hãy so sánh hợp đồng gốc với các mục sẽ xác nhận, rồi xác nhận hoặc trả lại.",
+    loading: "Đang tải hợp đồng",
+    loadError: "Không thể tải hợp đồng",
+
+    summary: {
+      contractNo: "Số hợp đồng",
+      employer: "Người sử dụng lao động",
+      worker: "Người lao động",
+      stage: "Trạng thái",
+    },
+    stages: {
+      UPLOADED: "Người sử dụng lao động đang đăng ký",
+      REVIEWING: "Người sử dụng lao động đang kiểm tra",
+      TRANSLATING: "Đang dịch",
+      AWAITING_WORKER: "Chờ người lao động xác nhận",
+      RETURNED: "Đã trả lại người sử dụng lao động",
+      AUTHORITY_REVIEW: "Chờ cơ quan kiểm tra",
+      RECORDING: "Đang ghi lên blockchain",
+      DONE: "Đã xác nhận",
+      ENDED: "Đã chấm dứt",
+    },
+
+    viewerHint: "Hãy so sánh với các mục bên phải.",
+    viewerPreview: (page: number) => `Xem trước trang ${page} của hợp đồng gốc`,
+    viewerDownload: "Tải xuống bản gốc",
+
+    attentionTitle: (count: number) => `Có ${count} mục cần kiểm tra`,
+    warningTag: "Cần kiểm tra",
+    employerTag: "Người sử dụng lao động nhập",
+    employerReason: "Khác với giá trị AI",
+    attentionHint:
+      "Vẫn có thể xác nhận dù còn cảnh báo. Cảnh báo vẫn được lưu trong lịch sử sau khi xác nhận.",
+
+    fieldsTitle: "Các mục sẽ xác nhận",
+    fieldsCaption:
+      "Các mục hợp đồng do người sử dụng lao động gửi và người lao động đã xác nhận",
+    columns: { label: "Mục", value: "Giá trị cuối cùng", note: "Ghi chú" },
+    aiValue: (value: string) => `Giá trị AI đọc được: ${value}`,
+    aiUnread: "Không đọc được",
+    showSource: (pageNo: number) => `Bản gốc trang ${pageNo}`,
+    noValue: "Không có",
+    units: {
+      won: (amount: string) => `${amount} won`,
+      minutes: (minutes: number) => `${minutes} phút`,
+      daysPerWeek: (days: number) => `${days} ngày/tuần`,
+      payDay: (day: number) => `ngày ${day} hằng tháng`,
+    },
+
+    editLogsTitle: "Lịch sử sửa các mục",
+    editLogsEmpty: "Người sử dụng lao động không sửa mục nào.",
+    editLog: (before: string, after: string) => `${before} → ${after}`,
+    historyTitle: "Lịch sử xử lý",
+
+    actionTitle: "Xác nhận hợp đồng này?",
+    actionDescription:
+      "Sau khi xác nhận, không thể thay đổi nội dung. Nếu điều kiện thay đổi, phải đăng ký hợp đồng mới. Nếu trả lại, hợp đồng sẽ quay về người sử dụng lao động kèm lý do.",
+    reject: "Trả lại",
+    approve: "Xác nhận",
+    reviewedTitle: "Hiện không thể xác nhận hoặc trả lại hợp đồng này",
+    reviewedDescription:
+      "Hợp đồng không ở bước cơ quan kiểm tra. Hãy xem tiến trình trong lịch sử xử lý bên dưới.",
+
+    approveTitle: "Xác nhận hợp đồng này?",
+    remainingWarnings: "Cảnh báo còn lại",
+    noWarnings: "Không có",
+    warningsValue: (names: string) => `${names} · được lưu trong lịch sử`,
+    approveNotes: [
+      "Sau khi xác nhận, không thể thay đổi nội dung.",
+      "Mã băm của bản gốc, các mục đã xác nhận và bản dịch được ghi lên blockchain (Sepolia testnet).",
+      "Khi ghi xong, mã xác nhận được cấp và gửi cho người sử dụng lao động và người lao động.",
+    ],
+    cancel: "Hủy",
+    approving: "Đang xác nhận",
+
+    rejectTitle: "Nhập lý do trả lại",
+    rejectDescription:
+      "Lý do sẽ được gửi cho người sử dụng lao động. Hợp đồng quay về bước kiểm tra các mục đã trích xuất của người sử dụng lao động; khi người sử dụng lao động sửa và gửi lại, người lao động sẽ xác nhận lại.",
+    rejectReason: "Lý do trả lại",
+    rejectReasonHint: "Bắt buộc phải nhập lý do trả lại.",
+    rejectReasonRequired: "Vui lòng nhập lý do trả lại.",
+    rejectSubmit: "Trả lại",
+    rejecting: "Đang trả lại",
+  },
+} satisfies Record<UiLanguage, AdminContractReviewLabels>;

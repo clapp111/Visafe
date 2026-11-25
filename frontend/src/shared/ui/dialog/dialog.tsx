@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useId, useRef, type ReactNode } from "react";
+import { messages, useCurrentLanguage } from "@/shared/i18n";
 import { cn } from "@/shared/lib";
 import { CloseIcon } from "../icons";
 
@@ -26,9 +27,10 @@ export function Dialog({
   description,
   actions,
   size = "md",
-  closeLabel = "닫기",
+  closeLabel,
   children,
 }: DialogProps) {
+  const text = messages[useCurrentLanguage()];
   const ref = useRef<HTMLDialogElement>(null);
   const titleId = useId();
   const descriptionId = useId();
@@ -57,7 +59,7 @@ export function Dialog({
         </h2>
         <button
           type="button"
-          aria-label={closeLabel}
+          aria-label={closeLabel ?? text.close}
           onClick={onClose}
           className="flex size-11 shrink-0 cursor-pointer items-center justify-center"
         >

@@ -1,4 +1,5 @@
 import type { components } from "@/shared/api";
+import { useCurrentLanguage } from "@/shared/i18n";
 import { countContractMonths, formatPeriod } from "@/shared/lib";
 import { Table } from "@/shared/ui";
 import type { LookupResultLabels } from "../model/labels";
@@ -19,6 +20,7 @@ export function KeyTermsSection({
   endDate,
   labels,
 }: KeyTermsSectionProps) {
+  const language = useCurrentLanguage();
   const workDays =
     keyTerms.workDaysText ??
     (keyTerms.workDaysPerWeek !== undefined &&
@@ -57,7 +59,9 @@ export function KeyTermsSection({
             <th scope="row" className="w-1/4">
               {labels.period}
             </th>
-            <td className="font-bold">{formatPeriod(startDate, endDate)}</td>
+            <td className="font-bold">
+              {formatPeriod(startDate, endDate, language)}
+            </td>
             <td className="text-sm text-muted">{length}</td>
           </tr>
         </tbody>

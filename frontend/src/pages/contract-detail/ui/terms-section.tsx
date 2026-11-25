@@ -1,8 +1,9 @@
 "use client";
 
 import { useState } from "react";
-import { FIELD_GROUPS, formatTermValue } from "@/entities/contract";
+import { FIELD_GROUPS, formatTermValue, termLabel } from "@/entities/contract";
 import type { components } from "@/shared/api";
+import { useCurrentLanguage } from "@/shared/i18n";
 import { cn } from "@/shared/lib";
 import { ChevronDownIcon, Highlight } from "@/shared/ui";
 import type { ContractDetailLabels } from "../model/labels";
@@ -22,6 +23,7 @@ export function TermsSection({
   terms: Term[];
   labels: ContractDetailLabels;
 }) {
+  const language = useCurrentLanguage();
   const [expanded, setExpanded] = useState(false);
   const ordered = [...terms].sort(
     (a, b) => ORDER.indexOf(a.key ?? "") - ORDER.indexOf(b.key ?? ""),
@@ -54,14 +56,16 @@ export function TermsSection({
       <ul id={LIST_ID}>
         {ordered.map((term, index) => {
           const byEmployer = term.valueSource && term.valueSource !== "AI";
-          const value = formatTermValue(term.key, term.value, labels);
+          const value = formatTermValue(term.key, term.value, labels, language);
           return (
             <li
               key={term.key}
               hidden={!expanded && index >= VISIBLE_COUNT}
               className="flex flex-col gap-1 border-b border-divider py-4"
             >
-              <span className="text-sm font-bold text-muted">{term.label}</span>
+              <span className="text-sm font-bold text-muted">
+                {termLabel(term.key, term.label, language)}
+              </span>
               <span className="text-lg font-bold">
                 {byEmployer ? <Highlight>{value}</Highlight> : value}
               </span>

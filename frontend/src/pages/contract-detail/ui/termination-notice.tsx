@@ -1,4 +1,5 @@
 import type { components } from "@/shared/api";
+import { useCurrentLanguage } from "@/shared/i18n";
 import { formatDate } from "@/shared/lib";
 import { Alert, Button, FieldMessage } from "@/shared/ui";
 import type { ContractDetailLabels } from "../model/labels";
@@ -37,8 +38,10 @@ export function TerminationNotice({
   errorMessage,
   labels,
 }: TerminationNoticeProps) {
+  const language = useCurrentLanguage();
   const t = labels.termination;
-  const endDate = termination.endDate && formatDate(termination.endDate);
+  const endDate =
+    termination.endDate && formatDate(termination.endDate, language);
   const agreed = termination.status === "AGREED";
   const byMe = termination.requestedByMe === true;
   const canRespond = availableActions.includes("RESPOND_TERMINATION");

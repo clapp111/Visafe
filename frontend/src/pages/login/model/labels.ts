@@ -1,5 +1,6 @@
-/** 로그인 화면 문구. 화면 언어(#54)가 붙으면 언어별 값으로 바꾼다. */
-export const LOGIN_LABELS = {
+import type { UiLanguage } from "@/shared/i18n";
+
+const ko = {
   breadcrumb: "현재 위치",
   home: "홈",
   title: "로그인",
@@ -22,4 +23,32 @@ export const LOGIN_LABELS = {
   guestLink: "확인번호로 계약 조회",
 };
 
-export type LoginLabels = typeof LOGIN_LABELS;
+export type LoginLabels = typeof ko;
+
+/** 로그인 화면 문구 */
+export const LOGIN_LABELS = {
+  ko,
+  vi: {
+    breadcrumb: "Vị trí hiện tại",
+    home: "Trang chủ",
+    title: "Đăng nhập",
+    description:
+      "Người sử dụng lao động, người lao động và cơ quan giám sát đều đăng nhập tại đây. Sau khi đăng nhập, bạn sẽ được chuyển đến màn hình đầu tiên theo vai trò.",
+    email: "Email",
+    emailPlaceholder: "Ví dụ: name@example.com",
+    password: "Mật khẩu",
+    showPassword: "Hiện mật khẩu",
+    hidePassword: "Ẩn mật khẩu",
+    submit: "Đăng nhập",
+    submitting: "Đang đăng nhập",
+    emailRequired: "Vui lòng nhập email.",
+    emailInvalid: "Email không đúng định dạng.",
+    passwordRequired: "Vui lòng nhập mật khẩu.",
+    failedHint: "Hãy kiểm tra lại thông tin đã nhập.",
+    invalidCredentials: "Email hoặc mật khẩu không chính xác.",
+    loginUnavailable: "Đăng nhập không thành công. Vui lòng thử lại.",
+    guestHint:
+      "Nếu chỉ cần kiểm tra hợp đồng còn hiệu lực, bạn không cần đăng nhập.",
+    guestLink: "Tra cứu hợp đồng bằng mã xác nhận",
+  },
+} satisfies Record<UiLanguage, LoginLabels>;

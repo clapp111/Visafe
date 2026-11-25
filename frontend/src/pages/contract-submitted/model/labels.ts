@@ -1,5 +1,6 @@
-/** 계약 등록 제출 완료 화면 문구. 화면 언어(#54)가 붙으면 언어별 값으로 바꾼다. */
-export const CONTRACT_SUBMITTED_LABELS = {
+import type { UiLanguage } from "@/shared/i18n";
+
+const ko = {
   breadcrumb: "현재 위치",
   home: "홈",
   register: "계약 등록",
@@ -68,4 +69,77 @@ export const CONTRACT_SUBMITTED_LABELS = {
   viewContract: "내 계약에서 보기",
 };
 
-export type ContractSubmittedLabels = typeof CONTRACT_SUBMITTED_LABELS;
+export type ContractSubmittedLabels = typeof ko;
+
+/** 계약 등록 제출 완료 화면 문구 */
+export const CONTRACT_SUBMITTED_LABELS = {
+  ko,
+  vi: {
+    breadcrumb: "Vị trí hiện tại",
+    home: "Trang chủ",
+    register: "Đăng ký hợp đồng",
+    loading: "Đang tải tiến trình gửi",
+    loadError: "Không thể tải tiến trình gửi",
+
+    title: {
+      translating: "Đã tiếp nhận yêu cầu xác nhận",
+      awaiting: "Đã gửi yêu cầu xác nhận cho người lao động",
+    },
+    description: {
+      translating: [
+        "Khi dịch xong, yêu cầu xác nhận sẽ được gửi cho ",
+        ". Việc dịch thường xong trong vài phút và vẫn tiếp tục dù bạn đóng màn hình này.",
+      ],
+      awaiting: [
+        "Khi ",
+        " xác nhận nội dung hợp đồng, hợp đồng sẽ được ghi lên blockchain và cấp mã xác nhận.",
+      ],
+    },
+    contractNo: "Số hợp đồng (nội bộ)",
+    currentStatus: "Trạng thái hiện tại",
+    inProgress: "Đang xử lý",
+
+    progressTitle: "Tiến trình",
+    steps: {
+      submitted: {
+        title: "Người sử dụng lao động gửi",
+        description: (count: number) =>
+          `Tệp gốc và ${count} mục đã kiểm tra đã được lưu.`,
+      },
+      translation: {
+        title: "Dịch",
+        description: "Đang dịch các mục chính và phần giải thích dễ hiểu.",
+        done: "Đã dịch xong.",
+        failed: "Dịch thất bại 3 lần.",
+      },
+      worker: {
+        title: "Người lao động xác nhận",
+        description: "Khi dịch xong, người lao động sẽ nhận được thông báo.",
+        current: "Người lao động đang xem nội dung hợp đồng.",
+      },
+      confirm: {
+        title: "Xác nhận · Cấp mã xác nhận",
+        description:
+          "Khi người lao động xác nhận, hợp đồng sẽ được ghi lên blockchain và cấp mã xác nhận.",
+      },
+    },
+    statuses: {
+      current: "Đang xử lý",
+      failed: "Thất bại",
+      waiting: "Chờ",
+    },
+    progressHint: [
+      "Nếu dịch thất bại, hệ thống sẽ tự động thử lại; nếu thất bại 3 lần, bạn sẽ nhận được thông báo.",
+      "Nếu người lao động chọn Khác với bản gốc, hợp đồng này sẽ quay lại bước người sử dụng lao động kiểm tra.",
+    ],
+
+    translationFailedTitle: "Chưa dịch xong",
+    translationFailedHint:
+      "Hãy thử lại sau ít phút. Khi thử lại, việc dịch sẽ bắt đầu lại từ đầu.",
+    retryTranslation: "Thử lại",
+    retrying: "Đang thử lại",
+
+    newContract: "Đăng ký hợp đồng mới",
+    viewContract: "Xem tại Hợp đồng của tôi",
+  },
+} satisfies Record<UiLanguage, ContractSubmittedLabels>;

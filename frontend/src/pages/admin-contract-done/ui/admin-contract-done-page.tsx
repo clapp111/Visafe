@@ -20,6 +20,7 @@ import {
   buttonClass,
   type StepListItem,
 } from "@/shared/ui";
+import { type UiLanguage, useCurrentLanguage } from "@/shared/i18n";
 import {
   ADMIN_CONTRACT_DONE_LABELS,
   type AdminContractDoneLabels,
@@ -32,13 +33,14 @@ type EventType = NonNullable<NonNullable<Detail["timeline"]>[number]["type"]>;
 function buildSteps(
   detail: Detail,
   labels: AdminContractDoneLabels,
+  language: UiLanguage,
 ): StepListItem[] {
   const done = detail.stage === "DONE";
   const at = (type: EventType) => {
     const occurredAt = detail.timeline?.findLast(
       (entry) => entry.type === type,
     )?.occurredAt;
-    return occurredAt && formatDateTime(occurredAt);
+    return occurredAt && formatDateTime(occurredAt, language);
   };
   const finished = (id: string, title: string, type: EventType) => ({
     id,
@@ -64,7 +66,8 @@ function buildSteps(
 }
 
 export function AdminContractDonePage({ contractId }: { contractId: number }) {
-  const labels = ADMIN_CONTRACT_DONE_LABELS;
+  const language = useCurrentLanguage();
+  const labels = ADMIN_CONTRACT_DONE_LABELS[language];
   const router = useRouter();
   const detailQuery = useContractDetail(contractId);
   const detail = detailQuery.data;
@@ -87,7 +90,8 @@ export function AdminContractDonePage({ contractId }: { contractId: number }) {
       <ErrorState
         title={labels.loadError}
         message={
-          getApiErrorFeedback(getApiErrorCode(detailQuery.error), "ko").message
+          getApiErrorFeedback(getApiErrorCode(detailQuery.error), language)
+            .message
         }
         onRetry={() => void detailQuery.refetch()}
       />
@@ -182,7 +186,7 @@ export function AdminContractDonePage({ contractId }: { contractId: number }) {
               {detail.confirmedAt && (
                 <>
                   <dt className="text-muted">{labels.confirmedAt}</dt>
-                  <dd>{formatDateTime(detail.confirmedAt)}</dd>
+                  <dd>{formatDateTime(detail.confirmedAt, language)}</dd>
                 </>
               )}
               {record.network && (
@@ -223,7 +227,7 @@ export function AdminContractDonePage({ contractId }: { contractId: number }) {
           <h2 id="admin-done-progress" className="text-2xl font-bold">
             {labels.progressTitle}
           </h2>
-          <StepList steps={buildSteps(detail, labels)} />
+          <StepList steps={buildSteps(detail, labels, language)} />
         </section>
 
         <div className="flex justify-center">

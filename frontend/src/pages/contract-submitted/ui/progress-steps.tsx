@@ -1,6 +1,7 @@
 import type { components } from "@/shared/api";
 import { formatDateTime } from "@/shared/lib";
 import { StepList, type StepState } from "@/shared/ui";
+import { useCurrentLanguage } from "@/shared/i18n";
 import type { ContractSubmittedLabels } from "../model/labels";
 
 type Detail = components["schemas"]["ContractDetailResponse"];
@@ -68,6 +69,7 @@ export function ProgressSteps({
   detail: Detail;
   labels: ContractSubmittedLabels;
 }) {
+  const language = useCurrentLanguage();
   return (
     <StepList
       steps={buildSteps(detail, labels).map((step) => ({
@@ -77,7 +79,7 @@ export function ProgressSteps({
         state: step.state,
         meta:
           step.state === "done"
-            ? step.at && formatDateTime(step.at)
+            ? step.at && formatDateTime(step.at, language)
             : labels.statuses[step.state],
       }))}
     />

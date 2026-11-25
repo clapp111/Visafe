@@ -1,9 +1,9 @@
 import type { components } from "@/shared/api";
+import type { UiLanguage } from "@/shared/i18n";
 
 type Schemas = components["schemas"];
 
-/** 확인 이력·블록체인 기록 문구. 화면 언어(#77)가 붙으면 언어별 값으로 바꾼다. */
-export const CONTRACT_RECORDS_LABELS = {
+const ko = {
   chainCaption: "블록체인 트랜잭션",
   chainRecord: "기록",
   chainTime: "일시",
@@ -56,4 +56,53 @@ export const CONTRACT_RECORDS_LABELS = {
   languageNames: { vi: "베트남어" } as Record<string, string>,
 };
 
-export type ContractRecordsLabels = typeof CONTRACT_RECORDS_LABELS;
+export type ContractRecordsLabels = typeof ko;
+
+/** 확인 이력·블록체인 기록 문구 */
+export const CONTRACT_RECORDS_LABELS = {
+  ko,
+  vi: {
+    chainCaption: "Giao dịch blockchain",
+    chainRecord: "Bản ghi",
+    chainTime: "Thời điểm",
+    chainTxHash: "Mã băm giao dịch",
+    chainLink: "Liên kết",
+    chainExplorer: "Xem trên trình khám phá",
+    recordTypes: {
+      CONFIRM: "Xác nhận",
+      TERMINATE: "Chấm dứt",
+    },
+    chainPending: "Đang ghi",
+    chainHint:
+      "Mạng: Sepolia testnet · Bên ghi: ví máy chủ Visafe. Nội dung hợp đồng không được đưa lên blockchain, chỉ mã băm được ghi lại.",
+
+    events: {
+      CONTRACT_CREATED: "Đăng ký hợp đồng",
+      FILE_UPLOADED: "Tải bản gốc lên",
+      EXTRACTION_STARTED: "Bắt đầu AI trích xuất các mục",
+      EXTRACTION_COMPLETED: "AI trích xuất các mục xong",
+      EXTRACTION_FAILED: "AI trích xuất các mục thất bại",
+      TERM_EDITED: "Người sử dụng lao động sửa mục",
+      SUBMITTED: "Người sử dụng lao động gửi",
+      TRANSLATION_COMPLETED: "Dịch xong",
+      TRANSLATION_FAILED: "Dịch thất bại",
+      WORKER_UNDERSTOOD: "Người lao động xác nhận",
+      WORKER_REPORTED: "Người lao động báo (khác bản gốc)",
+      AUTHORITY_REVIEW_REQUESTED: "Yêu cầu cơ quan giám sát xác nhận",
+      AUTHORITY_APPROVED: "Cơ quan giám sát xác nhận",
+      AUTHORITY_REJECTED: "Cơ quan giám sát trả lại",
+      CHAIN_RECORD_REQUESTED: "Yêu cầu ghi lên blockchain",
+      CHAIN_RECORD_FAILED: "Ghi lên blockchain thất bại",
+      CONFIRMED: "Xác nhận · Cấp mã xác nhận",
+      TERMINATION_REQUESTED: "Yêu cầu chấm dứt",
+      TERMINATION_AGREED: "Đồng ý chấm dứt",
+      TERMINATION_DECLINED: "Từ chối chấm dứt",
+      TERMINATION_CANCELED: "Hủy yêu cầu chấm dứt",
+      TERMINATED: "Chấm dứt hợp đồng",
+    },
+    confirmedDetail: "Đã ghi lên blockchain",
+    translationBasis: (language: string) => `Theo bản dịch ${language}`,
+    reportReason: (reason: string) => `Lý do: ${reason}`,
+    languageNames: { vi: "tiếng Việt" } as Record<string, string>,
+  },
+} satisfies Record<UiLanguage, ContractRecordsLabels>;

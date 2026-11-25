@@ -1,6 +1,7 @@
 import Link from "next/link";
 import type { components } from "@/shared/api";
 import { routes } from "@/shared/config";
+import { useCurrentLanguage } from "@/shared/i18n";
 import { cn, formatDateTime } from "@/shared/lib";
 import {
   Badge,
@@ -39,6 +40,7 @@ export function StatusCard({
   isDownloading,
   labels,
 }: StatusCardProps) {
+  const language = useCurrentLanguage();
   const stage = detail.stage ?? "UPLOADED";
   const copy = labels.stages[stage];
   const description =
@@ -90,7 +92,7 @@ export function StatusCard({
         </h2>
         {confirmed && detail.confirmedAt && detail.confirmationNo && (
           <span className="text-muted">
-            {labels.confirmed(formatDateTime(detail.confirmedAt))}
+            {labels.confirmed(formatDateTime(detail.confirmedAt, language))}
             <strong className="font-mono text-foreground">
               {detail.confirmationNo}
             </strong>
@@ -98,7 +100,7 @@ export function StatusCard({
         )}
         {stage === "ENDED" && detail.terminatedAt && (
           <span className="text-muted">
-            {labels.terminated(formatDateTime(detail.terminatedAt))}
+            {labels.terminated(formatDateTime(detail.terminatedAt, language))}
           </span>
         )}
         {description && <p className="text-muted">{description}</p>}

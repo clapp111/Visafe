@@ -1,9 +1,9 @@
 import type { components } from "@/shared/api";
+import type { UiLanguage } from "@/shared/i18n";
 
 type Schemas = components["schemas"];
 
-/** 조회 결과 화면 문구. 화면 언어(#54)가 붙으면 언어별 값으로 바꾼다. */
-export const LOOKUP_RESULT_LABELS = {
+const ko = {
   breadcrumb: "현재 위치",
   home: "홈",
   lookup: "계약 조회",
@@ -115,4 +115,116 @@ export const LOOKUP_RESULT_LABELS = {
     "계속 찾을 수 없다면 계약서를 준 고용주에게 확인번호를 다시 받아 보세요.",
 };
 
-export type LookupResultLabels = typeof LOOKUP_RESULT_LABELS;
+export type LookupResultLabels = typeof ko;
+
+/** 조회 결과 화면 문구 */
+export const LOOKUP_RESULT_LABELS = {
+  ko,
+  vi: {
+    breadcrumb: "Vị trí hiện tại",
+    home: "Trang chủ",
+    lookup: "Tra cứu hợp đồng",
+    title: "Kết quả tra cứu",
+    lookupForm: {
+      label: "Mã xác nhận",
+      submit: "Tra cứu lại",
+      required: "Vui lòng nhập mã xác nhận.",
+    },
+    notFound: "Không có hợp đồng nào được đăng ký với mã xác nhận đã nhập.",
+    invalidFormat: "Mã xác nhận không đúng định dạng.",
+
+    confirmationNo: "Mã xác nhận",
+    employer: "Người sử dụng lao động",
+    worker: "Người lao động",
+    masked: "(đã che một phần)",
+    period: "Thời hạn hợp đồng",
+    confirmedAt: "Thời điểm xác nhận",
+    terminatedOn: "Ngày chấm dứt",
+    status: {
+      confirmed: {
+        badge: "Đã xác nhận",
+        title: "Hợp đồng lao động đang có hiệu lực",
+      },
+      terminated: {
+        badge: "Đã chấm dứt",
+        title: "Hợp đồng lao động đã chấm dứt",
+        description:
+          "Hợp đồng không còn hiệu lực. Lịch sử xác nhận vẫn được lưu lại.",
+      },
+    },
+    integrity: {
+      VERIFIED:
+        "Người lao động đã xác nhận nội dung hợp đồng và không có thay đổi nào sau khi xác nhận.",
+      MISMATCH:
+        "Bản ghi xác nhận khác với giá trị đã ghi trên blockchain. Hãy hỏi lại người sử dụng lao động đã đưa hợp đồng cho bạn.",
+      PENDING:
+        "Người lao động đã xác nhận nội dung hợp đồng, đang chờ ghi lên blockchain.",
+      UNAVAILABLE:
+        "Người lao động đã xác nhận nội dung hợp đồng. Hiện chưa thể đối chiếu với blockchain, vui lòng tra cứu lại sau.",
+    },
+
+    terminationReason: "Lý do chấm dứt",
+    terminationReasons: {
+      EXPIRED: "Hết thời hạn hợp đồng",
+      MUTUAL: "Người lao động và người sử dụng lao động thỏa thuận chấm dứt",
+      REPLACED: "Được thay bằng hợp đồng mới",
+    },
+    terminationEndDate: (date: string) => `Ngày chấm dứt là ${date}.`,
+    terminationNewNumber:
+      "Nếu đã ký hợp đồng mới vì điều kiện lao động thay đổi, hãy tra cứu bằng mã xác nhận mới được cấp.",
+
+    keyTermsTitle: "Điều kiện lao động chính",
+    keyTermsHint:
+      "Hãy so sánh với hợp đồng bạn đang giữ. Toàn bộ các mục, kể cả tiền lương, chỉ các bên trong hợp đồng mới xem được tại mục Hợp đồng của tôi.",
+    workHours: "Giờ làm việc",
+    workDays: (days: number) => `${days} ngày/tuần`,
+    weeklySummary: (hours: number, breakMinutes: number) =>
+      `${hours} giờ/tuần · nghỉ giải lao ${breakMinutes} phút`,
+    noEndDate: "Không xác định thời hạn",
+    aboutYears: (years: number) => `khoảng ${years} năm`,
+    aboutMonths: (months: number) => `khoảng ${months} tháng`,
+
+    fileCheckTitle: "Đối chiếu với hợp đồng bạn đang giữ",
+    fileCheckHint:
+      "Khi bạn tải tệp lên, hệ thống tính mã băm (giá trị riêng) từ nội dung và so sánh với giá trị đã ghi trên blockchain. Tệp không được lưu lại.",
+    fileCheckInput: "Tệp hợp đồng cần đối chiếu",
+    noFile: "Chưa chọn tệp",
+    selectFile: "Chọn tệp",
+    changeFile: "Chọn tệp khác",
+    check: "Đối chiếu",
+    checking: "Đang đối chiếu",
+    fileReadError: "Không đọc được tệp. Vui lòng chọn lại tệp.",
+    matchTitle: "Trùng khớp — Đây là cùng tệp với bản gốc đã đăng ký",
+    matchDescription: "Tệp này không thay đổi kể từ khi xác nhận.",
+    mismatchTitle: "Không khớp — Tệp khác với bản gốc đã đăng ký",
+    mismatchDescription:
+      "Tệp có thể đã bị thay đổi sau khi xác nhận, hoặc là một tệp khác.",
+    uploadedFileHash: "Mã băm của tệp đã tải lên",
+    recordedFileHash: "Mã băm đã ghi",
+    mismatchTips: [
+      "Dù cùng một hợp đồng, tệp được quét lại hoặc chụp ảnh lại sẽ có giá trị khác. Phải là đúng tệp đã tải lên khi đăng ký.",
+      "Nếu tệp lẽ ra phải giống bản đã đăng ký nhưng lại khác, hợp đồng có thể đã bị thay đổi. Hãy liên hệ Trung tâm tư vấn của Bộ Việc làm và Lao động Hàn Quốc (gọi 1350, không cần mã vùng).",
+    ],
+
+    chainTitle: "Bản ghi blockchain",
+    historyTitle: "Lịch sử xác nhận",
+
+    notFoundTitle: "Vui lòng kiểm tra lại mã xác nhận",
+    notFoundTips: {
+      format: [
+        "Mã xác nhận gồm 12 ký tự, bắt đầu bằng ",
+        "VS-",
+        ". Mã không dùng số 0 và chữ O, số 1 và chữ I để tránh nhầm lẫn.",
+      ],
+      confirmed: [
+        "Mã xác nhận được cấp ",
+        "sau khi hợp đồng được xác nhận",
+        ". Hợp đồng chưa được người lao động xác nhận sẽ không tra cứu được.",
+      ],
+      renewed:
+        "Nếu đã ký hợp đồng mới vì điều kiện lao động thay đổi, mã xác nhận cũng được cấp mới.",
+    },
+    notFoundHint:
+      "Nếu vẫn không tìm thấy, hãy xin lại mã xác nhận từ người sử dụng lao động đã đưa hợp đồng cho bạn.",
+  },
+} satisfies Record<UiLanguage, LookupResultLabels>;

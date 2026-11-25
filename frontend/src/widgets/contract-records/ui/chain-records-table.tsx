@@ -1,4 +1,5 @@
 import type { components } from "@/shared/api";
+import { useCurrentLanguage } from "@/shared/i18n";
 import { formatDateTime, shortenHash } from "@/shared/lib";
 import { Table } from "@/shared/ui";
 import { CONTRACT_RECORDS_LABELS } from "../model/labels";
@@ -8,7 +9,8 @@ type ChainRecord =
 
 /** 확정·종료 트랜잭션 표 (조회 L1 · 상세 M2 chainRecords) */
 export function ChainRecordsTable({ records }: { records: ChainRecord[] }) {
-  const labels = CONTRACT_RECORDS_LABELS;
+  const language = useCurrentLanguage();
+  const labels = CONTRACT_RECORDS_LABELS[language];
   return (
     <>
       <Table caption={labels.chainCaption}>
@@ -30,7 +32,7 @@ export function ChainRecordsTable({ records }: { records: ChainRecord[] }) {
               </td>
               <td className="whitespace-nowrap">
                 {record.minedAt
-                  ? formatDateTime(record.minedAt)
+                  ? formatDateTime(record.minedAt, language)
                   : labels.chainPending}
               </td>
               <td

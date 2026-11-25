@@ -42,3 +42,4 @@ export {
   formatTermValue,
   type TermValueLabels,
 } from "./model/format-term-value";
+export { termLabel } from "./model/term-labels";

@@ -1,5 +1,6 @@
 import type { TermValueLabels } from "@/entities/contract";
 import type { components } from "@/shared/api";
+import type { UiLanguage } from "@/shared/i18n";
 
 type Detail = components["schemas"]["ContractDetailResponse"];
 type Stage = NonNullable<Detail["stage"]>;
@@ -11,13 +12,18 @@ type StageCopy = {
   description: string | Record<Role, string>;
 };
 
+const AWAITING_REGISTRATION_VI = {
+  EMPLOYER: "Hãy so sánh với bản gốc, kiểm tra các mục rồi gửi.",
+  WORKER:
+    "Khi người sử dụng lao động đăng ký xong và bản dịch hoàn tất, bạn sẽ nhận được yêu cầu xác nhận.",
+};
+
 const AWAITING_REGISTRATION = {
   EMPLOYER: "원본과 비교해 항목을 확인한 뒤 제출해 주세요.",
   WORKER: "고용주가 등록을 마치고 번역이 끝나면 확인 요청이 옵니다.",
 };
 
-/** 계약 상세 문구. 화면 언어(#77)가 붙으면 언어별 값으로 바꾼다. */
-export const CONTRACT_DETAIL_LABELS = {
+const ko = {
   breadcrumb: "현재 위치",
   home: "홈",
   contracts: "내 계약",
@@ -164,5 +170,161 @@ export const CONTRACT_DETAIL_LABELS = {
   },
 } satisfies TermValueLabels & Record<string, unknown>;
 
-export type ContractDetailLabels = typeof CONTRACT_DETAIL_LABELS;
+export type ContractDetailLabels = typeof ko;
+
+/** 계약 상세 문구 */
+export const CONTRACT_DETAIL_LABELS = {
+  ko,
+  vi: {
+    breadcrumb: "Vị trí hiện tại",
+    home: "Trang chủ",
+    contracts: "Hợp đồng của tôi",
+    current: "Chi tiết hợp đồng",
+    loading: "Đang tải hợp đồng",
+    loadError: "Không thể tải hợp đồng",
+    previousContract: "Hợp đồng này thay thế hợp đồng trước.",
+    previousContractLink: "Xem hợp đồng trước",
+
+    statuses: {
+      IN_PROGRESS: "Đang xử lý",
+      CONFIRMED: "Đã xác nhận",
+      TERMINATED: "Đã chấm dứt",
+    },
+    stages: {
+      UPLOADED: {
+        title: "Người sử dụng lao động đang đăng ký hợp đồng",
+        description: AWAITING_REGISTRATION_VI,
+      },
+      REVIEWING: {
+        title: "Người sử dụng lao động đang kiểm tra nội dung hợp đồng",
+        description: AWAITING_REGISTRATION_VI,
+      },
+      TRANSLATING: {
+        title: "Đang dịch nội dung hợp đồng",
+        description: {
+          EMPLOYER:
+            "Khi dịch xong, yêu cầu xác nhận sẽ được gửi cho người lao động.",
+          WORKER: "Khi dịch xong, bạn sẽ nhận được yêu cầu xác nhận.",
+        },
+      },
+      AWAITING_WORKER: {
+        title: "Đang chờ người lao động xác nhận",
+        description: {
+          EMPLOYER:
+            "Khi người lao động trả lời đã hiểu nội dung, hợp đồng sẽ được ghi lên blockchain và cấp mã xác nhận.",
+          WORKER: "Hãy đọc nội dung hợp đồng và cho biết bạn đã hiểu hay chưa.",
+        },
+      },
+      RETURNED: {
+        title: "Hợp đồng đã được trả lại cho người sử dụng lao động",
+        description: {
+          EMPLOYER:
+            "Hợp đồng bị trả lại do người lao động báo hoặc cơ quan giám sát từ chối. Hãy sửa phần khác với bản gốc rồi gửi lại.",
+          WORKER:
+            "Khi người sử dụng lao động sửa xong và yêu cầu xác nhận lại, chúng tôi sẽ báo cho bạn.",
+        },
+      },
+      AUTHORITY_REVIEW: {
+        title: "Cơ quan giám sát đang kiểm tra",
+        description:
+          "Sau khi cơ quan giám sát kiểm tra xong, hợp đồng sẽ được ghi lên blockchain và cấp mã xác nhận.",
+      },
+      RECORDING: {
+        title: "Đang ghi lên blockchain",
+        description:
+          "Khi ghi xong, hợp đồng sẽ được xác nhận và cấp mã xác nhận.",
+      },
+      DONE: {
+        title: "Hợp đồng đang có hiệu lực",
+        description: "",
+      },
+      ENDED: {
+        title: "Hợp đồng đã chấm dứt",
+        description: "",
+      },
+    },
+    confirmed: (dateTime: string) => `Xác nhận lúc ${dateTime} · Mã xác nhận `,
+    terminated: (dateTime: string) => `Chấm dứt lúc ${dateTime}`,
+
+    copyConfirmation: "Sao chép mã xác nhận",
+    copied: "Đã sao chép",
+    lookup: "Xem trên màn hình tra cứu",
+    download: "Tải xuống bản gốc đã đăng ký",
+    downloading: "Đang tải xuống",
+    downloadError: "Không thể tải xuống bản gốc đã đăng ký",
+    editDraft: "Kiểm tra tiếp",
+    retry: "Đến trang thử lại",
+    respondReview: "Xác nhận nội dung hợp đồng",
+    startRevision: "Sửa",
+    revising: "Đang bắt đầu sửa",
+    revisionError: "Không thể bắt đầu sửa hợp đồng",
+
+    viewerHint:
+      "Tệp tải về bằng nút Tải xuống bản gốc đã đăng ký có thể dùng để đối chiếu trên màn hình tra cứu sau này. Nếu lưu lại hoặc quét lại tệp thì sẽ không đối chiếu được, vì vậy hãy giữ nguyên tệp đã tải về.",
+    viewerPreview: (page: number) => `Xem trước trang ${page} của hợp đồng gốc`,
+    viewerDownload: "Tải xuống bản gốc",
+
+    termsTitle: "Nội dung hợp đồng",
+    highlightWord: "Phần tô sáng",
+    highlightLegend: "giá trị do người sử dụng lao động tự nhập",
+    moreTerms: (count: number) => `Xem thêm ${count} mục`,
+    lessTerms: "Thu gọn",
+    noValue: "Không có trong hợp đồng",
+    units: {
+      won: (amount: string) => `${amount} won`,
+      minutes: (minutes: number) => `${minutes} phút`,
+      daysPerWeek: (days: number) => `${days} ngày/tuần`,
+      payDay: (day: number) => `ngày ${day} hằng tháng`,
+    },
+
+    historyTitle: "Lịch sử xác nhận",
+    chainTitle: "Bản ghi blockchain",
+
+    termination: {
+      sectionTitle: "Bạn cần chấm dứt hợp đồng?",
+      sectionDescription:
+        "Khi hết thời hạn, hợp đồng tự động chấm dứt. Nếu muốn chấm dứt trước thời hạn, hãy gửi yêu cầu chấm dứt; khi bên kia đồng ý, việc chấm dứt sẽ được ghi lại. Không thể thay đổi nội dung hợp đồng đã xác nhận; nếu điều kiện thay đổi, hãy ký hợp đồng mới.",
+      request: "Yêu cầu chấm dứt",
+
+      requestedByOther: (name: string) =>
+        `${name} đã yêu cầu chấm dứt hợp đồng`,
+      requestedByOtherFallback: "Bên kia đã yêu cầu chấm dứt hợp đồng",
+      requestedByOtherHint:
+        "Nếu đồng ý, hợp đồng sẽ kết thúc vào ngày sau ngày làm việc cuối cùng và việc chấm dứt được ghi lên blockchain. Nếu từ chối, hợp đồng vẫn được giữ nguyên.",
+      requestedByMe: "Bạn đã gửi yêu cầu chấm dứt",
+      requestedByMeHint:
+        "Đang chờ bên kia trả lời. Bạn có thể hủy yêu cầu cho đến khi bên kia đồng ý.",
+      agreed: "Hai bên đã thỏa thuận chấm dứt hợp đồng",
+      agreedHint: (endDate: string) =>
+        `Làm việc đến hết ngày ${endDate}, hợp đồng kết thúc vào ngày hôm sau.`,
+      lastWorkDay: "Ngày làm việc cuối cùng",
+      reason: "Lý do chấm dứt",
+      noReason: "Không ghi",
+      agree: "Đồng ý",
+      decline: "Từ chối",
+      cancel: "Hủy yêu cầu",
+      responding: "Đang xử lý",
+      actionError: "Không thể xử lý yêu cầu chấm dứt",
+
+      dialogTitle: "Gửi yêu cầu chấm dứt hợp đồng?",
+      dialogDescription:
+        "Nếu bên kia đồng ý, hợp đồng sẽ kết thúc vào ngày sau ngày làm việc cuối cùng và việc chấm dứt được ghi lên blockchain.",
+      lastWorkDayHint: (range: string) =>
+        `Bạn có thể chọn trong khoảng ${range}.`,
+      lastWorkDayRequired: "Vui lòng chọn ngày làm việc cuối cùng.",
+      lastWorkDayInvalid:
+        "Ngày làm việc cuối cùng phải từ hôm nay đến ngày kết thúc hợp đồng.",
+      reasonOptional: "(không bắt buộc)",
+      reasonHint: "Nội dung này sẽ được gửi kèm cho bên kia.",
+      close: "Hủy",
+      send: "Gửi yêu cầu chấm dứt",
+      sending: "Đang gửi",
+
+      agreeTitle: "Đồng ý chấm dứt hợp đồng?",
+      agreeDescription: (endDate: string) =>
+        `Nếu đồng ý, bạn làm việc đến hết ngày ${endDate} và hợp đồng kết thúc vào ngày hôm sau. Việc chấm dứt được ghi lên blockchain và không thể hoàn tác.`,
+      agreeConfirm: "Đồng ý",
+    },
+  },
+} satisfies Record<UiLanguage, ContractDetailLabels>;
 export type ContractRole = Role;

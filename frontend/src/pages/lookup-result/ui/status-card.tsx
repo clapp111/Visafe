@@ -1,4 +1,5 @@
 import type { components } from "@/shared/api";
+import { useCurrentLanguage } from "@/shared/i18n";
 import { cn, formatDate, formatDateTime, formatPeriod } from "@/shared/lib";
 import { Badge, CheckIcon, MinusCircleIcon } from "@/shared/ui";
 import type { LookupResultLabels } from "../model/labels";
@@ -12,6 +13,7 @@ export interface StatusCardProps {
 
 /** 확정·종료 상태와 고용주·근로자·계약기간을 보이는 맨 위 카드 */
 export function StatusCard({ result, labels }: StatusCardProps) {
+  const language = useCurrentLanguage();
   const isTerminated = result.status === "TERMINATED";
   const status = isTerminated
     ? labels.status.terminated
@@ -22,8 +24,8 @@ export function StatusCard({ result, labels }: StatusCardProps) {
   const terminatedOn = result.termination?.endDate;
   // 마지막 칸: 종료된 계약은 종료일, 확정된 계약은 확정 일시
   const lastValue = isTerminated
-    ? terminatedOn && formatDate(terminatedOn)
-    : result.confirmedAt && formatDateTime(result.confirmedAt);
+    ? terminatedOn && formatDate(terminatedOn, language)
+    : result.confirmedAt && formatDateTime(result.confirmedAt, language);
 
   return (
     <section
@@ -79,7 +81,8 @@ export function StatusCard({ result, labels }: StatusCardProps) {
         <div className="flex flex-col gap-0.5">
           <dt className="text-sm text-muted">{labels.period}</dt>
           <dd className="font-bold">
-            {result.startDate && formatPeriod(result.startDate, result.endDate)}
+            {result.startDate &&
+              formatPeriod(result.startDate, result.endDate, language)}
           </dd>
         </div>
         <div className="flex flex-col gap-0.5">

@@ -2,7 +2,9 @@
 
 import { useEffect, useRef, useState } from "react";
 import { Document, Page, pdfjs } from "react-pdf";
+import { useCurrentLanguage } from "@/shared/i18n";
 import { LoadingState } from "@/shared/ui";
+import { CONTRACT_FILE_VIEWER_LABELS } from "../model/labels";
 
 pdfjs.GlobalWorkerOptions.workerSrc = new URL(
   "pdfjs-dist/build/pdf.worker.min.mjs",
@@ -10,7 +12,6 @@ pdfjs.GlobalWorkerOptions.workerSrc = new URL(
 ).toString();
 
 const options = { disableRange: true, disableStream: true };
-const loading = <LoadingState label="원본 계약서를 불러오는 중입니다" />;
 
 export function PdfPreview({
   url,
@@ -23,6 +24,11 @@ export function PdfPreview({
   onReady: (pageCount: number) => void;
   onError: () => void;
 }) {
+  const loading = (
+    <LoadingState
+      label={CONTRACT_FILE_VIEWER_LABELS[useCurrentLanguage()].loading}
+    />
+  );
   const frame = useRef<HTMLDivElement>(null);
   const [size, setSize] = useState({ width: 0, height: 0 });
   const [pageRatio, setPageRatio] = useState<{ page: number; ratio: number }>();

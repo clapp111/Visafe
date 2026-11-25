@@ -3,6 +3,7 @@ import type { components } from "@/shared/api";
 import { routes } from "@/shared/config";
 import { formatDateTime } from "@/shared/lib";
 import { Badge, Table, buttonClass } from "@/shared/ui";
+import { useCurrentLanguage } from "@/shared/i18n";
 import type { AdminContractsLabels, AdminView } from "../model/labels";
 
 type Item = components["schemas"]["AdminContractListResponseItem"];
@@ -39,6 +40,7 @@ export function AdminContractTable({
   title: string;
   labels: AdminContractsLabels;
 }) {
+  const language = useCurrentLanguage();
   const { columns } = labels;
   const actionLabel = view === "PENDING" ? labels.review : labels.view;
   return (
@@ -86,7 +88,7 @@ export function AdminContractTable({
               </td>
               <td className="whitespace-nowrap">
                 {item.workerConfirmedAt &&
-                  formatDateTime(item.workerConfirmedAt)}
+                  formatDateTime(item.workerConfirmedAt, language)}
               </td>
               <CountCell
                 count={item.warningCount}

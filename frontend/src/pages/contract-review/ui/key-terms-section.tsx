@@ -1,6 +1,7 @@
 import type { ReactNode } from "react";
 import { formatTermValue } from "@/entities/contract";
 import type { components } from "@/shared/api";
+import { useCurrentLanguage } from "@/shared/i18n";
 import { cn, countContractMonths, formatPeriod } from "@/shared/lib";
 import { Highlight } from "@/shared/ui";
 import type { ContractReviewLabels } from "../model/labels";
@@ -30,6 +31,7 @@ export function KeyTermsSection({
   warningKeys,
   labels,
 }: KeyTermsSectionProps) {
+  const language = useCurrentLanguage();
   function piece(key: string, text: ReactNode) {
     return employerKeys.has(key) ? <Highlight>{text}</Highlight> : text;
   }
@@ -97,7 +99,7 @@ export function KeyTermsSection({
         keyTerms.startDate &&
           piece(
             "startDate",
-            formatPeriod(keyTerms.startDate, keyTerms.endDate),
+            formatPeriod(keyTerms.startDate, keyTerms.endDate, language),
           ),
       ],
     },

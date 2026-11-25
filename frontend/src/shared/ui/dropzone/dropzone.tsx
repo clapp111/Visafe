@@ -1,6 +1,7 @@
 "use client";
 
 import { useState, type DragEvent } from "react";
+import { messages, useCurrentLanguage } from "@/shared/i18n";
 import { cn } from "@/shared/lib";
 import { buttonClass } from "../button";
 import { UploadIcon } from "../icons";
@@ -28,9 +29,10 @@ export function Dropzone({
   onFiles,
   labelledBy,
   describedBy,
-  dropLabel = "파일을 이곳에 끌어다 놓거나",
-  selectLabel = "파일 선택",
+  dropLabel,
+  selectLabel,
 }: DropzoneProps) {
+  const text = messages[useCurrentLanguage()];
   const [dragging, setDragging] = useState(false);
 
   function handleDragOver(event: DragEvent<HTMLDivElement>) {
@@ -61,7 +63,7 @@ export function Dropzone({
       )}
     >
       <UploadIcon size={40} className="text-muted" />
-      <span>{dropLabel}</span>
+      <span>{dropLabel ?? text.dropFile}</span>
       <input
         id={id}
         type="file"
@@ -86,7 +88,7 @@ export function Dropzone({
           disabled && "pointer-events-none",
         )}
       >
-        {selectLabel}
+        {selectLabel ?? text.selectFile}
       </label>
     </div>
   );

@@ -1,5 +1,6 @@
-/** 홈 화면 문구. 화면 언어(#54)가 붙으면 언어별 값으로 바꾼다. */
-export const HOME_LABELS = {
+import type { UiLanguage } from "@/shared/i18n";
+
+const ko = {
   title: "근로계약 확인 결과 조회",
   description:
     "확인번호로 근로계약이 지금 유효한지, 누가 확인했는지 조회합니다. 조회 결과의 근로시간·계약기간을 가지고 계신 계약서와 비교해 보세요.",
@@ -62,3 +63,74 @@ export const HOME_LABELS = {
   terminatedMeaning:
     "더 이상 유효하지 않은 계약입니다. 종료 사유(기간 만료 또는 근로자·고용주 합의 종료)와 날짜가 함께 표시되며, 확인 기록은 이력으로 남습니다.",
 };
+
+export type HomeLabels = typeof ko;
+
+/** 홈 화면 문구 */
+export const HOME_LABELS = {
+  ko,
+  vi: {
+    title: "Tra cứu kết quả xác nhận hợp đồng lao động",
+    description:
+      "Dùng mã xác nhận để tra cứu hợp đồng lao động hiện còn hiệu lực hay không và ai đã xác nhận. Hãy so sánh giờ làm việc và thời hạn hợp đồng trong kết quả với hợp đồng bạn đang giữ.",
+    lookupForm: {
+      label: "Mã xác nhận",
+      placeholder: "Ví dụ: VS-7K3F-9QXM",
+      submit: "Tra cứu",
+      required: "Vui lòng nhập mã xác nhận.",
+    },
+    lookupHint:
+      "Đây là mã được cấp khi hợp đồng được xác nhận. Không phân biệt chữ hoa, chữ thường; dấu gạch ngang (-) được tự động thêm vào.",
+    newNumberNotice:
+      "Khi điều kiện lao động thay đổi, hợp đồng cũ sẽ chấm dứt và ký hợp đồng mới, đồng thời được cấp mã xác nhận mới.",
+    quickTitle: "Lối tắt theo vai trò",
+    quickDescription:
+      "Người sử dụng lao động và người lao động có thể dùng sau khi đăng nhập.",
+    quickLinks: {
+      employer: {
+        role: "Người sử dụng lao động",
+        title: "Đăng ký hợp đồng lao động",
+        description:
+          "Tải lên hợp đồng gốc, kiểm tra các mục AI đã đọc, rồi gửi yêu cầu xác nhận cho người lao động.",
+        action: "Đăng ký",
+      },
+      worker: {
+        role: "Người lao động",
+        title: "Xác nhận nội dung hợp đồng",
+        description:
+          "Đọc nội dung hợp đồng được giải thích dễ hiểu bằng tiếng mẹ đẻ, so sánh với bản gốc và xác nhận rằng bạn đã hiểu.",
+        action: "Xác nhận",
+      },
+    },
+    flowTitle: "Quy trình xác nhận hợp đồng",
+    flowSteps: [
+      {
+        step: "Bước 1",
+        title: "Người sử dụng lao động đăng ký",
+        description: "Tải bản gốc lên, AI trích xuất và kiểm tra",
+      },
+      {
+        step: "Bước 2",
+        title: "Người lao động xác nhận đã hiểu",
+        description: "Đối chiếu bản gốc với bản dịch rồi xác nhận",
+      },
+      {
+        step: "Bước 3",
+        title: "Xác nhận · Ghi lên blockchain",
+        description: "Ghi mã băm, cấp mã xác nhận",
+      },
+    ],
+    statusTitle: "Giải thích trạng thái kết quả tra cứu",
+    statusDescription:
+      "Mã xác nhận chỉ được cấp cho hợp đồng đã xác nhận, nên hợp đồng chưa xác nhận (đang xử lý) sẽ không tra cứu được. Trạng thái luôn được hiển thị bằng chữ kèm màu sắc.",
+    statusCaption: "Trạng thái kết quả tra cứu",
+    statusColumn: "Trạng thái",
+    meaningColumn: "Ý nghĩa",
+    confirmed: "Đã xác nhận",
+    confirmedMeaning:
+      "Hợp đồng đang có hiệu lực, đã được người lao động xác nhận và ghi lên blockchain.",
+    terminated: "Đã chấm dứt",
+    terminatedMeaning:
+      "Hợp đồng không còn hiệu lực. Lý do chấm dứt (hết hạn hoặc hai bên thỏa thuận chấm dứt) và ngày chấm dứt được hiển thị kèm theo; lịch sử xác nhận vẫn được lưu lại.",
+  },
+} satisfies Record<UiLanguage, HomeLabels>;

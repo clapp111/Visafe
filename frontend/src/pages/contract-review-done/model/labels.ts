@@ -1,11 +1,11 @@
 import type { components } from "@/shared/api";
+import type { UiLanguage } from "@/shared/i18n";
 
 type Detail = components["schemas"]["ContractDetailResponse"];
 
 export type ReviewDonePhase = "recording" | "authority" | "done";
 
-/** 근로자 확인 완료 문구. 화면 언어(#77)가 붙으면 언어별 값으로 바꾼다. */
-export const CONTRACT_REVIEW_DONE_LABELS = {
+const ko = {
   breadcrumb: "현재 위치",
   home: "홈",
   contracts: "내 계약",
@@ -86,4 +86,90 @@ export const CONTRACT_REVIEW_DONE_LABELS = {
   lookup: "확인번호로 조회하기",
 };
 
-export type ContractReviewDoneLabels = typeof CONTRACT_REVIEW_DONE_LABELS;
+export type ContractReviewDoneLabels = typeof ko;
+
+/** 근로자 확인 완료 문구 */
+export const CONTRACT_REVIEW_DONE_LABELS = {
+  ko,
+  vi: {
+    breadcrumb: "Vị trí hiện tại",
+    home: "Trang chủ",
+    contracts: "Hợp đồng của tôi",
+    current: "Xác nhận nội dung hợp đồng",
+    loading: "Đang tải tiến trình xác nhận",
+    loadError: "Không thể tải tiến trình xác nhận",
+
+    title: {
+      recording: "Đã ghi nhận xác nhận của bạn",
+      authority: "Đã ghi nhận xác nhận của bạn",
+      done: "Hợp đồng đã được xác nhận",
+    },
+    description: {
+      recording:
+        "Xác nhận của bạn đã được ghi theo nội dung hợp đồng và bản dịch bạn vừa xem. Khi ghi lên blockchain xong, hợp đồng sẽ được xác nhận và chúng tôi sẽ báo mã xác nhận cho bạn.",
+      authority:
+        "Xác nhận của bạn đã được ghi theo nội dung hợp đồng và bản dịch bạn vừa xem. Hợp đồng này sẽ được ghi lên blockchain và cấp mã xác nhận sau khi cơ quan giám sát kiểm tra.",
+      done: "Nội dung hợp đồng đã được ghi lên blockchain. Bất kỳ ai cũng có thể dùng mã xác nhận dưới đây để tra cứu hợp đồng này còn hiệu lực hay không.",
+    },
+    contractNo: "Số hợp đồng",
+    currentStatus: "Trạng thái hiện tại",
+    statuses: {
+      IN_PROGRESS: "Đang xử lý",
+      CONFIRMED: "Đã xác nhận",
+      TERMINATED: "Đã chấm dứt",
+    },
+    confirmationNo: "Mã xác nhận",
+    copy: "Sao chép",
+    copied: "Đã sao chép",
+    confirmedAt: "Thời điểm xác nhận",
+    chainRecord: "Bản ghi blockchain",
+    explorer: "Xem trên trình khám phá",
+
+    progressTitle: "Tiến trình",
+    steps: {
+      submitted: {
+        title: "Người sử dụng lao động gửi",
+        description: (count: number) =>
+          `Tệp gốc và ${count} mục đã kiểm tra đã được lưu.`,
+      },
+      translation: {
+        title: "Dịch",
+        description: "Đã dịch xong và gửi yêu cầu xác nhận.",
+      },
+      worker: {
+        title: "Người lao động xác nhận",
+        description: (name?: string | null) =>
+          name ? `${name} đã xác nhận.` : "Người lao động đã xác nhận.",
+      },
+      authority: {
+        title: "Cơ quan giám sát xác nhận",
+        current: "Cơ quan giám sát đang kiểm tra nội dung hợp đồng.",
+        done: "Cơ quan giám sát đã xác nhận.",
+      },
+      confirm: {
+        title: "Xác nhận · Cấp mã xác nhận",
+        current: "Đang ghi nội dung đã xác nhận lên blockchain.",
+        failed:
+          "Ghi lên blockchain thất bại. Khi ghi lại thành công, chúng tôi sẽ báo mã xác nhận cho bạn.",
+        waiting:
+          "Sau khi cơ quan giám sát xác nhận xong, hệ thống sẽ ghi lên blockchain.",
+        done: "Đã ghi lên blockchain và cấp mã xác nhận.",
+      },
+    },
+    stepStatuses: {
+      current: "Đang xử lý",
+      failed: "Thất bại",
+      waiting: "Chờ",
+    },
+    progressHint: {
+      recording:
+        "Việc ghi thường xong trong 1~2 phút. Dù bạn đóng màn hình này, quá trình vẫn tiếp tục; khi được xác nhận, bạn có thể xem mã xác nhận tại Hợp đồng của tôi.",
+      authority:
+        "Việc cơ quan giám sát kiểm tra có thể mất thời gian. Dù bạn đóng màn hình này, quá trình vẫn tiếp tục; khi được xác nhận, bạn có thể xem mã xác nhận tại Hợp đồng của tôi.",
+    },
+
+    reviewAgain: "Xem lại nội dung đã xác nhận",
+    toContracts: "Đến Hợp đồng của tôi",
+    lookup: "Tra cứu bằng mã xác nhận",
+  },
+} satisfies Record<UiLanguage, ContractReviewDoneLabels>;

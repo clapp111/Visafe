@@ -8,6 +8,7 @@ import {
   useFileDownloadUrl,
 } from "@/entities/contract";
 import { getApiErrorCode, getApiErrorFeedback } from "@/shared/api";
+import { messages, useCurrentLanguage } from "@/shared/i18n";
 import { cn, formatFileSize } from "@/shared/lib";
 import {
   DocumentViewer,
@@ -15,8 +16,14 @@ import {
   LoadingState,
   type DocumentViewerProps,
 } from "@/shared/ui";
+import { CONTRACT_FILE_VIEWER_LABELS } from "../model/labels";
 
-const loading = <LoadingState label="원본 계약서를 불러오는 중입니다" />;
+function ViewerLoading() {
+  const language = useCurrentLanguage();
+  return <LoadingState label={CONTRACT_FILE_VIEWER_LABELS[language].loading} />;
+}
+
+const loading = <ViewerLoading />;
 const PdfPreview = dynamic(
   () => import("./pdf-preview").then((module) => module.PdfPreview),
   { ssr: false, loading: () => loading },
@@ -37,10 +44,12 @@ function FileViewer({
   contractId,
   fileId,
   page,
-  title = "원본 계약서",
+  title,
   hint,
   ...viewerProps
 }: ContractFileViewerProps) {
+  const language = useCurrentLanguage();
+  const labels = CONTRACT_FILE_VIEWER_LABELS[language];
   const query = useFileDownloadUrl(contractId, fileId);
   const download = useDownloadContractFile(contractId, fileId);
   const [loaded, setLoaded] = useState<{ file: Preview; pageCount: number }>();
@@ -78,9 +87,9 @@ function FileViewer({
   } else if (!loaded && query.isError) {
     content = (
       <ErrorState
-        title="원본 계약서를 불러오지 못했습니다"
+        title={labels.loadError}
         message={
-          getApiErrorFeedback(getApiErrorCode(query.error), "ko").message
+          getApiErrorFeedback(getApiErrorCode(query.error), language).message
         }
         onRetry={retryPreview}
       />
@@ -88,9 +97,7 @@ function FileViewer({
   } else if (!file) {
     content = loading;
   } else if (failedUrl === file.url) {
-    content = (
-      <ErrorState title="원본 파일을 읽지 못했습니다" onRetry={retryPreview} />
-    );
+    content = <ErrorState title={labels.readError} onRetry={retryPreview} />;
   } else if (file.mimeType === "application/pdf") {
     content = (
       <PdfPreview
@@ -109,7 +116,7 @@ function FileViewer({
         <img
           key={file.url}
           src={file.url}
-          alt={file.fileName ?? "원본 계약서"}
+          alt={file.fileName ?? labels.title}
           className={cn(
             "max-h-full max-w-full object-contain",
             !loaded && "hidden",
@@ -120,13 +127,15 @@ function FileViewer({
       </>
     );
   } else {
-    content = <ErrorState title="미리보기를 지원하지 않는 파일 형식입니다" />;
+    content = <ErrorState title={labels.unsupported} />;
   }
 
   const fileInfo = file
     ? [
         file.fileName,
-        pageCount === undefined ? undefined : `${pageCount}쪽`,
+        pageCount === undefined
+          ? undefined
+          : messages[language].pageCount(pageCount),
         file.sizeBytes === undefined
           ? undefined
           : formatFileSize(file.sizeBytes),
@@ -138,7 +147,7 @@ function FileViewer({
   return (
     <DocumentViewer
       {...viewerProps}
-      title={title}
+      title={title ?? labels.title}
       page={currentPage}
       pageCount={pageCount}
       fileInfo={fileInfo}
@@ -150,7 +159,7 @@ function FileViewer({
             {hint}
             <span role="alert" className="block text-danger">
               {
-                getApiErrorFeedback(getApiErrorCode(download.error), "ko")
+                getApiErrorFeedback(getApiErrorCode(download.error), language)
                   .message
               }
             </span>

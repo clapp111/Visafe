@@ -1,9 +1,9 @@
 import type { components } from "@/shared/api";
+import type { UiLanguage } from "@/shared/i18n";
 
 type Schemas = components["schemas"];
 
-/** 계약 등록 2단계 문구. 화면 언어(#54)가 붙으면 언어별 값으로 바꾼다. */
-export const CONTRACT_DRAFT_LABELS = {
+const ko = {
   breadcrumb: "현재 위치",
   home: "홈",
   register: "계약 등록",
@@ -122,4 +122,124 @@ export const CONTRACT_DRAFT_LABELS = {
   sending: "보내는 중",
 };
 
-export type ContractDraftLabels = typeof CONTRACT_DRAFT_LABELS;
+export type ContractDraftLabels = typeof ko;
+
+/** 계약 등록 2단계 문구 */
+export const CONTRACT_DRAFT_LABELS = {
+  ko,
+  vi: {
+    breadcrumb: "Vị trí hiện tại",
+    home: "Trang chủ",
+    register: "Đăng ký hợp đồng",
+    title: "Kiểm tra · Sửa nội dung hợp đồng",
+    loading: "Đang tải nội dung hợp đồng",
+    loadError: "Không thể tải nội dung hợp đồng",
+    description: [
+      "Đây là các mục chính AI đã đọc từ hợp đồng gốc.",
+      "Hãy so sánh với bản gốc bên trái và sửa các mục khác với bản gốc hoặc còn trống.",
+    ],
+
+    attentionTitle: (count: number) => `Có ${count} mục cần kiểm tra.`,
+    attentionReasons: {
+      UNREAD: "Không đọc được từ bản gốc. Hãy nhập trực tiếp.",
+      MIN_WAGE: "Có thể thấp hơn mức lương tối thiểu.",
+      NEEDS_CHECK: "Cần kiểm tra lại.",
+      REPORTED: "Người lao động đã báo là khác với bản gốc.",
+    },
+
+    returnedTitle: {
+      WORKER:
+        "Hợp đồng bị trả lại vì người lao động báo có phần khác với bản gốc",
+      AUTHORITY: "Cơ quan giám sát đã trả lại hợp đồng",
+    },
+    returnedAt: "Thời điểm trả lại",
+    reportedFields: "Các mục bị báo",
+    returnedReason: {
+      WORKER: "Lý do của người lao động",
+      AUTHORITY: "Lý do trả lại",
+    },
+    reasonOriginal: "Nguyên văn",
+    returnedHint:
+      "Hãy so sánh các mục bị báo với bản gốc, sửa lại rồi gửi lại; sau khi dịch, người lao động sẽ xác nhận lại. Nếu chính tệp gốc bị sai, hãy tải lên lại bản gốc.",
+
+    viewerHint: "Hãy lật trang để so sánh với các mục bên phải.",
+    viewerPreview: (page: number) => `Xem trước trang ${page} của hợp đồng gốc`,
+    viewerDownload: "Tải xuống bản gốc",
+
+    fieldsTitle: "Các mục chính đã trích xuất",
+    required: "Bắt buộc",
+    groups: {
+      parties: "Các bên trong hợp đồng",
+      period: "Thời hạn hợp đồng · Nơi làm việc",
+      hours: "Giờ làm việc · Ngày nghỉ",
+      wage: "Tiền lương · Ăn ở",
+    },
+    partiesHint:
+      "Người sử dụng lao động (chủ doanh nghiệp) là công ty; người đại diện là người ký thay mặt công ty.",
+    valueSources: {
+      EMPLOYER_EDIT: "Đã tự sửa",
+      EMPLOYER_INPUT: "Đã tự nhập",
+    },
+    reported: "Người lao động báo",
+    sourceClause: (pageNo: number, clauseNo?: string | null) =>
+      clauseNo
+        ? `Bản gốc trang ${pageNo} · ${clauseNo}`
+        : `Bản gốc trang ${pageNo}`,
+    unread: "Không đọc được từ bản gốc. Hãy nhập trực tiếp.",
+    warningPrefix: "Cần kiểm tra:",
+    aiValue: (value: string) => `Giá trị AI đọc được: ${value}`,
+
+    extracting: "AI đang đọc các mục từ bản gốc",
+    extractingHint:
+      "Thường mất 1~2 phút. Quá trình vẫn tiếp tục dù bạn đóng màn hình này.",
+    extractionFailed: "AI không đọc được các mục từ bản gốc",
+    extractionFailedHint:
+      "Hãy thử lại, hoặc tải lên lại bản gốc bằng tệp có chữ rõ ràng.",
+    retryExtraction: "Thử lại",
+
+    confirmNotice:
+      "Giá trị nhận dạng có thể sai. Hãy so sánh tất cả các mục với bản gốc rồi xác nhận.",
+    confirmCheck:
+      "Tôi xác nhận các mục trên giống với nội dung hợp đồng gốc đã tải lên.",
+    confirmRequired: "Hãy đánh dấu sau khi kiểm tra đã giống với hợp đồng gốc.",
+    confirmHint:
+      "Các mục tự sửa hoặc tự nhập sẽ được đánh dấu bằng tô sáng và nhãn Người sử dụng lao động nhập trên màn hình của người lao động; người lao động có thể xem cả giá trị nhận dạng và bản gốc.",
+    reupload: "Trước: Tải lên lại bản gốc",
+    submit: "Gửi và yêu cầu xác nhận",
+    saving: "Đang lưu",
+
+    reuploadTitle: "Tải lên lại bản gốc?",
+    reuploadDescription:
+      "Khi tải lên bản gốc mới, tất cả các mục đã sửa sẽ bị xóa và AI sẽ đọc lại từ đầu.",
+    reuploadFileLabel: "Tệp gốc mới",
+    reuploadFileHint: "PDF, JPG, PNG · tối đa 10MB",
+    dropLabel: "Kéo tệp thả vào đây hoặc",
+    selectFile: "Chọn tệp",
+    fileListLabel: "Tệp sẽ tải lên",
+    removeFile: "Xóa",
+    fileRequired: "Hãy chọn tệp gốc mới.",
+    fileTypeInvalid: "Chỉ có thể tải lên tệp PDF, JPG, PNG.",
+    fileTooLarge: "Chỉ có thể tải lên tệp tối đa 10MB.",
+    cancel: "Hủy",
+    upload: "Tải lên và đọc lại",
+    uploading: "Đang tải lên",
+
+    requiredMissing: "Đây là mục bắt buộc. Hãy nhập giá trị.",
+    submitTitle: "Gửi yêu cầu xác nhận cho người lao động?",
+    submitDescription:
+      "Khi gửi, việc dịch sẽ bắt đầu và yêu cầu xác nhận sẽ được gửi cho người lao động ngay khi dịch xong.",
+    recipient: "Người nhận",
+    termsToConfirm: "Các mục sẽ xác nhận",
+    termCount: (count: number, employerCount: number) =>
+      employerCount > 0
+        ? `${count} mục (gồm ${employerCount} mục người sử dụng lao động nhập)`
+        : `${count} mục`,
+    remainingWarnings: (count: number) => `Còn ${count} mục cần kiểm tra.`,
+    remainingWarningsHint: (names: string) =>
+      `Màn hình của người lao động cũng sẽ hiện cùng lưu ý cho các mục: ${names}.`,
+    submitNote:
+      "Nếu sửa nội dung sau khi gửi, xác nhận của người lao động sẽ mất hiệu lực và cần xác nhận lại.",
+    send: "Gửi",
+    sending: "Đang gửi",
+  },
+} satisfies Record<UiLanguage, ContractDraftLabels>;
